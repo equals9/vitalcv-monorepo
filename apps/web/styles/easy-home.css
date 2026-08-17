@@ -819,7 +819,13 @@
   color: var(--vt-home-f-ink-subtle);
 }
 
-.ezh .ezh-rv-step.is-read { color: var(--vt-home-f-ink); }
+/* The read-settle beat: a step that has just been read arrives signal-hued
+   and settles to ink (single-shot, state-transition band — the cursor-field
+   study's one adopted behaviour). The reduced-motion block below stops it. */
+.ezh .ezh-rv-step.is-read {
+  color: var(--vt-home-f-ink);
+  animation: ezh-read-settle 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
 .ezh .ezh-rv-step.is-running { color: var(--vt-home-f-ink-strong); }
 
 .ezh .ezh-rv-dot {
@@ -831,7 +837,10 @@
   align-self: center;
 }
 
-.ezh .ezh-rv-step.is-read .ezh-rv-dot { background: var(--vt-home-f-ink); }
+.ezh .ezh-rv-step.is-read .ezh-rv-dot {
+  background: var(--vt-home-f-ink);
+  animation: ezh-read-settle-dot 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
 .ezh .ezh-rv-step.is-running .ezh-rv-dot { background: var(--vt-home-f-signal); }
 
 .ezh .ezh-rv-now {
