@@ -113,7 +113,7 @@ source supports.
 | MCP authorization (2025-11-25) | Confirmed |
 | OIG LEIE supplements | Monthly files labelled by month of action, distinct from the page's update date — confirms the source-time vs fetch-time distinction |
 | FIPS 204 (ML-DSA) | Final, 2024-08-13 |
-| FTC, *Using Consumer Reports* | **Overstated.** The page says employment background checks are consumer reports. It says nothing about a platform that assembles and furnishes verifications. That question needs 15 U.S.C. §1681a(f), not this page |
+| FTC, *Using Consumer Reports* | **Overstated.** The page says employment background checks are consumer reports. It says nothing about a platform that assembles and furnishes verifications. That question needs 15 U.S.C. §1681a(f) and the FTC's *40 Years of Experience with the FCRA* staff report, which an earlier internal read found addresses employment verifications directly. The staff report was not re-fetched for this record |
 | Joint Commission PSV | A public FAQ exists (IDs 000001357, 000001472), but it could not be read directly. The "through the applicant or his or her agent" wording is confirmed only secondhand, attributed to a JCI white paper |
 
 **What §3 changes.** 482.22 is the strongest single piece of evidence *for* the mechanism: the one
