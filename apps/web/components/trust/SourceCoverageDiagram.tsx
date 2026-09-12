@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { coverageLabel } from '@vitalcv/licensure';
 import { SOURCE_LANE_OPS, type SourceLaneOps } from '@/lib/trust/sourceLanes';
+import { laneAvailabilityLabel } from '@/lib/trust/laneAvailability';
 
 /**
  * SourceCoverageDiagram — the lane spine, drawn.
@@ -29,14 +30,20 @@ import { SOURCE_LANE_OPS, type SourceLaneOps } from '@/lib/trust/sourceLanes';
  *  - No animation: this is evidence, not chrome.
  */
 
-type Tone = { fill: string; label: string };
-
-/** Lifecycle → how the bar reads. `demo_only` deliberately reads as NOT connected. */
-const TONE: Record<SourceLaneOps['lifecycle'], Tone> = {
-  active: { fill: 'var(--vt-state-source-confirmed)', label: 'Available' },
-  planned: { fill: 'var(--vt-state-stale, #a2670b)', label: 'Access required' },
-  demo_only: { fill: 'var(--vt-text-muted)', label: 'Not connected' },
-  unintegrated: { fill: 'var(--vt-text-muted)', label: 'Not connected' },
+/**
+ * Lifecycle → how the bar reads.
+ *
+ * The WORDS are no longer written here. This file used to carry its own label
+ * map, and it had drifted from the rows directly beneath it on /trust: the same
+ * lane read "Not connected" in the diagram and "Not yet connected" in the table
+ * one element away. Both come from `laneAvailability.ts` now. Only the
+ * fill colour stays local, because only a diagram needs one.
+ */
+const FILL_TONE: Record<SourceLaneOps['lifecycle'], string> = {
+  active: 'var(--vt-state-source-confirmed)',
+  planned: 'var(--vt-state-stale, #a2670b)',
+  demo_only: 'var(--vt-text-muted)',
+  unintegrated: 'var(--vt-text-muted)',
 };
 
 /**
@@ -68,7 +75,7 @@ function licensureStateLabel(): string {
   const suffix = headline.split('—')[1]?.trim();
   // Fall back to the generic gated wording rather than rendering a half-parsed
   // sentence if the upstream label format ever changes.
-  return suffix ? capitalize(suffix) : TONE.planned.label;
+  return suffix ? capitalize(suffix) : laneAvailabilityLabel('planned');
 }
 
 function capitalize(value: string): string {
@@ -78,7 +85,7 @@ function capitalize(value: string): string {
 function stateLabelFor(lane: SourceLaneOps): string {
   return lane.readinessDimension === 'licensure'
     ? licensureStateLabel()
-    : TONE[lane.lifecycle].label;
+    : laneAvailabilityLabel(lane.lifecycle);
 }
 
 /** How full the bar reads. Availability is categorical, so these are the only three widths. */
@@ -115,7 +122,7 @@ export function SourceCoverageDiagram({ lanes = SOURCE_LANE_OPS }: { lanes?: rea
       >
         {lanes.map((lane, i) => {
           const y = i * ROW_H + 6;
-          const tone = TONE[lane.lifecycle];
+          const fill = FILL_TONE[lane.lifecycle];
           return (
             <g key={lane.laneId}>
               <text
@@ -145,7 +152,7 @@ export function SourceCoverageDiagram({ lanes = SOURCE_LANE_OPS }: { lanes?: rea
                 width={BAR_W * FILL[lane.lifecycle]}
                 height={12}
                 rx={2}
-                fill={tone.fill}
+                fill={fill}
                 opacity={lane.lifecycle === 'active' ? 0.85 : 0.5}
               />
 
