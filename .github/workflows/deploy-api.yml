@@ -121,7 +121,7 @@ jobs:
       #
       # The steps below probe the API's own surface. They run AFTER the wait,
       # so the SHA has already landed and nothing here re-races the deploy.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
