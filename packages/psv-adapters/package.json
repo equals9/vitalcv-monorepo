@@ -14,7 +14,7 @@
     "@vitalcv/ingest": "workspace:*"
   },
   "devDependencies": {
-    "fast-check": "^3.23.2",
+    "fast-check": "^4.9.0",
     "typescript": "^5.4.5",
     "vitest": "^4.1.10"
   }
