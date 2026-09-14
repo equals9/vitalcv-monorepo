@@ -7,7 +7,7 @@ is the canonical production deploy path. The full step-by-step
 runbook lives at `docs/ops/railway-deploy-runbook.md`. Summary:
 
 1. Railway dashboard → New Service → Deploy from GitHub repo →
-   select `ctol3r/vitalcv`.
+   select `equals9/vitalcv-monorepo`.
 2. Set **Root Directory** to `apps/web`.
 3. Builder = **Nixpacks** (auto-detected from `apps/web/nixpacks.toml`).
 4. Set the two required env vars in the Railway Variables tab
