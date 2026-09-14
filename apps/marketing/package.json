@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
-    "next": "15.5.22",
+    "next": "15.5.25",
     "pdfkit": "^0.19.1",
     "prisma": "^6.19.0",
     "react": "^19",
