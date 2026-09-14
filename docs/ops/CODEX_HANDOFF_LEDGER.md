@@ -3,6 +3,39 @@
 Append-only. **Newest entry at the top.** One entry per work order is recorded
 in the same pull request as its implementation or takeover evidence.
 
+## ON-WO-1b · Your terms on every row of the signed-in Roles list — OPEN
+
+- **Date:** 2026-09-14
+- **Lane:** Claude Code (branch `feat/whats-next-terms-on-list`, worktree `/tmp/vitalcv-on-wo1b`,
+  stacked on `feat/whats-next-intent-fit` @ `f80d161cf` = #1478; base `origin/main` @ `fa7e47b71`).
+- **Claim-check:** #1478 (WO-1a) re-read and its focused suites re-run here; it owns the
+  evaluator and the detail section and is reused, not duplicated. #1462 edits the same
+  `OpportunityGrid` (apply-button block, deep-link guard) — distinct hunks, overlap recorded in
+  the program record. #1438, #1469, #1460, #1377/#1381/#1382 untouched. Neither the deck nor
+  `/explore` was changed (see program record for why).
+- **Change:** `OpportunityGrid` reads the account-scoped terms once and renders, on each row, every
+  stated term as met / not met / unknown against the role record, the first unsettled
+  non-negotiable term's reason and settling question, and the hard-miss heading; one list-level
+  line for loading / no terms / degraded store. Pure `statedConstraintKeys` added to
+  `constraintFit.ts`. One minimized event `clinician.terms_checked` (counts only). Program record
+  §6b: `docs/strategy/opportunity-network-execution-2026-09-14.md`.
+- **Truth, authority, and transaction boundary:** No schema, route, API, packet, consent,
+  acceptance, decision, or apply-path change. Terms remain self-stated preferences, never
+  evidence; a hard miss is reported, never used to hide, drop, or reorder a role; unknown is
+  neither a pass nor a fail; nothing is emitted to an employer; the event carries no preference
+  values, role identifiers, or free text.
+- **Evidence:** focused vitest 273/273 across the affected suites; `tsc` clean; web lint clean;
+  `check:design`, `check:copy`, `check:claims`, `check:routes` PASS; `next build` PASS; full web
+  vitest recorded in the PR. Injection proof: dropping `hard_not_met` rows fails the suite.
+  Rendered through the real Clerk development-instance gate on a local production build against a
+  local backend and a disposable database with one synthetic feed row: authed `PUT`/`GET` on
+  `/api/matcha/preferences` round-tripped `hardConstraints`; the list rendered `hard_not_met`
+  (location not met; pay and arrangement unknown) at 1440×900 and 390×844 with zero horizontal
+  overflow; clearing terms rendered the single no-terms line. Frames:
+  `docs/design/evidence/on-wo1b-terms-on-list-2026-09-14/`.
+- **Next gate:** review, after #1478. Merge is not authorized by this entry (push to `main`
+  deploys). Next work order: WO-1c, the deck mapper pass-through, then the same strip on the deck.
+
 ## ON-WO-1a · Your terms on the signed-in role detail — OPEN
 
 - **Date:** 2026-09-14

@@ -5,7 +5,8 @@ redesign proposal). Rank 5 in the [source-of-truth order](./README.md#source-of-
 it records decisions and evidence; it does not change positioning, vocabulary, or any truth,
 privacy, or security contract. The canonical strategy documents stay canonical.
 
-**Base:** `origin/main` @ `fa7e47b71` · **Branch:** `feat/whats-next-intent-fit`
+**Base:** `origin/main` @ `fa7e47b71` · **Branches:** `feat/whats-next-intent-fit` (WO-1a, #1478) →
+`feat/whats-next-terms-on-list` (WO-1b, stacked on it)
 
 ## 1. Verdict
 
@@ -74,6 +75,20 @@ Format: question → decision affected → finding → source/date → confidenc
   or recipient-specific acceptance. Medium confidence. What remains differentiated at parity
   on AI search/drafting/tracking: hard terms that bind, unknown as a first-class answer,
   recipient commitments, follow-through. **NOW** (shapes copy: no superiority claims).
+- **R2 refresh (second pass, 14 Sep)** → what the row must say → LinkedIn's *Job Match / How
+  you match* reports which of the **employer's** required and preferred qualifications the
+  person meets or lacks (help center, accessed 2026-09-14, marketed). That is candidate-to-role.
+  Vivian filters listings by pay, shift and hours (vivian.com, accessed 2026-09-14, marketed);
+  a filter removes the role rather than saying which of the person's terms it fails. Neither
+  advertises the role checked against the person's own terms with *unknown* as an answer.
+  Medium confidence; presentation only, not tested hands-on. **NOW** (WO-1b copy carries no
+  superiority claim).
+- **Later Astra discussion (13 Sep, after the redesign)** → sequencing → sharpens the target
+  state to "an opportunity arrives with its conditions understood and as many as possible
+  already satisfied" and "how much uncertainty can we remove before the person says yes."
+  WO-1a/1b remove the uncertainty the person can settle from a role record; R6 (employer
+  commitment before the person invests weeks) is the next uncertainty and needs a reachable
+  institution. Entrepreneurship is one participation mode; nothing here assumes it.
 - **R3 first five minutes** → entry design → not researched with users. Prepared, unexecuted:
   a five-minute usability task with a no-match scenario (§8). **NEXT.**
 - **R4 portable state** → representation slice → existing `ClaimRecord`/`ApplicationPacket`
@@ -118,6 +133,23 @@ Format: question → decision affected → finding → source/date → confidenc
   No schema change, no route added, no chrome change, no apply-path change.
 - 2026-09-14 · **Not built:** a saved-opportunity model (exists), a "What's next" route
   (chrome is founder-gated), any score, any employer-facing read of terms.
+- 2026-09-14 · **Slice WO-1b = the same terms check on every row of the signed-in Roles
+  list** (`/holder/opportunities`, and the home excerpt that reuses `OpportunityGrid`). The
+  rows already carry the full `OpportunitySummary` shape, so the evaluator applies with no
+  adapter and no backend change. One list-level line replaces per-row nagging when no terms
+  are set. One minimized analytics event, `clinician.terms_checked` (counts only), is the
+  "comparison available" measure.
+- 2026-09-14 · **Not built in WO-1b:** the Discover deck — its server mapper
+  (`liveRecommendation.ts`) drops `schedule`, `visaSponsorshipStatus`, `payUnit` and
+  `compensationProvenance`, so a terms check there would report every dimension unknown
+  until the mapper passes them through (recorded as the next work order, not hidden behind
+  an adapter). `/explore` — public surface under the founder visual gate; the signed-in list
+  is the right first home for a per-person check.
+- 2026-09-14 · **Overlap recorded:** #1462 edits the same `OpportunityGrid` (apply-button
+  block and deep-link guard). WO-1b touches the imports, the row's data attribute, and a
+  strip above the footer; the hunks are distinct but adjacent. Whichever lands second
+  rebases; #1462's render test mocks `RoleContext` without `useOptionalRoleContext` and will
+  need the one-line mock addition made here in `mobile-launch-analytics.test.tsx`.
 - 2026-09-14 · **Merge is not authorized by this record.** Push to `main` deploys web and
   API; production promotion needs an explicit founder instruction.
 
@@ -140,15 +172,47 @@ Format: question → decision affected → finding → source/date → confidenc
 - **Tests:** `__tests__/constraint-fit.test.ts`, `__tests__/opportunity-detail-terms.test.tsx`,
   plus the existing preference, sanitizer, onboarding-script and detail-continuity suites.
 
+## 6b. Work order WO-1b (done in `feat/whats-next-terms-on-list`)
+
+- **User problem:** on the Roles list a clinician had to open each role to learn which of
+  their terms it settled, failed, or left open; the comparison happened only after the click.
+- **Outcome:** every row shows each stated term as met / not met / unknown against the role
+  record, with the first non-negotiable term the record does not settle carrying its reason
+  and the settling question; a hard miss is stated on the row; the role and both of its
+  actions stay; nothing is filtered, hidden, or reordered.
+- **Owner / delta:** `components/mobile/ClinicianPanels.tsx` (`OpportunityGrid` reads
+  `useMatchaPreferences` once; `TermsListNote`, `TermsStrip`), `lib/matcha/constraintFit.ts`
+  (+`statedConstraintKeys`, pure), `lib/mobile/analytics.ts` (+`clinician.terms_checked`).
+- **Non-goals:** ranking, filtering, the deck, `/explore`, employer visibility, any schema,
+  route, API, packet, consent, acceptance, or apply-path change.
+- **Negative criteria (tested):** a hard miss stays in place and first; unknown is never
+  rendered as met; "no terms" is said once per list, never per row; no verdict renders before
+  the account store answers; a degraded store is disclosed; no score, percentage, eligibility
+  wording, or bare `Verified` renders; `statedConstraintKeys` agrees with the evaluator on
+  six preference shapes. **Injection proof:** a one-line defect that dropped `hard_not_met`
+  rows failed the "never filters or reorders" case and the hard-miss case; restored, green.
+- **Tests:** `__tests__/opportunity-grid-terms.test.tsx` (14), plus the existing
+  constraint-fit, detail-terms, launch-analytics, apply-disclosure, holder-route, and
+  customer-language suites.
+- **Rendered:** `docs/design/evidence/on-wo1b-terms-on-list-2026-09-14/` — real Clerk
+  development gate, local production build, local backend, disposable database, one
+  synthetic feed row; 1440×900 and 390×844, zero horizontal overflow, reduced-motion pass,
+  keyboard focus on the terms link.
+
 ## 7. Next work orders (ranked)
 
-1. **WO-1b** — surface the same terms check on the discover deck and `/explore` rows so the
-   comparison happens before the click (same evaluator; needs preferences on those surfaces).
+1. **WO-1c** — pass `schedule`, `visaSponsorshipStatus`, `payUnit`, `payRangeMin/Max` and
+   `compensationProvenance` through `lib/matcha-deck/liveRecommendation.ts` from the backend
+   match payload (which already serves them to the list), then mount the same strip on the
+   deck card and detail sheet. Without the pass-through a deck check would say "unknown" for
+   facts the record states — a false silence.
 2. **WO-6-lite** — first employer-confirmed role via a manual confirmation record
    (`listingSource = 'employer_posted'` through the existing employer route) with a named
    confirmer and response commitment. Prerequisite: a reachable employer (founder).
 3. **Follow-up** — `preferenceMatchReasons` compares pay without units; align it with
    `constraintFit` or route it through the same evaluator.
+4. **Instrumentation** — `clinician.terms_set` from the onboarding step (counts only), so the
+   R12 falsifier "terms-set rate ≈ 0" is measurable alongside `terms_checked`.
 
 ## 8. Prepared, unexecuted instruments
 
