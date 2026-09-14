@@ -1,0 +1,720 @@
+{
+  "label": "before",
+  "baseURL": "http://127.0.0.1:3277",
+  "capturedAt": "2026-08-16T21:27:19.074Z",
+  "fixtures": "synthetic only — NPI 1558395518 (check-digit-invalid by design, sanctioned synthetic family) / fabricated name Ada Rivers; all network stubbed",
+  "consoleErrors": [
+    {
+      "scenario": "entry",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "scenario": "entry-reduced",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "scenario": "checksum-error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "scenario": "identity",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+    },
+    {
+      "scenario": "identity",
+      "text": "Failed to fetch RSC payload for http://127.0.0.1:3277/holder/home. Falling back to browser navigation. TypeError: Failed to fetch\n    at y (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:124181)\n    at async _ (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:123039)\n    at async Object.o [as task] (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee"
+    },
+    {
+      "scenario": "readiness",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+    },
+    {
+      "scenario": "readiness",
+      "text": "Failed to fetch RSC payload for http://127.0.0.1:3277/holder/home. Falling back to browser navigation. TypeError: Failed to fetch\n    at y (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:124181)\n    at async _ (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:123039)\n    at async Object.o [as task] (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee"
+    }
+  ],
+  "pageErrors": [],
+  "scenarios": {
+    "entry-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 448,
+            "h": 75
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 448,
+            "h": 105
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 17
+    },
+    "entry-1280x800": {
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "maxElementRight": 1280,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 448,
+            "h": 75
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 448,
+            "h": 105
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 17
+    },
+    "entry-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 342,
+            "h": 57
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 342,
+            "h": 132
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 16
+    },
+    "entry-reduced": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 448,
+            "h": 75
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 448,
+            "h": 105
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 17
+    },
+    "checksum-error-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 448,
+            "h": 75
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 448,
+            "h": 105
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 17
+    },
+    "checksum-error-1280x800": {
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "maxElementRight": 1280,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 448,
+            "h": 75
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 448,
+            "h": 105
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 17
+    },
+    "checksum-error-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "oklch(0.16 0.005 85)",
+          "contrast": 16.75,
+          "rect": {
+            "w": 342,
+            "h": 57
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklch(0.46 0.01 85)",
+          "contrast": 6.11,
+          "rect": {
+            "w": 342,
+            "h": 132
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 42,
+          "h": 17
+        }
+      ],
+      "targetCount": 16
+    },
+    "fetching-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 654,
+            "h": 36
+          }
+        },
+        {
+          "selector": "main h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 654,
+            "h": 36
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.6)",
+          "contrast": 1.04,
+          "rect": {
+            "w": 654,
+            "h": 24
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back",
+          "w": 33,
+          "h": 20
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "w": 116,
+          "h": 40
+        }
+      ],
+      "targetCount": 4
+    },
+    "fetching-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 308,
+            "h": 32
+          }
+        },
+        {
+          "selector": "main h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 308,
+            "h": 32
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.6)",
+          "contrast": 1.04,
+          "rect": {
+            "w": 308,
+            "h": 24
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back",
+          "w": 33,
+          "h": 20
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "w": 116,
+          "h": 40
+        }
+      ],
+      "targetCount": 4
+    },
+    "identity-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 768,
+            "h": 36
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.45)",
+          "contrast": 1.03,
+          "rect": {
+            "w": 768,
+            "h": 17
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back to NPI",
+          "w": 100,
+          "h": 20
+        },
+        {
+          "tag": "a",
+          "text": "Exit onboarding",
+          "w": 160,
+          "h": 40
+        }
+      ],
+      "targetCount": 7
+    },
+    "identity-1280x800": {
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "maxElementRight": 1280,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 768,
+            "h": 36
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.45)",
+          "contrast": 1.03,
+          "rect": {
+            "w": 768,
+            "h": 17
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back to NPI",
+          "w": 100,
+          "h": 20
+        },
+        {
+          "tag": "a",
+          "text": "Exit onboarding",
+          "w": 160,
+          "h": 40
+        }
+      ],
+      "targetCount": 7
+    },
+    "identity-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 358,
+            "h": 32
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.45)",
+          "contrast": 1.03,
+          "rect": {
+            "w": 358,
+            "h": 17
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back to NPI",
+          "w": 81,
+          "h": 40
+        },
+        {
+          "tag": "a",
+          "text": "Exit onboarding",
+          "w": 129,
+          "h": 40
+        }
+      ],
+      "targetCount": 7
+    },
+    "readiness-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 768,
+            "h": 36
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.45)",
+          "contrast": 1.03,
+          "rect": {
+            "w": 768,
+            "h": 17
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back to profile review",
+          "w": 163,
+          "h": 20
+        },
+        {
+          "tag": "a",
+          "text": "Exit onboarding",
+          "w": 160,
+          "h": 40
+        }
+      ],
+      "targetCount": 6
+    },
+    "readiness-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 358,
+            "h": 32
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.45)",
+          "contrast": 1.03,
+          "rect": {
+            "w": 358,
+            "h": 17
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back to profile review",
+          "w": 105,
+          "h": 40
+        },
+        {
+          "tag": "a",
+          "text": "Exit onboarding",
+          "w": 124,
+          "h": 40
+        }
+      ],
+      "targetCount": 6
+    },
+    "readiness-completed": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(247, 245, 241)",
+          "contrast": 1.06,
+          "rect": {
+            "w": 768,
+            "h": 36
+          }
+        },
+        {
+          "selector": "p",
+          "color": "oklab(0.970576 0.000542343 0.00570154 / 0.45)",
+          "contrast": 1.03,
+          "rect": {
+            "w": 768,
+            "h": 17
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Back to profile review",
+          "w": 163,
+          "h": 20
+        },
+        {
+          "tag": "a",
+          "text": "Exit onboarding",
+          "w": 160,
+          "h": 40
+        }
+      ],
+      "targetCount": 6
+    }
+  }
+}

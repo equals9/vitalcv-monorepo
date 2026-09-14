@@ -3,9 +3,23 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowRight, ShieldCheck } from 'lucide-react';
 
 import { ResolverProgressIndicator } from '@/components/onboarding/ResolverProgressIndicator';
+import { ObaRoot, ObaStage } from '@/components/onboarding/ActivationScene';
+
+/**
+ * /onboarding/fetching — the hand-off beat between NPI entry and the profile
+ * review step. Kicks off the background credential ingest and paces the
+ * transition forward.
+ *
+ * REGISTER (design-only, 2026-08-16): recomposed into the Direction A `.oba`
+ * island. The previous treatment was authored for a dark surface
+ * (`text-white` on white/10 panels) while the route-group layout painted
+ * light paper — white-on-white copy in production. The register pass renders
+ * ink on warm paper, the NPI as a mono machine fact, and the paced resolver
+ * rows in the island grammar. Every redirect, storage read, ingest POST, and
+ * error path is unchanged.
+ */
 
 function readStoredNpi(): string {
   if (typeof window === 'undefined') {
@@ -63,65 +77,52 @@ function OnboardingFetchingContent() {
   );
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] max-w-3xl flex-col justify-center px-4 py-6 text-foreground sm:px-6 sm:py-10">
-      <section className="rounded-[30px] border border-white/10 bg-white/[0.04] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:p-8">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
-          <ShieldCheck className="h-3.5 w-3.5 text-sky-300" aria-hidden="true" />
-          Recognizing record
-        </div>
+    <ObaRoot>
+      <main className="oba-step-wrap flex min-h-[100dvh] flex-col justify-center">
+        <ObaStage>
+          <p className="oba-k">Reading your public record</p>
 
-        <h1 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-white sm:text-3xl">
-          Snapshot in view
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-white/60 sm:text-base">
-          Bringing the snapshot forward.
-        </p>
-
-        {npi ? (
-          <p className="mt-5 inline-flex rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[12px] text-white/75">
-            NPI {formatNpi(npi)}
+          <h1 className="oba-h1 mt-4">Bringing your record forward</h1>
+          <div className="oba-rule" aria-hidden="true" />
+          <p className="oba-lede mt-4">
+            VitalCV is reading the public registry record for your NPI. Your next
+            step opens on its own.
           </p>
-        ) : null}
 
-        <div className="mt-7">
-          <ResolverProgressIndicator
-            durationPerStep={540}
-            onComplete={() => {
-              router.replace(nextHref);
-            }}
-          />
-        </div>
+          {npi ? (
+            <p className="oba-data mt-5">NPI {formatNpi(npi)}</p>
+          ) : null}
 
-        <div className="mt-8 flex flex-wrap items-center gap-2 text-[12px] text-white/55">
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">Source-backed</span>
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">No account</span>
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">Momentum saved</span>
-        </div>
+          <div className="mt-8">
+            <ResolverProgressIndicator
+              durationPerStep={540}
+              onComplete={() => {
+                router.replace(nextHref);
+              }}
+            />
+          </div>
 
-        {error ? (
-          <p className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            {error}
-          </p>
-        ) : null}
-      </section>
+          {error ? (
+            <p role="alert" className="oba-err mt-5">
+              {error}
+            </p>
+          ) : null}
 
-      <div className="mt-4 flex items-center justify-between gap-4 text-sm">
-        <Link
-          href={buildOnboardingHref('/onboarding', returnTo)}
-          className="text-white/45 transition hover:text-white/75"
-        >
-          Back
-        </Link>
-        <button
-          type="button"
-          onClick={() => router.replace(nextHref)}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-white/75 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
-        >
-          Continue
-          <ArrowRight className="h-4 w-4" />
-        </button>
-      </div>
-    </main>
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <Link href={buildOnboardingHref('/onboarding', returnTo)} className="oba-quiet">
+              Back
+            </Link>
+            <button
+              type="button"
+              onClick={() => router.replace(nextHref)}
+              className="oba-ghost"
+            >
+              Continue
+            </button>
+          </div>
+        </ObaStage>
+      </main>
+    </ObaRoot>
   );
 }
 

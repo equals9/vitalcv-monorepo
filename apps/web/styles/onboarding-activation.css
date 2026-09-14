@@ -1,0 +1,610 @@
+/**
+ * onboarding-activation.css — /onboarding{,/fetching,/identity,/readiness}
+ * in the Direction A / Homepage v4 register (`.oba` island).
+ *
+ * Law: constitution amendment E scope ruling ("the register applies to all
+ * public surfaces, homepage first"), values from amendment F (`--vt-home-f-*`
+ * warm paper, Fraunces display, mono machine facts, paper-inverse action),
+ * composition discipline E.1, activation-path rows D.6 (LOCKED for
+ * /onboarding). Directory precedent: styles/directory-record.css (#1424).
+ *
+ * Island discipline: `.oba` scopes everything; every colour resolves through
+ * an existing token — zero literals, zero new custom-property definitions
+ * (LINT-01/LINT-13). Durations come from the UX-02 token source
+ * (`--duration-*`, `--vt-ease-system`). No @keyframes (LINT-03) — entrances
+ * are class-gated transitions. No z-index, no box-shadow, no frost (evidence
+ * and gate surfaces stay solid, A-1), no scroll interception (XS-1).
+ *
+ * Motion is an enhancement over a complete server frame: the hidden entrance
+ * state exists ONLY under `.oba-armed` (added after hydration, outside
+ * reduced motion) on stages that mount AFTER arming — the first paint is the
+ * finished frame. One-shot only; nothing loops (EC-29 — F.1's ambient-loop
+ * exception is scoped to `/` and is deliberately NOT extended here).
+ */
+
+.oba {
+  background: var(--vt-home-f-ground);
+  color: var(--vt-home-f-ink);
+  font-family: var(--font-geist);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Route-group ground behind the island (layout wrapper), so route
+   transitions never flash a foreign surface. */
+.oba-ground {
+  background: var(--vt-home-f-ground);
+}
+
+/* Indigo owns focus on the paper scene register (A-1, restored by E). */
+.oba :focus-visible {
+  outline: 2px solid var(--vt-focus-ring-scene-paper);
+  outline-offset: 3px;
+}
+
+.oba [id] {
+  scroll-margin-top: 88px;
+}
+
+/* ── type roles (the v4 grammar) ─────────────────────────────────────────── */
+
+/* Mono micro-label: machine register, uppercase, tracked. */
+.oba .oba-k {
+  display: block;
+  font-family: var(--font-geist-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vt-home-f-ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Machine facts: mono, tabular. If it is mono, a source returned it. */
+.oba .oba-data {
+  font-family: var(--font-geist-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-size: 0.8125rem;
+  color: var(--vt-home-f-ink-muted);
+}
+
+.oba .oba-h1 {
+  font-family: var(--font-serif);
+  font-weight: 540;
+  letter-spacing: -0.015em;
+  color: var(--vt-home-f-ink-strong);
+  line-height: 1.1;
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  margin: 0;
+  text-wrap: balance;
+}
+
+.oba .oba-h3 {
+  font-family: var(--font-geist);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--vt-home-f-ink-strong);
+  margin: 0;
+}
+
+.oba .oba-lede {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--vt-home-f-ink-muted);
+  max-width: 56ch;
+  margin: 0;
+}
+
+.oba .oba-small {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--vt-home-f-ink-muted);
+}
+
+.oba .oba-fine {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--vt-home-f-ink-subtle);
+}
+
+/* Form/system problem line. Attention hue on the WORD is paired with the
+   role=alert semantics and the adjacent control — never colour alone (EC-4). */
+.oba .oba-err {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--vt-home-f-attention);
+}
+
+/* The drawn hairline under a display heading (directory precedent — Option 1
+   "Chart & Badge": plain ink rule, no EKG motif). Complete without JS. */
+.oba .oba-rule {
+  width: min(280px, 70%);
+  height: 1px;
+  margin-top: 18px;
+  background: var(--vt-home-f-rule-strong);
+  transform-origin: left center;
+}
+
+/* Links take the signal indigo — but never inside a nested island that
+   paints its own controls (`.mz-btn` is accent-filled with a paper label;
+   colouring that anchor indigo made its label vanish on its own fill —
+   measured on the identity step's support card before this guard). The
+   `:where()` keeps this at (0,1,1) so any island control class — .oba-action,
+   .oba-ghost, .oba-quiet, .oba-ulink — outranks it; without it the guard
+   itself painted the resolved state's anchor action label indigo (2.24:1). */
+.oba a:where(:not([class*='mz-'])) {
+  color: var(--vt-home-f-signal);
+}
+
+/* ── actions: paper-inverse instrument (A-1), 8px page radius (E seam) ───── */
+
+.oba .oba-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 22px;
+  background: var(--vt-home-f-action);
+  color: var(--vt-home-f-action-label);
+  border: 0;
+  border-radius: var(--vt-shape-action-page);
+  font-family: var(--font-geist);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--duration-instant) var(--vt-ease-system);
+}
+
+.oba .oba-action:hover { background: var(--vt-home-f-ink); }
+.oba .oba-action:active { background: var(--vt-home-f-action-press); }
+.oba .oba-action:disabled { opacity: 0.6; cursor: default; }
+
+.oba .oba-action--full { width: 100%; }
+
+.oba .oba-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 22px;
+  background: transparent;
+  color: var(--vt-home-f-ink-strong);
+  border: 1px solid var(--vt-home-f-rule-strong);
+  border-radius: var(--vt-shape-action-page);
+  font-family: var(--font-geist);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--duration-instant) var(--vt-ease-system);
+}
+
+.oba .oba-ghost:hover { border-color: var(--vt-home-f-ink); }
+.oba .oba-ghost:disabled { opacity: 0.6; cursor: default; }
+
+.oba .oba-ghost--full { width: 100%; }
+
+.oba .oba-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px; /* EC-5 target floor — a one-word link still measures 44 */
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-geist);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--vt-home-f-signal);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.oba .oba-quiet:hover { text-decoration: underline; }
+.oba .oba-quiet:disabled { opacity: 0.5; cursor: default; }
+
+/* An underlined inline text control on muted copy. */
+.oba .oba-ulink {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--duration-instant) var(--vt-ease-system);
+}
+
+.oba .oba-ulink:hover,
+.oba .oba-ulink:focus-visible {
+  color: var(--vt-home-f-ink-strong);
+}
+
+/* ── the NPI field: the v4 underline machine register ────────────────────── */
+
+.oba .oba-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.oba .oba-npi-in {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid var(--vt-home-f-ink);
+  border-radius: 0;
+  padding: 6px 2px 10px;
+  font-family: var(--font-geist-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: 0.14em;
+  color: var(--vt-home-f-ink-strong);
+}
+
+.oba .oba-npi-in::placeholder {
+  color: var(--vt-home-f-rule-strong);
+  letter-spacing: 0.14em;
+}
+
+.oba .oba-npi-in:focus {
+  border-bottom-color: var(--vt-home-f-signal);
+}
+
+/* Structural-validity affordance: indigo signal (never a state hue — a
+   well-formed number is not a source result). Paired with words in the
+   adjacent help text; the glyph alone carries nothing (EC-4). */
+.oba .oba-valid {
+  flex: none;
+  color: var(--vt-home-f-signal);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--vt-ease-system);
+}
+
+.oba .oba-valid.is-on { opacity: 1; }
+
+/* ── panels: raised paper, hairline, near-sharp (A-1 evidence limits) ────── */
+
+.oba .oba-panel {
+  border: 1px solid var(--vt-home-f-rule);
+  border-radius: 3px;
+  background: var(--vt-home-f-raised);
+  padding: 18px 20px;
+}
+
+.oba .oba-panel--inset {
+  background: var(--vt-home-f-inset);
+  border-color: var(--vt-home-f-rule-strong);
+}
+
+/* A fact row inside a panel: mono label, ink value. */
+.oba .oba-fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+.oba .oba-fact dd,
+.oba .oba-fact dt {
+  margin: 0;
+}
+
+.oba .oba-fact dd {
+  text-align: right;
+  font-size: 0.9375rem;
+  color: var(--vt-home-f-ink-strong);
+  overflow-wrap: anywhere;
+}
+
+/* ── the drawn ID-badge pictogram (Option 1 "Chart & Badge") ─────────────── */
+/* Decorative, aria-hidden, values as blank bars: it depicts no source,
+   count, person, or result (EC-25 applies to pictograms). */
+
+.oba .oba-badge {
+  width: 56px;
+  height: 56px;
+  color: var(--vt-home-f-ink-muted);
+}
+
+.oba .oba-badge-frame {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.oba .oba-badge-accent {
+  fill: none;
+  stroke: var(--vt-home-f-signal);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.oba .oba-badge-bar {
+  fill: var(--vt-home-f-rule-strong);
+}
+
+/* ── the gate: split composition (action left, activation path right) ────── */
+
+.oba .oba-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+@media (min-width: 1024px) {
+  .oba .oba-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.oba .oba-col-act {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Clearance for the shared floating chrome (A-3): rectangle 16px from the
+     top, 70px tall — content may not start above ~86px. */
+  padding: 124px 24px 72px;
+}
+
+@media (min-width: 1024px) {
+  .oba .oba-col-act {
+    padding: 140px 48px 96px;
+  }
+}
+
+.oba .oba-gate {
+  width: 100%;
+  max-width: 30rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.oba .oba-col-scene {
+  border-top: 1px solid var(--vt-home-f-rule);
+  padding: 48px 24px 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .oba .oba-col-scene {
+    border-top: 0;
+    border-left: 1px solid var(--vt-home-f-rule);
+    padding: 140px 48px 96px;
+  }
+}
+
+.oba .oba-scene {
+  width: 100%;
+  max-width: 36rem;
+  min-width: 0;
+}
+
+.oba .oba-scene-frame {
+  border: 1px solid var(--vt-home-f-rule);
+  border-radius: 3px;
+  background: var(--vt-home-f-raised);
+  overflow: hidden;
+}
+
+.oba .oba-scene svg {
+  max-width: 100%;
+}
+
+/* ── interior step pages: one centred document column ────────────────────── */
+
+.oba .oba-step-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 124px 24px 96px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .oba .oba-step-wrap {
+    /* Mobile chrome: only the wordmark floats up top; clear the 65px band. */
+    padding: 96px 20px 72px;
+  }
+
+  .oba .oba-col-act {
+    padding-top: 96px;
+  }
+}
+
+.oba .oba-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Flow position: N of 3. A word-label, mono — never a state marker. */
+.oba .oba-step-ix {
+  font-family: var(--font-geist-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--vt-home-f-ink-subtle);
+}
+
+/* Flow-position track: structural progress of a 3-step flow (not a returned
+   number). Hairline track, ink fill. */
+.oba .oba-track {
+  height: 2px;
+  background: var(--vt-home-f-rule);
+  overflow: hidden;
+}
+
+.oba .oba-track i {
+  display: block;
+  height: 100%;
+  background: var(--vt-home-f-ink-strong);
+  transition: width var(--duration-fast) var(--vt-ease-system);
+}
+
+/* ── the resolver sequence (shared by /fetching and step 3) ──────────────── */
+
+.oba .oba-resolver {
+  border-top: 1px solid var(--vt-home-f-rule);
+}
+
+.oba .oba-res-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--vt-home-f-rule);
+  transition: opacity var(--duration-fast) var(--vt-ease-system);
+}
+
+.oba .oba-res-row.is-pending { opacity: 0.45; }
+
+.oba .oba-res-g {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--vt-home-f-ink-muted);
+}
+
+.oba .oba-res-label {
+  font-family: var(--font-geist-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--vt-home-f-ink);
+}
+
+/* The current row's pacing underline: signal hairline, width transition set
+   per-step by the component. Decorative pacing — the words carry the state. */
+.oba .oba-res-pace {
+  grid-column: 2;
+  height: 1px;
+  background: var(--vt-home-f-signal);
+  transform-origin: left center;
+}
+
+/* A self-labelling illustration caption: mono, sentence case. */
+.oba .oba-cap {
+  font-family: var(--font-geist-mono);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: var(--vt-home-f-ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── profession chooser: hairline option boxes ───────────────────────────── */
+
+.oba .oba-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--vt-home-f-raised);
+  border: 1px solid var(--vt-home-f-rule);
+  border-radius: 3px;
+  font-family: var(--font-geist);
+  font-size: 0.875rem;
+  color: var(--vt-home-f-ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--duration-instant) var(--vt-ease-system);
+}
+
+.oba .oba-opt:hover { border-color: var(--vt-home-f-rule-strong); }
+
+/* Selection: border + the check glyph + aria-pressed — never colour alone. */
+.oba .oba-opt[aria-pressed='true'] {
+  border-color: var(--vt-home-f-ink);
+}
+
+/* ── flat question rows (E.1 discipline: no accordions) ──────────────────── */
+
+.oba .oba-qa {
+  margin-top: 48px;
+}
+
+.oba .oba-qa dl {
+  margin: 12px 0 0;
+  border-top: 1px solid var(--vt-home-f-rule);
+}
+
+.oba .oba-qa-row {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--vt-home-f-rule);
+}
+
+.oba .oba-qa-row dt {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--vt-home-f-ink-strong);
+}
+
+.oba .oba-qa-row dd {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--vt-home-f-ink-muted);
+  max-width: 62ch;
+}
+
+/* ── one-shot stage entrances: an enhancement over a complete frame ──────── */
+
+/* Base: visible. The hidden state exists only when the island root is armed
+   (post-hydration, motion allowed) and the stage has not landed. Stages that
+   are already in the server frame land before arming, so the first paint is
+   never hidden. 200ms sits in the state-transition band (EC-29). */
+.oba .oba-stage {
+  transition:
+    opacity var(--duration-fast) var(--vt-ease-system),
+    transform var(--duration-fast) var(--vt-ease-system);
+}
+
+.oba.oba-armed .oba-stage:not(.is-in) {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* The heading hairline draws in once as its stage lands. */
+.oba.oba-armed .oba-stage .oba-rule {
+  transform: scaleX(0);
+  transition: transform var(--duration-slow) var(--vt-ease-system) 120ms;
+}
+
+.oba.oba-armed .oba-stage.is-in .oba-rule {
+  transform: scaleX(1);
+}
+
+/* ── reduced motion: nothing moves; the story is complete (EC-4/EC-5) ────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .oba *,
+  .oba *::before,
+  .oba *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

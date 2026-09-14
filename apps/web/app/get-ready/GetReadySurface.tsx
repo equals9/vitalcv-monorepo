@@ -22,22 +22,20 @@
  * and a self-attested profession are NOT license/identity proofing, and nothing
  * here presents them as a completed license check or a bare "Verified" status.
  *
- * Full Calm Wave D56 — one calm paper-and-ink system, no dark surfaces: a calm light
- * "action" side (paper + ink, Fraunces serif, mono labels, ink primary buttons — where
- * the clinician acts) beside an equally calm-light benefits rail. The two columns are
- * set apart only by a single hairline and a subtle paper-2 inset — no glow, no charcoal.
+ * REGISTER (design-only, 2026-08-16). The scene frame renders in the
+ * Direction A / Homepage v4 register (`.oba`, styles/onboarding-activation.css;
+ * constitution amendment E scope ruling + amendment F values + D.6's LOCKED
+ * /onboarding rows): warm paper, Fraunces display, mono machine facts, the
+ * paper-inverse primary action, hairline rules, the drawn ID-badge pictogram,
+ * and one-shot stage entrances over a complete server frame. Evidence-register
+ * components inside the success phase (OnboardingReadiness, EmailVerification)
+ * keep their own truthful material — the frame is what this pass recomposes.
+ * Every phase, fetch, storage, analytics, and honesty contract is unchanged.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import {
-  AlertCircle,
-  Check,
-  CheckCircle2,
-  ChevronRight,
-  Loader2,
-  ShieldCheck,
-} from 'lucide-react';
+import { AlertCircle, Check, CheckCircle2, Loader2 } from 'lucide-react';
 import {
   describeBootstrapError,
   isNpiBootstrapResult,
@@ -59,6 +57,7 @@ import { trackPilotEvent } from '@/lib/pilot-ops/client';
 import { FUNNEL_EVENTS, trackFunnelEvent } from '@/lib/analytics/funnel';
 import { UX_EVENTS } from '@/lib/analytics/ux-events';
 import { ActivationPath } from '@/components/onboarding/ActivationPath';
+import { ObaBadge, ObaRoot, ObaStage } from '@/components/onboarding/ActivationScene';
 import { VisualScene } from '@/components/visual-scene/VisualScene';
 import type { Bootstrap } from '@/components/home/evidence/evidenceCapsuleModel';
 import type { TrustState } from '@/components/readiness/sourceCheckNarration';
@@ -398,15 +397,15 @@ export default function GetReadySurface() {
   /* ── Checking session/workspace ── */
   if (phase === 'checking') {
     return (
-      <Shell>
-        <div className="flex flex-col items-center gap-3 py-16" role="status" aria-live="polite">
-          <Loader2 className="h-7 w-7 animate-spin text-[var(--vt-text-muted)]" aria-hidden />
-          <p className="mz-small">Checking your workspace…</p>
+      <Shell stageKey="checking">
+        <div className="flex flex-col items-start gap-3 py-16" role="status" aria-live="polite">
+          <Loader2 className="h-7 w-7 animate-spin text-[var(--vt-home-f-ink-muted)]" aria-hidden />
+          <p className="oba-small">Checking your workspace…</p>
         </div>
         <noscript>
-          <div className="mt-5 border-y border-[var(--vt-border)] py-5 text-left">
-            <p className="text-sm font-semibold text-[var(--vt-text-primary)]">JavaScript is needed to connect a workspace.</p>
-            <p className="mz-small mt-2">You can still inspect a public NPI record without signing in or saving anything.</p>
+          <div className="mt-5 border-y border-[var(--vt-home-f-rule)] py-5 text-left">
+            <p className="text-sm font-semibold text-[var(--vt-home-f-ink-strong)]">JavaScript is needed to connect a workspace.</p>
+            <p className="oba-small mt-2">You can still inspect a public NPI record without signing in or saving anything.</p>
             <Link href="/verify" className={`${secondaryBtn} mt-4`}>Look up an NPI</Link>
           </div>
         </noscript>
@@ -427,10 +426,10 @@ export default function GetReadySurface() {
 
     if (guestStep === 'resolving') {
       return (
-        <Shell>
-          <div className="flex flex-col items-center gap-3 py-16" role="status" aria-live="polite">
-            <Loader2 className="h-7 w-7 animate-spin text-[var(--vt-text-muted)]" aria-hidden />
-            <p className="mz-small">Checking the public registry…</p>
+        <Shell stageKey="guest-resolving">
+          <div className="flex flex-col items-start gap-3 py-16" role="status" aria-live="polite">
+            <Loader2 className="h-7 w-7 animate-spin text-[var(--vt-home-f-ink-muted)]" aria-hidden />
+            <p className="oba-small">Checking the public registry…</p>
           </div>
         </Shell>
       );
@@ -438,40 +437,40 @@ export default function GetReadySurface() {
 
     if (guestStep === 'resolved' && guestProfile) {
       return (
-        <Shell>
-          <GateIcon done />
+        <Shell stageKey="guest-resolved">
+          <ObaBadge />
           <Header
             title="Here's what the registry already shows"
             lede="Your public NPPES record, matched from your NPI — an identity record match, not a license check."
           />
-          <div className="mz-inset mt-6 p-5 text-left" data-guest-record="">
-            <p className="mz-eyebrow">Public registry record</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--vt-text-primary)]">
+          <div className="oba-panel mt-6 text-left" data-guest-record="">
+            <p className="oba-k">Public registry record</p>
+            <p className="mt-2 text-lg font-semibold text-[var(--vt-home-f-ink-strong)]">
               {guestProfile.displayName}
               {guestProfile.credential ? `, ${guestProfile.credential}` : ''}
             </p>
-            {guestProfile.specialty ? <p className="mz-small mt-1">{guestProfile.specialty}</p> : null}
-            {guestProfile.location ? <p className="mz-small mt-0.5">{guestProfile.location}</p> : null}
-            <p className="mz-small mt-3 border-t border-[var(--vt-border)] pt-3">
+            {guestProfile.specialty ? <p className="oba-small mt-1">{guestProfile.specialty}</p> : null}
+            {guestProfile.location ? <p className="oba-small mt-0.5">{guestProfile.location}</p> : null}
+            <p className="oba-data mt-3 border-t border-[var(--vt-home-f-rule)] pt-3">
               NPI {guestProfile.npi} · public NPPES registry record
             </p>
           </div>
-          <p className="mz-small mt-4 text-left">
+          <p className="oba-small mt-4 text-left">
             Nothing is saved and nothing is sent to an employer until you decide to keep it.
           </p>
           <Link href={signInHref} className={`${primaryBtn} mt-5`}>
-            Save this record — sign in to keep it <ChevronRight className="h-4 w-4" aria-hidden />
+            Save this record — sign in to keep it
           </Link>
-          <p className="mz-small mt-4 text-center">
+          <p className="oba-small mt-4">
             New here?{' '}
             <Link
               href="/sign-up"
-              className="font-medium text-[var(--vt-text-primary)] underline underline-offset-2 transition-opacity hover:opacity-70"
+              className="oba-ulink font-medium text-[var(--vt-home-f-ink-strong)]"
             >
               Create your free account
             </Link>
           </p>
-          <p className="mz-small mt-2 text-center">
+          <p className="oba-small mt-2">
             <button
               type="button"
               onClick={() => {
@@ -479,7 +478,7 @@ export default function GetReadySurface() {
                 setGuestNpiInput('');
                 setGuestStep('entry');
               }}
-              className="underline underline-offset-2 transition-opacity hover:opacity-70"
+              className="oba-ulink"
             >
               Not you? Check a different NPI
             </button>
@@ -490,8 +489,8 @@ export default function GetReadySurface() {
 
     if (guestStep === 'organization') {
       return (
-        <Shell>
-          <GateIcon />
+        <Shell stageKey="guest-organization">
+          <ObaBadge />
           <Header
             title="That NPI names an organization"
             lede="A Type 2 NPI identifies an organization, not a clinician. Your individual (Type 1) NPI is the one that starts a clinician record."
@@ -512,8 +511,8 @@ export default function GetReadySurface() {
 
     if (guestStep === 'unavailable') {
       return (
-        <Shell>
-          <GateIcon />
+        <Shell stageKey="guest-unavailable">
+          <ObaBadge />
           <Header
             title="The registry didn't answer"
             lede="This is a system state — not a finding about your NPI. Try again shortly, or sign in and connect your NPI from your workspace."
@@ -521,8 +520,8 @@ export default function GetReadySurface() {
           <button type="button" onClick={() => setGuestStep('entry')} className={`${secondaryBtn} mt-6`}>
             Try again
           </button>
-          <p className="mz-small mt-4 text-center">
-            <Link href={signInHref} className="underline underline-offset-2 transition-opacity hover:opacity-70">
+          <p className="oba-small mt-4">
+            <Link href={signInHref} className="oba-ulink">
               Sign in instead
             </Link>
           </p>
@@ -531,8 +530,8 @@ export default function GetReadySurface() {
     }
 
     return (
-      <Shell>
-        <GateIcon />
+      <Shell stageKey="guest-entry">
+        <ObaBadge />
         <Header
           title="Start with your NPI. See where your record can go."
           lede="VitalCV reads your public NPPES record first, keeps every later source state distinct, and opens the path to a CV Wallet and source-labelled opportunities. Sign in only when you want to save it."
@@ -542,22 +541,20 @@ export default function GetReadySurface() {
             event.preventDefault();
             void resolveGuest(guestNpiInput);
           }}
-          className="mt-6 text-left"
+          className="mt-7 text-left"
           noValidate
         >
-          <label htmlFor="guest-npi-input" className="mz-eyebrow">
+          <label htmlFor="guest-npi-input" className="oba-k">
             Your 10-digit NPI
           </label>
-          <div className="mz-field mt-2 items-center">
-            <span className="mz-prefix" aria-hidden>
-              NPI
-            </span>
+          <div className="oba-field mt-2">
             <input
               id="guest-npi-input"
               name="npi"
+              className="oba-npi-in"
               inputMode="numeric"
               autoComplete="off"
-              placeholder="e.g. 1234567890"
+              placeholder="··· ··· ····"
               value={guestNpiInput}
               onChange={(e) => {
                 setGuestNpiInput(e.target.value);
@@ -568,22 +565,22 @@ export default function GetReadySurface() {
             />
           </div>
           {guestError ? (
-            <p id="guest-npi-error" role="alert" className="mt-2 text-sm text-[var(--vt-risk-high)]">
+            <p id="guest-npi-error" role="alert" className="oba-err mt-2">
               {guestError}
             </p>
           ) : null}
-          <button type="submit" className={`${primaryBtn} mt-4`}>
-            Show my record <ChevronRight className="h-4 w-4" aria-hidden />
+          <button type="submit" className={`${primaryBtn} mt-5`}>
+            Show my record
           </button>
         </form>
-        <p className="mz-small mt-3 text-left">
+        <p className="oba-fine mt-3 text-left">
           This reads the public NPPES registry. Nothing is saved until you sign in to keep it.
         </p>
-        <p className="mz-small mt-5 text-center">
+        <p className="oba-small mt-5">
           Already have a workspace?{' '}
           <Link
             href={signInHref}
-            className="font-medium text-[var(--vt-text-primary)] underline underline-offset-2 transition-opacity hover:opacity-70"
+            className="oba-ulink font-medium text-[var(--vt-home-f-ink-strong)]"
           >
             Sign in
           </Link>
@@ -596,11 +593,11 @@ export default function GetReadySurface() {
   /* ── Workspace load error ── */
   if (phase === 'load_error') {
     return (
-      <Shell>
-        <div className="space-y-4 text-center">
-          <AlertCircle className="mx-auto h-8 w-8 text-[var(--vt-risk-high)]" aria-hidden />
-          <p className="font-medium text-[var(--vt-text-primary)]">Couldn&apos;t check your workspace</p>
-          <p className="mz-small">
+      <Shell stageKey="load-error">
+        <div className="space-y-4">
+          <AlertCircle className="h-8 w-8 text-[var(--vt-home-f-attention)]" aria-hidden />
+          <p className="font-medium text-[var(--vt-home-f-ink-strong)]">Couldn&apos;t check your workspace</p>
+          <p className="oba-small">
             This is a system state — not a finding about your account. Try again shortly.
           </p>
           <button type="button" onClick={() => window.location.reload()} className={secondaryBtn}>
@@ -614,15 +611,15 @@ export default function GetReadySurface() {
   /* ── Already bound ── */
   if (phase === 'already_bound' && existingNpi) {
     return (
-      <Shell>
-        <GateIcon done />
+      <Shell stageKey="already-bound">
+        <ObaBadge />
         <Header
           title="Your NPI is already connected"
           lede={`This workspace is bound to NPI ${existingNpi}. Your profile and readiness surfaces read from it.`}
         />
         <div className="mt-6 space-y-3">
           <Link href="/holder" className={primaryBtn}>
-            Open your profile <ChevronRight className="h-4 w-4" aria-hidden />
+            Open your profile
           </Link>
           <Link href="/holder/readiness" className={secondaryBtn}>
             Check your readiness
@@ -635,37 +632,37 @@ export default function GetReadySurface() {
   /* ── Intro / access gate (signed in, no NPI yet) ── */
   if (phase === 'intro') {
     return (
-      <Shell>
-        <GateIcon />
+      <Shell stageKey="intro">
+        <ObaBadge />
         <Header
           title="Confirm you are a clinician"
           lede="Confirm you're a practicing clinician to unlock your VitalCV workspace — your free, source-backed career profile."
         />
-        <p className="mz-small mt-4">
+        <p className="oba-small mt-4">
           You&apos;re signed in as{' '}
-          <span className="font-medium text-[var(--vt-text-primary)]">{accountEmail ?? 'your account'}</span>.
+          <span className="font-medium text-[var(--vt-home-f-ink-strong)]">{accountEmail ?? 'your account'}</span>.
         </p>
         <button
           type="button"
           onClick={() => { setMode('npi'); setPhase('form'); }}
           className={`${primaryBtn} mt-5`}
         >
-          Confirm you&apos;re a clinician <ChevronRight className="h-4 w-4" aria-hidden />
+          Confirm you&apos;re a clinician
         </button>
-        <p className="mz-small mt-4 text-center">
+        <p className="oba-small mt-4">
           Still in training and don&apos;t have an NPI yet?{' '}
           <button
             type="button"
             onClick={() => { switchMode('student'); setPhase('form'); }}
-            className="font-medium text-[var(--vt-text-primary)] underline underline-offset-2 transition-opacity hover:opacity-70"
+            className="oba-ulink font-medium text-[var(--vt-home-f-ink-strong)]"
           >
             Start a preview profile
           </button>
         </p>
-        <p className="mz-small mt-2 text-center">
+        <p className="oba-small mt-2">
           <Link
             href="/sign-in?redirect_url=%2Fonboarding"
-            className="underline underline-offset-2 transition-opacity hover:opacity-70"
+            className="oba-ulink"
           >
             Use a different account
           </Link>
@@ -678,14 +675,14 @@ export default function GetReadySurface() {
   /* ── Success ── */
   if (phase === 'success' && summary) {
     return (
-      <Shell headerStage={activationHeaderStage(phase)}>
-        <GateIcon done />
+      <Shell stageKey="success" headerStage={activationHeaderStage(phase)}>
+        <ObaBadge />
         <Header
           title={summary.isOrganizationNpi ? 'Organization NPI detected' : 'NPPES identity record matched'}
           lede={summary.statement}
         />
         {!summary.isOrganizationNpi && (
-          <dl className="mz-inset mt-6 space-y-2 p-4 text-left text-sm">
+          <dl className="oba-panel mt-6 space-y-2 text-left text-sm">
             <SummaryRow label="Registry name" value={summary.displayName ?? 'Not listed in NPPES'} />
             <SummaryRow label="Specialty" value={summary.specialty ?? 'Not listed in NPPES'} />
             <SummaryRow label="State" value={summary.stateOfPractice ?? 'Not listed in NPPES'} />
@@ -698,13 +695,15 @@ export default function GetReadySurface() {
         )}
         {/* Finish the golden path IN PLACE: stream the source checks, render the
             readiness rail + one next-best action, end with "Your VitalCV profile
-            is ready" — instead of bouncing the clinician to /holder/readiness. */}
+            is ready" — instead of bouncing the clinician to /holder/readiness.
+            Evidence register: these components keep their own truthful material
+            (the directory precedent — the frame recomposes, evidence does not). */}
         {!summary.isOrganizationNpi && validateNpi(npiInput).npi ? (
           <OnboardingReadiness npi={validateNpi(npiInput).npi!} />
         ) : (
           <div className="mt-6">
             <Link href="/holder" className={primaryBtn}>
-              Open your profile <ChevronRight className="h-4 w-4" aria-hidden />
+              Open your profile
             </Link>
           </div>
         )}
@@ -715,27 +714,27 @@ export default function GetReadySurface() {
   /* ── Student / no-NPI preview success ── */
   if (phase === 'student_success') {
     return (
-      <Shell>
-        <GateIcon done />
+      <Shell stageKey="student-success">
+        <ObaBadge />
         <Header
           title="Your preview profile is started"
           lede="You're in preview. When you receive your NPI, connect it here to unlock your source-backed readiness — your profile upgrades automatically."
         />
-        <div className="mz-inset mt-6 p-4 text-left">
-          <p className="mz-eyebrow">Preview · self-attested</p>
-          <p className="mz-small mt-2 leading-relaxed">
+        <div className="oba-panel oba-panel--inset mt-6 text-left">
+          <p className="oba-k">Preview · self-attested</p>
+          <p className="oba-small mt-2 leading-relaxed">
             Everything here is self-attested and not source-verified. A preview
             profile is a place to start — it is not decision-grade, and VitalCV
             never presents it to an employer as a completed check.
           </p>
         </div>
         <div className="mt-6 text-left">
-          <p className="mz-eyebrow">What you can do now</p>
+          <p className="oba-k">What you can do now</p>
           <ol className="mt-3 space-y-3">
             {PREVIEW_NEXT_STEPS.map((step, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-[var(--vt-text-secondary)]">
+              <li key={i} className="flex items-start gap-3 text-sm text-[var(--vt-home-f-ink-muted)]">
                 <span
-                  className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[3px] border border-[var(--vt-border)] font-mono text-xs text-[var(--vt-text-muted)]"
+                  className="oba-data mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[3px] border border-[var(--vt-home-f-rule)]"
                   aria-hidden
                 >
                   {i + 1}
@@ -747,7 +746,7 @@ export default function GetReadySurface() {
         </div>
         <div className="mt-6 space-y-3">
           <Link href="/holder" className={primaryBtn}>
-            Open your profile <ChevronRight className="h-4 w-4" aria-hidden />
+            Open your profile
           </Link>
           <button
             type="button"
@@ -763,12 +762,13 @@ export default function GetReadySurface() {
 
   /* ── Form (+ submitting) ── */
   const submitting = phase === 'submitting';
-  // Live structural validity — drives the checkmark that springs in as the
-  // clinician finishes typing a well-formed NPI. Not a registry match yet.
+  // Live structural validity — drives the affordance that fades in as the
+  // clinician finishes typing a well-formed NPI. Not a registry match yet, so
+  // the glyph is signal indigo (never a state hue).
   const npiValid = validateNpi(npiInput).ok;
   return (
-    <Shell>
-      <GateIcon />
+    <Shell stageKey={`form-${mode}`}>
+      <ObaBadge />
       {mode === 'npi' ? (
         <Header
           title="Confirm you are a clinician"
@@ -781,9 +781,9 @@ export default function GetReadySurface() {
         />
       )}
       {mode === 'npi' ? (
-      <form onSubmit={submit} className="mt-6 space-y-4 text-left" noValidate>
+      <form onSubmit={submit} className="mt-7 space-y-5 text-left" noValidate>
         <fieldset disabled={submitting} className="m-0 border-0 p-0">
-          <legend className="mz-eyebrow">Your profession</legend>
+          <legend className="oba-k">Your profession</legend>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {PROFESSIONS.map((p) => {
               const selected = profession === p.value;
@@ -793,7 +793,7 @@ export default function GetReadySurface() {
                   type="button"
                   onClick={() => setProfession(p.value)}
                   aria-pressed={selected}
-                  className="mz-opt inline-flex items-center justify-between gap-1.5 text-left"
+                  className="oba-opt"
                 >
                   <span>{p.label}</span>
                   <Check
@@ -806,29 +806,23 @@ export default function GetReadySurface() {
               );
             })}
           </div>
-          <p className="mz-small mt-2">
+          <p className="oba-fine mt-2">
             You&apos;re attesting to your role — it guides which checks apply and isn&apos;t
             license-verified here.
           </p>
         </fieldset>
         <div>
-          <label htmlFor="npi-input" className="mz-eyebrow">
+          <label htmlFor="npi-input" className="oba-k">
             Your 10-digit NPI
           </label>
-          <div
-            className={`mz-field mt-2 items-center transition-colors duration-300 ${
-              npiValid ? 'border-[var(--vt-accent)]' : ''
-            }`}
-          >
-            <span className="mz-prefix" aria-hidden>
-              NPI
-            </span>
+          <div className="oba-field mt-2">
             <input
               id="npi-input"
               name="npi"
+              className="oba-npi-in"
               inputMode="numeric"
               autoComplete="off"
-              placeholder="e.g. 1234567890"
+              placeholder="··· ··· ····"
               value={npiInput}
               onChange={(e) => setNpiInput(e.target.value)}
               disabled={submitting}
@@ -836,24 +830,22 @@ export default function GetReadySurface() {
               aria-describedby={formError ? 'npi-error' : 'npi-help'}
             />
             <CheckCircle2
-              className={`pointer-events-none mr-3.5 h-5 w-5 shrink-0 text-[var(--vt-accent)] transition-opacity duration-300 motion-reduce:transition-none ${
-                npiValid ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`oba-valid pointer-events-none h-5 w-5 ${npiValid ? 'is-on' : ''}`}
               aria-hidden
             />
           </div>
           {formError ? (
-            <p id="npi-error" role="alert" className="mt-2 text-sm text-[var(--vt-risk-high)]">
+            <p id="npi-error" role="alert" className="oba-err mt-2">
               {formError}
             </p>
           ) : (
-            <p id="npi-help" className="mz-small mt-2">
+            <p id="npi-help" className="oba-fine mt-2">
               Don&apos;t know it? Search the{' '}
               <a
                 href="https://npiregistry.cms.hhs.gov/"
                 target="_blank"
                 rel="noreferrer"
-                className="underline underline-offset-2 transition-opacity hover:opacity-70"
+                className="oba-ulink"
               >
                 NPPES registry
               </a>
@@ -861,13 +853,13 @@ export default function GetReadySurface() {
             </p>
           )}
         </div>
-        <label className="flex items-start gap-2.5 text-xs leading-relaxed text-[var(--vt-text-secondary)]">
+        <label className="flex items-start gap-2.5 text-xs leading-relaxed text-[var(--vt-home-f-ink-muted)]">
           <input
             type="checkbox"
             checked={attested}
             onChange={(e) => setAttested(e.target.checked)}
             disabled={submitting}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--vt-text-primary)]"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--vt-home-f-ink-strong)]"
           />
           <span>
             I attest that I am a licensed clinician and agree to the{' '}
@@ -875,7 +867,7 @@ export default function GetReadySurface() {
               href="/terms"
               target="_blank"
               rel="noreferrer"
-              className="underline underline-offset-2 transition-opacity hover:opacity-70"
+              className="oba-ulink"
             >
               VitalCV Services Agreement
             </a>
@@ -888,31 +880,29 @@ export default function GetReadySurface() {
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Checking the NPPES registry…
             </>
           ) : (
-            <>
-              Continue <ChevronRight className="h-4 w-4" aria-hidden />
-            </>
+            'Continue'
           )}
         </button>
-        <p className="mz-small leading-relaxed">
+        <p className="oba-fine leading-relaxed">
           This matches your public registry identity record. It does not verify licenses,
           exclusions, or enrollment — those source checks run on your readiness surface,
           each with its own receipt.
         </p>
       </form>
       ) : (
-        <form onSubmit={submitStudent} className="mt-6 space-y-4 text-left" noValidate>
-          <p className="mz-small leading-relaxed">
+        <form onSubmit={submitStudent} className="mt-7 space-y-5 text-left" noValidate>
+          <p className="oba-small leading-relaxed">
             Start a preview profile as a health-professions student. When you receive your
             NPI, connect it here and your profile upgrades to source-backed — you keep
             everything you added.
           </p>
-          <label className="flex items-start gap-2.5 text-xs leading-relaxed text-[var(--vt-text-secondary)]">
+          <label className="flex items-start gap-2.5 text-xs leading-relaxed text-[var(--vt-home-f-ink-muted)]">
             <input
               type="checkbox"
               checked={attested}
               onChange={(e) => setAttested(e.target.checked)}
               disabled={submitting}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--vt-text-primary)]"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--vt-home-f-ink-strong)]"
             />
             <span>
               I attest that I am a health-professions student and agree to the{' '}
@@ -920,7 +910,7 @@ export default function GetReadySurface() {
                 href="/terms"
                 target="_blank"
                 rel="noreferrer"
-                className="underline underline-offset-2 transition-opacity hover:opacity-70"
+                className="oba-ulink"
               >
                 VitalCV Services Agreement
               </a>
@@ -928,7 +918,7 @@ export default function GetReadySurface() {
             </span>
           </label>
           {formError ? (
-            <p role="alert" className="text-sm text-[var(--vt-risk-high)]">
+            <p role="alert" className="oba-err">
               {formError}
             </p>
           ) : null}
@@ -942,12 +932,10 @@ export default function GetReadySurface() {
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Starting your preview…
               </>
             ) : (
-              <>
-                Start a preview profile <ChevronRight className="h-4 w-4" aria-hidden />
-              </>
+              'Start a preview profile'
             )}
           </button>
-          <p className="mz-small leading-relaxed">
+          <p className="oba-fine leading-relaxed">
             A preview profile is self-attested and not source-verified. Your source-backed
             readiness — license, exclusion, and enrollment checks — opens once you connect
             your NPI.
@@ -958,7 +946,7 @@ export default function GetReadySurface() {
         type="button"
         onClick={() => switchMode(mode === 'npi' ? 'student' : 'npi')}
         disabled={submitting}
-        className="mt-4 text-xs text-[var(--vt-text-muted)] underline underline-offset-2 transition-opacity hover:opacity-70 disabled:opacity-40"
+        className="oba-ulink oba-fine mt-4"
       >
         {mode === 'npi'
           ? "Still in training and don't have an NPI yet?"
@@ -969,19 +957,25 @@ export default function GetReadySurface() {
   );
 }
 
-/* ── Layout: Calm Wave split-panel (calm-light action left, calm-light benefits right) ── */
+/* ── Layout: the Direction A split gate (action left, activation path right) ── */
 
-// Ink primary — the Calm Wave `.mz-btn` look, stretched full-width for the gate.
-const primaryBtn =
-  'inline-flex w-full items-center justify-center gap-2 rounded-[3px] border border-[var(--vt-text-primary)] bg-[var(--vt-text-primary)] px-7 py-3.5 text-sm font-semibold text-[var(--vt-bg)] transition-colors duration-300 ease-out hover:bg-[var(--vt-text-secondary)] hover:border-[var(--vt-text-secondary)] active:translate-y-px motion-reduce:transform-none';
-// Ghost — hairline ink outline that fills faintly on hover.
-const secondaryBtn =
-  'inline-flex w-full items-center justify-center gap-2 rounded-[3px] border border-[var(--vt-border)] bg-transparent px-7 py-3.5 text-sm font-semibold text-[var(--vt-text-primary)] transition-colors duration-300 ease-out hover:border-[var(--vt-text-muted)] hover:bg-[color-mix(in_oklab,var(--vt-text-primary)_5%,transparent)] active:translate-y-px motion-reduce:transform-none';
+// The paper-inverse primary instrument (A-1 via amendment F), stretched
+// full-width for the gate. Radius: the locked --vt-shape-action-page seam.
+const primaryBtn = 'oba-action oba-action--full';
+// Hairline ghost.
+const secondaryBtn = 'oba-ghost oba-ghost--full';
 
-function Shell({ children, headerStage }: { children: React.ReactNode; headerStage?: string }) {
+function Shell({
+  children,
+  headerStage,
+  stageKey,
+}: {
+  children: React.ReactNode;
+  headerStage?: string;
+  stageKey: string;
+}) {
   return (
-    <div
-      className="mz mz-paper grid min-h-screen text-[var(--vt-text-primary)] lg:grid-cols-2"
+    <ObaRoot
       // Scene contract for the shared header (FR-6). Declared only when a
       // phase has real server confirmation behind it — see
       // lib/activation/headerStage.ts. Undeclared phases fall back to the
@@ -989,26 +983,32 @@ function Shell({ children, headerStage }: { children: React.ReactNode; headerSta
       data-header-stage={headerStage}
       data-header-theme={headerStage ? 'light' : undefined}
     >
-      <div className="flex items-center justify-center px-6 py-12 lg:px-8">
-        <div className="w-full max-w-md text-center">{children}</div>
+      <div className="oba-shell">
+        <div className="oba-col-act">
+          {/* Re-keyed per phase: each phase change lands once (one-shot,
+              state-transition band). The first paint is never hidden. */}
+          <ObaStage key={stageKey} className="oba-gate">
+            {children}
+          </ObaStage>
+        </div>
+        <ActivationPanel />
       </div>
-      <ActivationPanel />
-    </div>
+    </ObaRoot>
   );
 }
 
 function ActivationPanel() {
   return (
-    <aside className="border-t border-[var(--rule)] px-5 py-10 lg:flex lg:items-center lg:justify-center lg:border-l lg:border-t-0 lg:px-8 lg:py-12" aria-label="The clinician activation path">
-      <div className="w-full max-w-xl">
-        <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--vt-text-muted)]">
+    <aside className="oba-col-scene" aria-label="The clinician activation path">
+      <div className="oba-scene">
+        <p className="oba-cap mb-2">
           Illustration — not a live record, application, or result
         </p>
         <VisualScene
           scene="activation_path"
           kind="process"
           priority="inline"
-          className="overflow-hidden border border-[var(--vt-border)] bg-[var(--vt-surface)] [&_figcaption]:border-t [&_figcaption]:border-[var(--vt-border)] [&_figcaption]:px-4 [&_figcaption]:py-3 [&_figcaption]:font-mono [&_figcaption]:text-[10px] [&_figcaption]:leading-relaxed [&_figcaption]:text-[var(--vt-text-muted)]"
+          className="oba-scene-frame [&_figcaption]:border-t [&_figcaption]:border-[var(--vt-home-f-rule)] [&_figcaption]:px-4 [&_figcaption]:py-3 [&_figcaption]:font-mono [&_figcaption]:text-[10px] [&_figcaption]:leading-relaxed [&_figcaption]:text-[var(--vt-home-f-ink-subtle)]"
         />
         <div className="mt-7">
           <ActivationPath compact heading="Your record opens the next move." />
@@ -1020,48 +1020,35 @@ function ActivationPanel() {
 
 function FaqSection() {
   return (
-    <section className="mt-10 border-t border-[var(--vt-border)] pt-6 text-left">
-      <h3 className="mz-eyebrow">Verification FAQ</h3>
-      <div className="mt-4 divide-y divide-[var(--vt-border)] border-y border-[var(--vt-border)]">
+    <section className="oba-qa text-left">
+      <h3 className="oba-k">Verification FAQ</h3>
+      <dl>
         {FAQS.map((f) => (
-          <details key={f.q} className="py-3">
-            <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-[var(--vt-text-primary)]">
-              {f.q}
-            </summary>
-            <p className="mz-small pb-2 leading-relaxed">{f.a}</p>
-          </details>
+          <div key={f.q} className="oba-qa-row">
+            <dt>{f.q}</dt>
+            <dd>{f.a}</dd>
+          </div>
         ))}
-      </div>
+      </dl>
     </section>
-  );
-}
-
-function GateIcon({ done = false }: { done?: boolean }) {
-  return (
-    <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-[3px] border border-[var(--vt-border)] bg-[var(--vt-surface)]">
-      {done ? (
-        <Check className="h-7 w-7 text-[var(--vt-accent)]" aria-hidden />
-      ) : (
-        <ShieldCheck className="h-7 w-7 text-[var(--vt-accent)]" aria-hidden />
-      )}
-    </div>
   );
 }
 
 function Header({ title, lede }: { title: string; lede: string }) {
   return (
-    <div className="mt-5">
-      <h1 className="mz-h1 mb-2">{title}</h1>
-      <p className="mz-lede text-[0.9375rem]">{lede}</p>
+    <div className="mt-6">
+      <h1 className="oba-h1">{title}</h1>
+      <div className="oba-rule" aria-hidden="true" />
+      <p className="oba-lede mt-4">{lede}</p>
     </div>
   );
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="mz-mono text-xs uppercase tracking-wider text-[var(--vt-text-muted)]">{label}</dt>
-      <dd className="text-right text-sm text-[var(--vt-text-primary)]">{value}</dd>
+    <div className="oba-fact">
+      <dt className="oba-k">{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }

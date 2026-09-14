@@ -2,21 +2,35 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Check, Loader2, Database, Shield, Zap, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Check, Loader2 } from 'lucide-react';
+
+/**
+ * ResolverProgressIndicator — the paced hand-off sequence shown while the
+ * flow moves to its next step.
+ *
+ * REGISTER (design-only, 2026-08-16): recomposed from the dark emerald
+ * treatment into the Direction A `.oba` island (mono step words in ink, a
+ * signal-indigo pacing hairline, no green fills — green means
+ * source-confirmed only, and these steps are pacing, not source results).
+ * The step timer contract is unchanged: same default duration, same
+ * `onComplete` timing, same four steps.
+ *
+ * Truth posture (pre-existing, unchanged by the register pass): the sequence
+ * advances on a timer — it paces a transition and does not report per-source
+ * results. The words are deliberately process words ("Recognizing",
+ * "Reading"), never state words, and no glyph here is a state marker.
+ */
 
 export interface ResolverStep {
   id: string;
   label: string;
-  icon: React.ElementType;
 }
 
 const DEFAULT_STEPS: ResolverStep[] = [
-  { id: 'npi', label: 'Recognizing', icon: Database },
-  { id: 'safety', label: 'Reading', icon: Shield },
-  { id: 'readiness', label: 'Building', icon: FileText },
-  { id: 'handoff', label: 'Opening', icon: Zap },
+  { id: 'npi', label: 'Recognizing' },
+  { id: 'safety', label: 'Reading' },
+  { id: 'readiness', label: 'Building' },
+  { id: 'handoff', label: 'Opening' },
 ];
 
 export function ResolverProgressIndicator({
@@ -44,73 +58,65 @@ export function ResolverProgressIndicator({
   }, [currentStepIndex, durationPerStep, onComplete]);
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-5">
-      <div className="mb-6 text-center">
-        <h3 className="mb-2 text-xl font-semibold tracking-[-0.04em] text-white sm:text-2xl">
-          Recognizing
-        </h3>
-        <p className="text-sm uppercase tracking-[0.22em] text-white/45">
-          One step
-        </p>
-      </div>
+    <div className="oba-resolver w-full max-w-md" role="status" aria-live="polite">
+      {DEFAULT_STEPS.map((step, index) => {
+        const isCompleted = index < currentStepIndex;
+        const isCurrent = index === currentStepIndex;
 
-      <div className="space-y-3">
-        {DEFAULT_STEPS.map((step, index) => {
-          const isCompleted = index < currentStepIndex;
-          const isCurrent = index === currentStepIndex;
-          const isPending = index > currentStepIndex;
-          const Icon = step.icon;
-
-          return (
-            <motion.div
-              key={step.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border p-3.5 transition-all duration-500 sm:gap-4 sm:p-4",
-                isCompleted ? "bg-emerald-500/10 border-emerald-500/20" :
-                isCurrent ? "bg-muted border-border" :
-                "bg-transparent border-transparent opacity-40"
-              )}
-            >
-              <div className={cn(
-                "h-9 w-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-500 sm:h-10 sm:w-10",
-                  isCompleted ? "bg-emerald-500 text-foreground" :
-                  isCurrent ? "bg-muted text-foreground" :
-                  "bg-transparent text-muted-foreground"
-              )}>
-                {isCompleted ? (
-                  <Check className="w-5 h-5" />
-                ) : isCurrent ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Icon className="w-5 h-5" />
-                )}
-              </div>
-
-              <div className="flex-1">
-                <span className={cn(
-                  "font-medium tracking-wide transition-colors duration-500",
-                  isCompleted ? "text-emerald-50" :
-                  isCurrent ? "text-white" :
-                  "text-muted-foreground"
-                )}>
-                  {step.label}
-                </span>
-                {isCurrent && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: durationPerStep / 1000, ease: "linear" }}
-                    className="h-0.5 bg-emerald-500/50 mt-2 rounded-full"
-                  />
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+        return (
+          <div
+            key={step.id}
+            className={`oba-res-row${index > currentStepIndex ? ' is-pending' : ''}`}
+          >
+            <span className="oba-res-g" aria-hidden>
+              {isCompleted ? (
+                <Check className="h-4 w-4" />
+              ) : isCurrent ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : null}
+            </span>
+            <span className="oba-res-label">
+              {step.label}
+              {isCompleted ? <span className="sr-only"> — done</span> : null}
+              {isCurrent ? <span className="sr-only"> — in progress</span> : null}
+            </span>
+            {isCurrent ? (
+              <PaceLine key={`pace-${step.id}`} durationMs={durationPerStep} />
+            ) : null}
+          </div>
+        );
+      })}
     </div>
+  );
+}
+
+/**
+ * The current row's pacing hairline: grows once over the step duration.
+ * Decorative — the row's word + glyph carry the state (EC-4); reduced motion
+ * kills the transition and the finished row stands.
+ */
+function PaceLine({ durationMs }: { durationMs: number }) {
+  const [grown, setGrown] = useState(false);
+
+  useEffect(() => {
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setGrown(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, []);
+
+  return (
+    <span
+      className="oba-res-pace"
+      aria-hidden
+      style={{
+        transform: grown ? 'scaleX(1)' : 'scaleX(0)',
+        transition: `transform ${Math.max(0, durationMs)}ms linear`,
+      }}
+    />
   );
 }

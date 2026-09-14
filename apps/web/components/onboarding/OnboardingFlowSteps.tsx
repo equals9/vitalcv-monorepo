@@ -9,8 +9,9 @@ import {
 } from '@/lib/mobile/analytics';
 import { trackPilotEvent } from '@/lib/pilot-ops/client';
 import { trackPilotFunnelEvent } from '@/lib/pilot-ops/funnel';
-import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { ObaRoot, ObaStage } from '@/components/onboarding/ActivationScene';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -166,66 +167,54 @@ function StepShell({
   exitLabel: string;
   children: ReactNode;
 }) {
+  // REGISTER (design-only, 2026-08-16): the step frame renders in the
+  // Direction A `.oba` island (styles/onboarding-activation.css) — warm
+  // paper, Fraunces display, mono step index, hairline flow track, solid
+  // panels. Was a dark gradient + frosted panel authored before the
+  // all-light public register. Every href, step semantic, and support
+  // affordance is unchanged.
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_40%),linear-gradient(180deg,#050814_0%,#0b1220_56%,#0a1020_100%)] px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] text-foreground sm:px-6 sm:py-10">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, rgba(255,255,255,0.7) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.7) 1px, transparent 1px)',
-          backgroundSize: '84px 84px',
-        }}
-      />
-      <div className="relative z-10 mx-auto flex max-w-3xl flex-col gap-6 sm:gap-7">
-        <div className="flex items-center justify-between gap-3 text-sm text-white/45">
-          <Link
-            href={backHref}
-            className="inline-flex items-center gap-2 transition hover:text-white/75"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {backLabel}
-          </Link>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65 sm:px-4 sm:text-xs">
-              Activation {step} of 3
-            </div>
-            <Link
-              href={exitHref}
-              className="inline-flex min-h-[40px] items-center rounded-full border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white/75"
-            >
-              {exitLabel}
+    <ObaRoot>
+      <div className="oba-step-wrap flex min-h-[100dvh] flex-col justify-center">
+        <ObaStage key={`step-${step}`} className="flex flex-col gap-6">
+          <div className="oba-step-head">
+            <Link href={backHref} className="oba-quiet">
+              ← {backLabel}
             </Link>
+            <div className="ml-auto flex items-center gap-4">
+              <span className="oba-step-ix">Activation {step} of 3</span>
+              <Link href={exitHref} className="oba-quiet">
+                {exitLabel}
+              </Link>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
-            Continue activation
-          </p>
-          <h1 className="text-2xl font-semibold tracking-[-0.04em] text-white sm:text-3xl">{title}</h1>
-          <p className="max-w-2xl text-sm leading-6 text-white/60">{description}</p>
-        </div>
+          {/* Flow position, stated in words above and drawn here — the fill
+              is the step index over three, never a returned number. */}
+          <div className="oba-track" aria-hidden="true">
+            <i style={{ width: `${(step / 3) * 100}%` }} />
+          </div>
 
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
-          <div
-            className="h-full rounded-full bg-sky-300/80 transition-all"
-            style={{ width: `${(step / 3) * 100}%` }}
+          <div>
+            <p className="oba-k">Continue activation</p>
+            <h1 className="oba-h1 mt-3">{title}</h1>
+            <div className="oba-rule" aria-hidden="true" />
+            <p className="oba-lede mt-4">{description}</p>
+          </div>
+
+          <section className="oba-panel">
+            {children}
+          </section>
+
+          <ClinicianSupportCard
+            topic={`onboarding-step-${step}`}
+            detail="If this onboarding step does not match your clinician record or stalls after a retry, go back one step and then contact support with your NPI and the current step number."
+            primaryHref={backHref}
+            primaryLabel={backLabel}
           />
-        </div>
-
-        <section className="rounded-[30px] border border-white/10 bg-white/[0.04] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:p-6">
-          {children}
-        </section>
-
-        <ClinicianSupportCard
-          topic={`onboarding-step-${step}`}
-          detail="If this onboarding step does not match your clinician record or stalls after a retry, go back one step and then contact support with your NPI and the current step number."
-          primaryHref={backHref}
-          primaryLabel={backLabel}
-        />
+        </ObaStage>
       </div>
-    </div>
+    </ObaRoot>
   );
 }
 
@@ -302,23 +291,22 @@ export function NpiOnboardingStep({
         }}
       >
         {guestMode ? (
-          <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-4 text-sm text-sky-100">
-            <p className="font-medium text-foreground">Preview only</p>
-            <p className="mt-1 text-sky-100/80">
+          <div className="oba-panel oba-panel--inset text-sm">
+            <p className="oba-k">Preview only</p>
+            <p className="oba-small mt-2">
               We&apos;ll resolve your public NPI and preview live role fit, but activation stays protected until you sign in.
             </p>
             <Link
               href={buildSignInHref('/onboarding', returnTo)}
-              className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-sky-200 hover:text-foreground"
+              className="oba-quiet mt-2"
             >
               Sign in to continue onboarding
-              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         ) : null}
 
         <div className="space-y-2">
-          <label htmlFor="onboarding-npi" className="text-sm font-medium text-zinc-300">
+          <label htmlFor="onboarding-npi" className="oba-k">
             NPI number
           </label>
           <input
@@ -340,12 +328,12 @@ export function NpiOnboardingStep({
               }
               setError(null);
             }}
-            placeholder="1234567890"
+            placeholder="··· ··· ····"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? 'onboarding-npi-error' : undefined}
-            className="w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 font-mono text-xl tracking-[0.16em] text-foreground placeholder:text-zinc-700 focus:border-emerald-400 focus:outline-none sm:text-2xl sm:tracking-[0.2em]"
+            className="oba-npi-in w-full"
           />
-          <p className="text-sm text-zinc-500">
+          <p className="oba-fine">
             Type 1 clinician NPIs are supported in this flow. {npi.length > 0 && npi.length < 10
               ? `${10 - npi.length} digit${10 - npi.length === 1 ? '' : 's'} remaining.`
               : 'Your progress stays saved if this step is interrupted.'}
@@ -353,18 +341,17 @@ export function NpiOnboardingStep({
         </div>
 
         {error ? (
-          <div id="onboarding-npi-error" className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <p id="onboarding-npi-error" role="alert" className="oba-err">
             {error}
-          </div>
+          </p>
         ) : null}
 
         <button
           type="submit"
           disabled={!/^\d{10}$/.test(npi)}
-          className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
+          className="oba-action oba-action--full"
         >
           {guestMode ? 'Preview my fit' : 'Continue'}
-          <ArrowRight className="h-4 w-4" />
         </button>
       </form>
     </StepShell>
@@ -460,9 +447,9 @@ export function IdentityOnboardingStep({
       exitLabel={guestMode ? 'Exit preview' : 'Exit onboarding'}
     >
       {loading ? (
-        <div className="flex flex-col items-center gap-4 py-10 text-center text-zinc-400">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-          <p>Confirming your public record...</p>
+        <div className="flex flex-col items-start gap-4 py-10" role="status" aria-live="polite">
+          <Loader2 className="h-7 w-7 animate-spin text-[var(--vt-home-f-ink-muted)]" aria-hidden />
+          <p className="oba-small">Confirming your public record...</p>
         </div>
       ) : error ? (
         <div className="space-y-4">
@@ -472,61 +459,59 @@ export function IdentityOnboardingStep({
             queueItem={{ source: 'route_failure' }}
             dedupeKey={`onboarding:identity:${npi}:${error}`}
           />
-          <div className="space-y-2 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-4 text-sm text-rose-200">
-            <p className="font-semibold text-foreground">Profile check interrupted</p>
-            <p>{error}</p>
-            <p className="text-rose-100/80">
+          <div className="oba-panel oba-panel--inset space-y-2 text-sm">
+            <p className="font-semibold text-[var(--vt-home-f-ink-strong)]">Profile check interrupted</p>
+            <p className="oba-err">{error}</p>
+            <p className="oba-small">
               The public registry may be temporarily unavailable. You can try another NPI or retry this search in a few minutes.
             </p>
           </div>
           <Link
             href={buildOnboardingHref('/onboarding', returnTo)}
-            className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-200"
+            className="oba-quiet"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Try another NPI
+            ← Try another NPI
           </Link>
           <button
             type="button"
             onClick={() => void resolveBootstrap()}
-            className="inline-flex items-center gap-2 text-sm text-foreground/70 transition hover:text-foreground"
+            className="oba-quiet ml-6"
           >
             Retry profile lookup
-            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       ) : bootstrap ? (
         <div className="space-y-6">
           {guestMode ? (
-          <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-4 text-sm text-sky-100">
-              <p className="font-medium text-foreground">Read-only guest preview</p>
-              <p className="mt-1 text-sky-100/80">
+            <div className="oba-panel oba-panel--inset text-sm">
+              <p className="oba-k">Read-only guest preview</p>
+              <p className="oba-small mt-2">
                 This step confirms the public provider match only. Signing in is still required before any profile, credential import, or activation write occurs.
               </p>
             </div>
           ) : null}
 
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Resolved provider</p>
-            <h2 className="mt-2 text-2xl font-semibold text-foreground">
+          <div>
+            <p className="oba-k">Resolved provider</p>
+            <h2 className="mt-2 text-2xl font-semibold text-[var(--vt-home-f-ink-strong)]">
               {clinicianName ?? 'Clinician profile'}
             </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">NPI</p>
-                <p className="mt-1 font-mono text-foreground">{npi}</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="oba-panel">
+                <p className="oba-k">NPI</p>
+                <p className="oba-data mt-1 text-[0.9375rem] text-[var(--vt-home-f-ink-strong)]">{npi}</p>
               </div>
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Specialty</p>
-                <p className="mt-1 text-foreground">{bootstrap.specialty ?? 'Not available yet'}</p>
+              <div className="oba-panel">
+                <p className="oba-k">Specialty</p>
+                <p className="mt-1 text-[var(--vt-home-f-ink-strong)]">{bootstrap.specialty ?? 'Not available yet'}</p>
               </div>
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">State</p>
-                <p className="mt-1 text-foreground">{bootstrap.state ?? 'Not available yet'}</p>
+              <div className="oba-panel">
+                <p className="oba-k">State</p>
+                <p className="mt-1 text-[var(--vt-home-f-ink-strong)]">{bootstrap.state ?? 'Not available yet'}</p>
               </div>
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Status</p>
-                <p className="mt-1 text-foreground">
+              <div className="oba-panel">
+                <p className="oba-k">Status</p>
+                <p className="mt-1 text-[var(--vt-home-f-ink-strong)]">
                   {bootstrap.alreadyRegistered
                     ? 'Existing VitalCV profile found'
                     : guestMode
@@ -540,10 +525,9 @@ export function IdentityOnboardingStep({
           <button
             type="button"
             onClick={() => router.push(buildOnboardingHref('/onboarding/readiness', returnTo))}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
+            className="oba-action oba-action--full"
           >
             {guestMode ? 'Continue preview' : 'Continue onboarding'}
-            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       ) : null}
@@ -747,9 +731,9 @@ export function ActivateOnboardingStep({
         exitLabel="Exit preview"
       >
         {guestLoading ? (
-          <div className="flex flex-col items-center gap-4 py-10 text-center text-zinc-400">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-            <p>Bringing your guest preview into view...</p>
+          <div className="flex flex-col items-start gap-4 py-10" role="status" aria-live="polite">
+            <Loader2 className="h-7 w-7 animate-spin text-[var(--vt-home-f-ink-muted)]" aria-hidden />
+            <p className="oba-small">Bringing your guest preview into view...</p>
           </div>
         ) : error ? (
           <div className="space-y-4">
@@ -760,50 +744,49 @@ export function ActivateOnboardingStep({
               queueItem={{ source: 'route_failure', blocking: false }}
               dedupeKey={`onboarding:guest-preview:${guestBootstrap?.npi ?? 'unknown'}:${error}`}
             />
-            <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-red-200">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="oba-panel oba-panel--inset flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--vt-home-f-attention)]" aria-hidden />
               <div className="space-y-2 text-sm">
-                <p className="font-semibold text-foreground">Guest preview is blocked right now</p>
-                <p>{error}</p>
-                <p className="text-red-100/80">
+                <p className="font-semibold text-[var(--vt-home-f-ink-strong)]">Guest preview is blocked right now</p>
+                <p className="oba-err">{error}</p>
+                <p className="oba-small">
                   Next step: go back to the profile review and retry the live opportunity lookup, or continue into the main explore feed instead.
                 </p>
               </div>
             </div>
             <Link
               href={buildOnboardingHref('/onboarding/identity', returnTo)}
-              className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-200"
+              className="oba-quiet"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Go back and try again
+              ← Go back and try again
             </Link>
           </div>
         ) : guestBootstrap ? (
           <div className="space-y-6">
-            <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Guest preview scope</p>
-              <h2 className="mt-2 text-2xl font-semibold text-foreground">
+            <div>
+              <p className="oba-k">Guest preview scope</p>
+              <h2 className="mt-2 text-2xl font-semibold text-[var(--vt-home-f-ink-strong)]">
                 {[guestBootstrap.firstName, guestBootstrap.lastName]
                   .filter((value): value is string => Boolean(value))
                   .join(' ')
                   .trim() || 'Clinician preview'}
               </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">NPI</p>
-                  <p className="mt-1 font-mono text-foreground">{guestBootstrap.npi}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="oba-panel">
+                  <p className="oba-k">NPI</p>
+                  <p className="oba-data mt-1 text-[0.9375rem] text-[var(--vt-home-f-ink-strong)]">{guestBootstrap.npi}</p>
                 </div>
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Specialty</p>
-                  <p className="mt-1 text-foreground">{guestBootstrap.specialty ?? 'Not available yet'}</p>
+                <div className="oba-panel">
+                  <p className="oba-k">Specialty</p>
+                  <p className="mt-1 text-[var(--vt-home-f-ink-strong)]">{guestBootstrap.specialty ?? 'Not available yet'}</p>
                 </div>
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">State</p>
-                  <p className="mt-1 text-foreground">{guestBootstrap.state ?? 'Not available yet'}</p>
+                <div className="oba-panel">
+                  <p className="oba-k">State</p>
+                  <p className="mt-1 text-[var(--vt-home-f-ink-strong)]">{guestBootstrap.state ?? 'Not available yet'}</p>
                 </div>
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Activation</p>
-                  <p className="mt-1 text-foreground">
+                <div className="oba-panel">
+                  <p className="oba-k">Activation</p>
+                  <p className="mt-1 text-[var(--vt-home-f-ink-strong)]">
                     {guestBootstrap.alreadyRegistered
                       ? 'Sign in to continue with the existing profile'
                       : 'Sign in to create and persist your profile'}
@@ -812,44 +795,44 @@ export function ActivateOnboardingStep({
               </div>
             </div>
 
-            <div className="rounded-3xl border border-sky-500/20 bg-sky-500/10 p-5">
+            <div className="oba-panel">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-sky-200/80">Live role preview</p>
-                  <h3 className="mt-2 text-xl font-semibold text-foreground">
-            {guestMatchTotal} live role{guestMatchTotal === 1 ? '' : 's'} align with this preview
+                  <p className="oba-k">Live role preview</p>
+                  <h3 className="oba-h3 mt-2">
+                    {guestMatchTotal} live role{guestMatchTotal === 1 ? '' : 's'} align with this preview
                   </h3>
-                  <p className="mt-2 text-sm leading-6 text-sky-100/80">
+                  <p className="oba-small mt-2">
                     These matches come from the current opportunities feed. Guest mode does not activate, apply, or reserve anything.
                   </p>
                 </div>
-                <Link
-                  href={guestExploreHref}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-border bg-muted px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
-                >
+                <Link href={guestExploreHref} className="oba-quiet shrink-0">
                   Open matching roles
-                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-2">
                 {guestMatches.length > 0 ? guestMatches.map((opportunity) => (
-                  <div key={opportunity.id} className="rounded-2xl border border-border bg-black/20 px-4 py-3">
+                  <div key={opportunity.id} className="oba-panel oba-panel--inset">
                     <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{opportunity.title}</p>
-                        <p className="mt-1 text-sm text-sky-100/75">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[var(--vt-home-f-ink-strong)]">{opportunity.title}</p>
+                        <p className="oba-small mt-1">
                           {opportunity.organizationName} - {opportunity.remote ? `Remote (${opportunity.state})` : opportunity.state}
                         </p>
                       </div>
-                      <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-semibold text-foreground/70">
+                      {/* Requirement level is a word-label: the pill silhouette
+                          is ratified for word-labels (A-2), never a state. */}
+                      <span className="oba-data shrink-0 rounded-full border border-[var(--vt-home-f-rule-strong)] px-2.5 py-1 text-[11px]">
                         {opportunity.requirementLevel}
                       </span>
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-2xl border border-border bg-black/20 px-4 py-4 text-sm text-sky-100/80">
-                    No exact specialty/state matches are live right now, but the marketplace feed is still available to browse.
+                  <div className="oba-panel oba-panel--inset text-sm">
+                    <p className="oba-small">
+                      No exact specialty/state matches are live right now, but the marketplace feed is still available to browse.
+                    </p>
                   </div>
                 )}
               </div>
@@ -858,21 +841,19 @@ export function ActivateOnboardingStep({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href={buildSignInHref('/onboarding/readiness', returnTo)}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
+                className="oba-action flex-1"
               >
                 Sign in to continue onboarding
-                <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href={guestExploreHref}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-950 px-5 py-3 text-sm font-semibold text-foreground transition hover:border-zinc-700"
+                className="oba-ghost flex-1"
               >
                 Continue exploring
-                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
 
-            <p className="text-sm text-zinc-500">
+            <p className="oba-fine">
               Guest preview is read-only: no activation, credential ingestion, or submission state is persisted until you authenticate.
             </p>
           </div>
@@ -893,21 +874,23 @@ export function ActivateOnboardingStep({
     >
       {completed ? (
         <div className="space-y-5 py-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-4 text-emerald-200">
-            <CheckCircle2 className="h-6 w-6 text-emerald-300" />
+          {/* The activation endpoint actually returned: completed work. The
+              glyph may be work-green; the words stay ink (EC-4/A-1). */}
+          <div className="oba-panel flex items-center gap-3">
+            <CheckCircle2 className="h-6 w-6 shrink-0 text-[var(--vt-home-f-confirmed)]" aria-hidden />
             <div>
-              <p className="font-semibold">You&apos;re ready to keep going</p>
-              <p className="text-sm text-emerald-100/80">
+              <p className="font-semibold text-[var(--vt-home-f-ink-strong)]">You&apos;re ready to keep going</p>
+              <p className="oba-data mt-1 text-sm">
                 Readiness {completed.readinessLevel} - {completed.readinessScore}/100
               </p>
             </div>
           </div>
           {error ? (
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <p role="alert" className="oba-err">
               {error}
-            </div>
+            </p>
           ) : null}
-          <p className="text-sm text-zinc-400">
+          <p className="oba-small">
             Opening your profile...
           </p>
         </div>
@@ -919,28 +902,27 @@ export function ActivateOnboardingStep({
             queueItem={{ source: 'route_failure' }}
             dedupeKey={`onboarding:activation:${error}`}
           />
-          <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-red-200">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div className="oba-panel oba-panel--inset flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--vt-home-f-attention)]" aria-hidden />
             <div className="space-y-2 text-sm">
-              <p className="font-semibold text-foreground">Activation paused</p>
-              <p>{error}</p>
-              <p className="text-rose-100/80">
+              <p className="font-semibold text-[var(--vt-home-f-ink-strong)]">Activation paused</p>
+              <p className="oba-err">{error}</p>
+              <p className="oba-small">
                 Your progress is saved. Please go back and retry activation. If this continues, the interruption will be visible for follow-up.
               </p>
             </div>
           </div>
           <Link
             href={buildOnboardingHref('/onboarding/identity', returnTo)}
-            className="inline-flex items-center gap-2 text-sm text-emerald-300 hover:text-emerald-200"
+            className="oba-quiet"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Go back and try again
+            ← Go back and try again
           </Link>
         </div>
       ) : (
         <div className="space-y-6 py-4">
           <ResolverProgressIndicator durationPerStep={680} />
-          <p className="text-center text-sm text-zinc-500">
+          <p className="oba-small">
             Your credentials and readiness are being connected to the next step.
           </p>
         </div>

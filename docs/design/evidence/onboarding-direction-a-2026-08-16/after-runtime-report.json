@@ -1,0 +1,1306 @@
+{
+  "label": "after",
+  "baseURL": "http://127.0.0.1:3277",
+  "capturedAt": "2026-08-16T21:28:42.070Z",
+  "fixtures": "synthetic only — NPI 1558395518 (check-digit-invalid by design, sanctioned synthetic family) / fabricated name Ada Rivers; all network stubbed",
+  "consoleErrors": [
+    {
+      "scenario": "entry",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "scenario": "entry-reduced",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "scenario": "checksum-error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "scenario": "identity",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+    },
+    {
+      "scenario": "identity",
+      "text": "Failed to fetch RSC payload for http://127.0.0.1:3277/holder/home. Falling back to browser navigation. TypeError: Failed to fetch\n    at y (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:124181)\n    at async _ (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:123039)\n    at async Object.o [as task] (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee"
+    },
+    {
+      "scenario": "readiness",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+    },
+    {
+      "scenario": "readiness",
+      "text": "Failed to fetch RSC payload for http://127.0.0.1:3277/holder/home. Falling back to browser navigation. TypeError: Failed to fetch\n    at y (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:124181)\n    at async _ (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:123039)\n    at async Object.o [as task] (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee"
+    },
+    {
+      "scenario": "readiness-error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "scenario": "readiness-error",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+    },
+    {
+      "scenario": "readiness-error",
+      "text": "Failed to fetch RSC payload for http://127.0.0.1:3277/holder/home. Falling back to browser navigation. TypeError: Failed to fetch\n    at y (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:124181)\n    at async _ (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee31caa9519.js:1:123039)\n    at async Object.o [as task] (http://127.0.0.1:3277/_next/static/chunks/87822-88b05ee"
+    }
+  ],
+  "pageErrors": [],
+  "scenarios": {
+    "entry-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 480,
+            "h": 88
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 480,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 480,
+            "h": 48
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 17
+    },
+    "entry-1280x800": {
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "maxElementRight": 1280,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 480,
+            "h": 88
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 480,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 480,
+            "h": 48
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 17
+    },
+    "entry-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 342,
+            "h": 62
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 342,
+            "h": 132
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 342,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 342,
+            "h": 48
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 342,
+            "h": 132
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 16
+    },
+    "entry-768x1024": {
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "maxElementRight": 768,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 480,
+            "h": 62
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 480,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 480,
+            "h": 48
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 17
+    },
+    "entry-reduced": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 480,
+            "h": 88
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 480,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 480,
+            "h": 48
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 17
+    },
+    "checksum-error-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 480,
+            "h": 88
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 480,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 480,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-err",
+          "color": "rgb(146, 64, 14)",
+          "contrast": 5.9,
+          "rect": {
+            "w": 480,
+            "h": 22
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 17
+    },
+    "checksum-error-1280x800": {
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "maxElementRight": 1280,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 480,
+            "h": 88
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 480,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 480,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-err",
+          "color": "rgb(146, 64, 14)",
+          "contrast": 5.9,
+          "rect": {
+            "w": 480,
+            "h": 22
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 480,
+            "h": 106
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 17
+    },
+    "checksum-error-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 342,
+            "h": 62
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 342,
+            "h": 132
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 342,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 342,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-err",
+          "color": "rgb(146, 64, 14)",
+          "contrast": 5.9,
+          "rect": {
+            "w": 342,
+            "h": 43
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 342,
+            "h": 132
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        },
+        {
+          "tag": "a",
+          "text": "Sign in",
+          "w": 44,
+          "h": 18
+        }
+      ],
+      "targetCount": 16
+    },
+    "fetching-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 594,
+            "h": 53
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-data",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 672,
+            "h": 21
+          }
+        },
+        {
+          "selector": ".oba-ghost",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 109,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 44,
+            "h": 44
+          }
+        },
+        {
+          "selector": "main h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 4
+    },
+    "fetching-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 350,
+            "h": 62
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 350,
+            "h": 53
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 350,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-data",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 350,
+            "h": 21
+          }
+        },
+        {
+          "selector": ".oba-ghost",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 109,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 44,
+            "h": 44
+          }
+        },
+        {
+          "selector": "main h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 350,
+            "h": 62
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 350,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 4
+    },
+    "identity-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 594,
+            "h": 53
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-data",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.97,
+          "rect": {
+            "w": 269,
+            "h": 21
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 630,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 102,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 7
+    },
+    "identity-1280x800": {
+      "innerWidth": 1280,
+      "scrollWidth": 1280,
+      "maxElementRight": 1280,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 594,
+            "h": 53
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-data",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.97,
+          "rect": {
+            "w": 269,
+            "h": 21
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 630,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 102,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 7
+    },
+    "identity-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 350,
+            "h": 31
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 350,
+            "h": 53
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 350,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-data",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.97,
+          "rect": {
+            "w": 266,
+            "h": 21
+          }
+        },
+        {
+          "selector": ".oba-action",
+          "color": "rgb(246, 244, 239)",
+          "contrast": 16.12,
+          "rect": {
+            "w": 308,
+            "h": 48
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 102,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 350,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 7
+    },
+    "readiness-1440x900": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 594,
+            "h": 26
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 172,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 6
+    },
+    "readiness-390x844": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "maxElementRight": 390,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 350,
+            "h": 31
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 350,
+            "h": 53
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 350,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 172,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 350,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 6
+    },
+    "readiness-completed": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 594,
+            "h": 26
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-data",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.97,
+          "rect": {
+            "w": 201,
+            "h": 19
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 172,
+            "h": 44
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 6
+    },
+    "readiness-error": {
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "maxElementRight": 1440,
+      "widestElement": "div.relative",
+      "probes": [
+        {
+          "selector": "h1",
+          "color": "rgb(26, 24, 21)",
+          "contrast": 14.75,
+          "rect": {
+            "w": 672,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-lede",
+          "color": "rgb(87, 83, 74)",
+          "contrast": 6.38,
+          "rect": {
+            "w": 594,
+            "h": 26
+          }
+        },
+        {
+          "selector": ".oba-k",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        },
+        {
+          "selector": ".oba-quiet",
+          "color": "rgb(67, 56, 202)",
+          "contrast": 6.58,
+          "rect": {
+            "w": 172,
+            "h": 44
+          }
+        },
+        {
+          "selector": ".oba-err",
+          "color": "rgb(146, 64, 14)",
+          "contrast": 5.33,
+          "rect": {
+            "w": 556,
+            "h": 22
+          }
+        },
+        {
+          "selector": "p",
+          "color": "rgb(101, 94, 81)",
+          "contrast": 5.34,
+          "rect": {
+            "w": 672,
+            "h": 18
+          }
+        }
+      ],
+      "subFloorTargets": [
+        {
+          "tag": "a",
+          "text": "Skip to content",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "targetCount": 7
+    }
+  }
+}
