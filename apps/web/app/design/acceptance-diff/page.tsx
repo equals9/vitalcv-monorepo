@@ -50,6 +50,15 @@ const CURRENT_REVOKED: AcceptanceSourceCheck[] = [
   { sourceId: 'TX_LICENSE', label: 'State medical license · TX', state: 'revoked', checkedAt: '2026-06-30T00:00:00Z' }, // revoked!
 ];
 
+// A current snapshot where a check the employer relied on can no longer be read.
+// Not a revocation — but no longer decision-grade, so the reassurance must not hold.
+const CURRENT_DEGRADED: AcceptanceSourceCheck[] = [
+  { sourceId: 'NPPES', label: 'NPPES identity', state: 'checked', checkedAt: '2026-03-30T00:00:00Z' },
+  { sourceId: 'OIG', label: 'OIG / LEIE exclusions', state: 'unavailable', checkedAt: '2026-03-30T00:00:00Z' }, // lost support
+  { sourceId: 'DEA', label: 'DEA registration', state: 'checked', checkedAt: '2026-07-11T00:00:00Z' },
+  { sourceId: 'TX_LICENSE', label: 'State medical license · TX', state: 'checked', checkedAt: '2026-07-09T00:00:00Z' },
+];
+
 function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
   return (
     <section style={{ borderTop: '1px solid var(--vt-border)', paddingTop: 28, marginTop: 40 }}>
@@ -101,6 +110,10 @@ export default function AcceptanceDiffDesignReferencePage() {
 
       <Section eyebrow="E5 · fail-closed" title="Something was revoked — it stops the re-use">
         <AcceptanceDiff acceptedAt={ACCEPTED_AT} accepted={ACCEPTED} current={CURRENT_REVOKED} />
+      </Section>
+
+      <Section eyebrow="E5 · fail-closed" title="A check it relied on can no longer be read — it pauses the re-use">
+        <AcceptanceDiff acceptedAt={ACCEPTED_AT} accepted={ACCEPTED} current={CURRENT_DEGRADED} />
       </Section>
 
       <Section eyebrow="E6" title="No changes — the packet you accepted still holds">

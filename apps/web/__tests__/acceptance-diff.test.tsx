@@ -15,6 +15,7 @@ import {
   type AcceptanceSourceCheck,
 } from '@/lib/acceptance/acceptanceDiff';
 import { AcceptanceDiff } from '@/design-system/components';
+import { CANONICAL_SOURCE_COVERAGE_STATES } from '@vitalcv/trust-state';
 
 const ACCEPTED: AcceptanceSourceCheck[] = [
   { sourceId: 'NPPES', label: 'NPPES identity', state: 'checked', checkedAt: '2026-03-30T00:00:00Z' },
@@ -73,6 +74,55 @@ describe('diffAcceptanceSnapshot', () => {
   });
 });
 
+/**
+ * Transitions vs current state. The diff used to count every checked → X
+ * move other than stale/revoked as "unchanged", and counted a source that was
+ * already revoked at acceptance as "nothing revoked" — both under the green
+ * reassurance line. These pin the separation.
+ */
+describe('diffAcceptanceSnapshot — degraded support and current adverse state', () => {
+  const at = '2026-03-30T00:00:00Z';
+  const one = (state: AcceptanceSourceCheck['state'], checkedAt: string | null = at): AcceptanceSourceCheck[] => [
+    { sourceId: 'S', label: 'S', state, checkedAt },
+  ];
+  const LOST_SUPPORT = CANONICAL_SOURCE_COVERAGE_STATES.filter((s) => s !== 'checked' && s !== 'stale');
+
+  it.each(LOST_SUPPORT)('checked → %s is degraded, never unchanged', (state) => {
+    const d = diffAcceptanceSnapshot(one('checked'), one(state));
+    expect(d.counts.degraded).toBe(1);
+    expect(d.unchanged).toBe(0);
+    expect(d.hasChanges).toBe(true);
+    expect(summarizeAcceptanceDiff(d)).toContain('1 no longer confirmed');
+  });
+
+  it('a source already revoked at acceptance clears the nothing-revoked reassurance', () => {
+    const d = diffAcceptanceSnapshot(one('revoked'), one('revoked'));
+    expect(d.counts.revoked).toBe(0); // no transition…
+    expect(d.currentlyRevoked).toBe(1); // …but a current adverse state
+    expect(d.nothingRevoked).toBe(false);
+    expect(summarizeAcceptanceDiff(d)).toBe('No changes since your acceptance · 1 revoked — review');
+  });
+
+  it('a revoked source added since acceptance also clears the reassurance', () => {
+    const d = diffAcceptanceSnapshot([], one('revoked'));
+    expect(d.counts.added).toBe(1);
+    expect(d.nothingRevoked).toBe(false);
+  });
+
+  it('a shift between two non-decision-grade states is changed, not unchanged', () => {
+    const d = diffAcceptanceSnapshot(one('pending'), one('unavailable'));
+    expect(d.counts.changed).toBe(1);
+    expect(d.unchanged).toBe(0);
+  });
+
+  it('unchanged means identical state AND check time', () => {
+    expect(diffAcceptanceSnapshot(one('stale', at), one('stale', '2026-04-30T00:00:00Z')).unchanged).toBe(0);
+    // A missing checkedAt and an explicit null both mean "never checked".
+    const omitted: AcceptanceSourceCheck[] = [{ sourceId: 'S', label: 'S', state: 'pending' }];
+    expect(diffAcceptanceSnapshot(one('pending', null), omitted).unchanged).toBe(1);
+  });
+});
+
 describe('summarizeAcceptanceDiff', () => {
   it('summarizes a clean compounding diff', () => {
     expect(summarizeAcceptanceDiff(diffAcceptanceSnapshot(ACCEPTED, CLEAN))).toBe('2 refreshed · 1 new · nothing revoked');
@@ -102,6 +152,26 @@ describe('AcceptanceDiff — render', () => {
     expect(html).toContain('data-change-kind="revoked"');
     expect(html).toContain('data-provenance-state="revoked"');
     expect(html).toContain('revoked since your acceptance');
+  });
+
+  it('does not lead with a clean banner when decision-grade support was lost', () => {
+    const lost = CLEAN.map((c) => (c.sourceId === 'OIG' ? { ...c, state: 'unavailable' as const } : c));
+    const html = renderToStaticMarkup(<AcceptanceDiff acceptedAt="2026-04-02T00:00:00Z" accepted={ACCEPTED} current={lost} />);
+    expect(html).toContain('data-acceptance-diff="degraded"');
+    expect(html).toContain('data-change-kind="degraded"');
+    expect(html).toContain('1 check no longer confirmed at the source since your acceptance on 2026-04-02');
+    expect(html).not.toContain('Nothing revoked since your acceptance');
+  });
+
+  it('fails closed on a source already revoked at acceptance, and does not say the packet still holds', () => {
+    const revokedAtAccept = ACCEPTED.map((c) => (c.sourceId === 'TX' ? { ...c, state: 'revoked' as const } : c));
+    const html = renderToStaticMarkup(
+      <AcceptanceDiff acceptedAt="2026-04-02T00:00:00Z" accepted={revokedAtAccept} current={revokedAtAccept} />,
+    );
+    expect(html).toContain('data-acceptance-diff="revoked"');
+    expect(html).toContain('1 credential revoked — review before relying on this.');
+    expect(html).not.toContain('still holds');
+    expect(html).not.toContain('Nothing revoked');
   });
 
   it('never renders the bare status word "Verified"', () => {

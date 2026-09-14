@@ -95,6 +95,7 @@ reviewer should follow.
 | [`fto-axuall-12079891.md`](./fto-axuall-12079891.md) | Axuall's patent read against the OID4VP layer already in `apps/api/backend`, and the design-around acceptance intelligence must respect until counsel says otherwise |
 | [`name-clearance-2026-08-10.md`](./name-clearance-2026-08-10.md) | Whether to rename (no), what a rename costs as receipt volume grows, and what counsel still needs to clear |
 | [`credentialing-category-attack-surface-2026-08-17.md`](./credentialing-category-attack-surface-2026-08-17.md) | The credentialing-platform buyer's grid (Medallion, symplr, CertifyOS, Verifiable, Assured), which of its five columns are unwinnable, the one that changed hands in 2026, and nine attack surfaces ranked by fit to capability we already hold |
+| [`review-reuse-research-2026-09-10.md`](./review-reuse-research-2026-09-10.md) | An external research package's NARROW verdict — reuse an employer's completed *review*, not just the evidence — claim-checked against `main` and its own sources: the product has no second-review entry point yet, this is the third model of the idea, 482.22 telemedicine reliance is the narrow federal precedent, and the three founder-owned gates before anything else is built |
 
 Those IP sections bind regardless of this directory's rank: they are legal and
 honesty constraints rather than positioning preferences, and rank 4 has always
