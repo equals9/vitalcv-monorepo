@@ -17,6 +17,7 @@ import {
   reasonToneClass,
 } from './format'
 import { matchSummaryText, overallLabelText } from './deckMachine'
+import { DeckTermsBlock } from './DeckTerms'
 import type { DeckRecommendation, MatchReason } from './types'
 
 function ReasonLine({ reason }: { reason: MatchReason }) {
@@ -84,6 +85,12 @@ export function MatchaDeckCard({ recommendation, children }: MatchaDeckCardProps
           </li>
           {opportunity.scheduleSummary ? <li>{opportunity.scheduleSummary}</li> : null}
         </ul>
+
+        {/* The role checked against the person's terms, beside the role facts it reads —
+            separate from the match block below, which is the person checked against the
+            role. Placed above that block because the block is the card's flexible region
+            and already overflows on narrow screens; the terms must never sit under it. */}
+        <DeckTermsBlock opportunity={opportunity} variant="face" />
 
         <hr className="mdk-divider" />
 

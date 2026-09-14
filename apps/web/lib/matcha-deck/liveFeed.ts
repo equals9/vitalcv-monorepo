@@ -3,8 +3,31 @@ import 'server-only'
 import { auth } from '@clerk/nextjs/server'
 
 import type { DeckRecommendation } from '@/components/matcha-deck/types'
+import { fetchLaunchOpportunity, type OpportunitySummary } from '@/lib/launch/marketplace'
 import { MARKETPLACE_BACKEND, buildMarketplaceHeaders } from '@/lib/server/marketplace-proxy'
-import { toDeckRecommendations } from './liveRecommendation'
+import { matchOpportunityId, toDeckRecommendations } from './liveRecommendation'
+
+/** Records are read per match; the deck shows this many at most per load. */
+const RECORD_FETCH_CAP = 24
+
+/**
+ * The canonical record for each matched opportunity, keyed by id. The engine's match
+ * payload does not carry schedule, pay unit, pay provenance, or sponsorship; the public
+ * projection does, and it is the same owner the Roles list and role detail read. A record
+ * that cannot be read is simply absent — the card then says the check was unavailable.
+ */
+export async function loadMatchRecords(matches: unknown): Promise<Map<string, OpportunitySummary>> {
+  const records = new Map<string, OpportunitySummary>()
+  if (!Array.isArray(matches)) return records
+  const ids = Array.from(
+    new Set(matches.map(matchOpportunityId).filter((id): id is string => Boolean(id))),
+  ).slice(0, RECORD_FETCH_CAP)
+  const settled = await Promise.allSettled(ids.map((id) => fetchLaunchOpportunity(id)))
+  settled.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value) records.set(ids[index], result.value)
+  })
+  return records
+}
 
 const NPI_RE = /^\d{10}$/
 
@@ -72,5 +95,6 @@ export async function loadLiveFeed(): Promise<LiveFeed | null> {
       ? payload.state.toUpperCase()
       : undefined
 
-  return { npi, recommendations: toDeckRecommendations(payload.matches), homeState }
+  const records = await loadMatchRecords(payload.matches)
+  return { npi, recommendations: toDeckRecommendations(payload.matches, records), homeState }
 }

@@ -7,6 +7,8 @@
  * data (J1) implements this same contract and is visibly labeled.
  */
 
+import type { ConstraintOpportunity } from '@/lib/matcha/constraintFit'
+
 export type MatchReasonKind =
   | 'source_backed' // backed by a named source check (NPPES, OIG/LEIE, …)
   | 'preference' // matches a clinician-stated preference
@@ -59,6 +61,15 @@ export interface CompensationRange {
   provenance: 'employer_provided' | 'source_listing' | 'unknown'
 }
 
+/**
+ * The role record facts a terms check reads, carried from the canonical opportunity
+ * projection (`/api/opportunities/:id`) — the engine's match payload does not state
+ * schedule, pay unit, pay provenance, or sponsorship, and a check on the engine payload
+ * alone would report those as unknown when the record does state them. Absent when the
+ * record could not be read; the deck then says so rather than reporting unknowns.
+ */
+export type OpportunityRecordFacts = ConstraintOpportunity
+
 export interface OpportunityCardData {
   opportunityId: string
   title: string
@@ -77,6 +88,7 @@ export interface OpportunityCardData {
   experienceRequirements?: string[]
   sponsorship?: 'available' | 'not_available' | 'unknown'
   benefits?: string[]
+  record?: OpportunityRecordFacts
 }
 
 export interface DeckRecommendation {

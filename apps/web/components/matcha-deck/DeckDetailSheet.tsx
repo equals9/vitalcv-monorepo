@@ -17,6 +17,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 
 import { arrangementLabel, formatCompensation, locationText, sponsorshipLabel } from './format'
 import { matchSummaryText, overallLabelText } from './deckMachine'
+import { DeckTermsBlock } from './DeckTerms'
 import type { DeckDecision, DeckRecommendation, MatchReason } from './types'
 
 interface ReasonGroupProps {
@@ -149,6 +150,8 @@ export function DeckDetailSheet({ recommendation, onClose, onDecide }: DeckDetai
               <Fact label="Listing freshness" value={freshness.label} />
             </dl>
           </section>
+
+          <DeckTermsBlock opportunity={opportunity} variant="sheet" />
 
           {opportunity.description ? (
             <section className="mdk-sheet-section" aria-label="Full description">
