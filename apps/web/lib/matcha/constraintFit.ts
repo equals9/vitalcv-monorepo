@@ -310,3 +310,25 @@ export const CONSTRAINT_VERDICT_HEADING: Record<ConstraintVerdict, string> = {
   hard_unknown: 'A term you marked non-negotiable is not settled by this role record.',
   hard_not_met: 'This role fails a term you marked non-negotiable.',
 };
+
+/**
+ * The constraint keys the clinician has actually stated a preference for — the same
+ * gate each evaluator applies before it says anything. A list surface uses this to tell
+ * "no terms set" apart from "terms set, all unknown here" without evaluating a role.
+ */
+export function statedConstraintKeys(prefs: MatchaPreferences): ConstraintKey[] {
+  return HARD_CONSTRAINT_KEYS.filter((key) => {
+    switch (key) {
+      case 'location':
+        return (prefs.preferredStates ?? []).some((s) => normalizeState(s).length > 0);
+      case 'compensation':
+        return typeof prefs.minimumSalary === 'number' && Number.isFinite(prefs.minimumSalary);
+      case 'employment_type':
+        return (prefs.employmentTypes ?? []).length > 0;
+      case 'visa_sponsorship':
+        return prefs.visaSponsorshipNeeded === true;
+      default:
+        return false;
+    }
+  });
+}

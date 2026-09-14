@@ -8,6 +8,8 @@ export type ClinicianAnalyticsEventName =
   | 'clinician.blocker_opened'
   | 'clinician.blocker_resolved'
   | 'clinician.opportunity_viewed'
+  /** The Roles list checked its rows against the clinician's stated terms; counts only. */
+  | 'clinician.terms_checked'
   | 'clinician.apply_started'
   | 'clinician.apply_submitted'
   | 'clinician.application_detail_viewed'

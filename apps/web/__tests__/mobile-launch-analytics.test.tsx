@@ -55,6 +55,9 @@ vi.mock('@/lib/mobile/analytics', () => ({
 
 vi.mock('@/components/auth/RoleContext', () => ({
   useRoleContext: () => roleContextValue,
+  // OpportunityGrid now reads the clinician's terms through useMatchaPreferences,
+  // which asks for the optional context so an isolated render does not throw.
+  useOptionalRoleContext: () => roleContextValue,
 }));
 
 vi.mock('next/navigation', () => ({
