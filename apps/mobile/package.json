@@ -13,8 +13,8 @@
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@vitalcv/wallet-sdk": "workspace:*",
-    "expo": "~57.0.0",
-    "expo-camera": "~57.0.3",
+    "expo": "~57.0.21",
+    "expo-camera": "~57.0.4",
     "expo-constants": "~57.0.9",
     "expo-font": "~57.0.1",
     "expo-haptics": "^57.0.1",
@@ -26,15 +26,15 @@
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.2",
     "jose": "^5.0.0",
-    "react": "19.2.8",
-    "react-native": "0.86.2",
-    "react-native-qrcode-svg": "^6.3.15",
-    "react-native-safe-area-context": "5.8.1",
-    "react-native-screens": "~4.26.2",
+    "react": "19.3.0",
+    "react-native": "0.87.1",
+    "react-native-qrcode-svg": "^6.3.24",
+    "react-native-safe-area-context": "5.9.1",
+    "react-native-screens": "~4.27.0",
     "react-native-svg": "15.15.5"
   },
   "devDependencies": {
-    "@types/react": "^19.2.18",
+    "@types/react": "^19.3.0",
     "typescript": "^5.8.3",
     "vitest": "^4.1.10"
   }
