@@ -82,7 +82,7 @@ describe('renderReport', () => {
     {
       number: 1081,
       title: 'feat(activation): durable clinician profile',
-      url: 'https://github.com/ctol3r/vitalcv/pull/1081',
+      url: 'https://github.com/equals9/vitalcv-monorepo/pull/1081',
       draft: true,
       base: 'main',
       updatedAt: '2026-08-07T00:00:00Z',
@@ -92,7 +92,7 @@ describe('renderReport', () => {
     {
       number: 900,
       title: 'chore: something',
-      url: 'https://github.com/ctol3r/vitalcv/pull/900',
+      url: 'https://github.com/equals9/vitalcv-monorepo/pull/900',
       draft: false,
       base: 'main',
       updatedAt: '2026-08-07T22:00:00Z',

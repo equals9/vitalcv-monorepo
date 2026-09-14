@@ -254,7 +254,7 @@ async function mapWithLimit(items, limit, fn) {
 }
 
 async function main() {
-  const repo = optOf('--repo', process.env.GITHUB_REPOSITORY ?? 'ctol3r/vitalcv');
+  const repo = optOf('--repo', process.env.GITHUB_REPOSITORY ?? 'equals9/vitalcv-monorepo');
   if (!TOKEN) {
     console.error('No GITHUB_TOKEN / GH_TOKEN in the environment; cannot read pull requests.');
     process.exitCode = 1;

@@ -17,7 +17,7 @@ Two private channels, either is fine:
 2. **Email** — <security@vitalcv.com>, the same address published on
    [vitalcv.com/trust](https://vitalcv.com/trust).
 
-[advisory]: https://github.com/ctol3r/vitalcv/security/advisories/new
+[advisory]: https://github.com/equals9/vitalcv-monorepo/security/advisories/new
 
 Useful things to include, as far as you have them: what you were able to do,
 which surface you did it against, and the smallest sequence that reproduces it.

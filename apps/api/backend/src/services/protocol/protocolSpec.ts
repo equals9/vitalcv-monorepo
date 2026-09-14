@@ -286,7 +286,7 @@ export function buildProtocolSpec(baseUrl: string) {
     title:            'VitalCV Trust Protocol',
     description:      'Open standard for machine-readable professional authority verification in healthcare.',
     license:          'CC BY 4.0 (spec) / MIT (reference implementation)',
-    referenceImpl:    'https://github.com/ctol3r/vitalcv',
+    referenceImpl:    'https://github.com/equals9/vitalcv-monorepo',
     specDocs:         'https://vitalcv.com/docs/protocol',
     conformanceSuite: `${baseUrl}/api/protocol/conformance`,
     implementerRegistry: `${baseUrl}/api/protocol/implementations`,

@@ -329,7 +329,7 @@ End every wave with a compact summary table:
 | Truth scan | CLEAN / N hits (listed) |
 | CI | green / pending / failed (which) |
 | Real verification | what you exercised + evidence |
-| PR link | `https://github.com/ctol3r/vitalcv/pull/<N>` |
+| PR link | `https://github.com/equals9/vitalcv-monorepo/pull/<N>` |
 | Verdict | `READY FOR VERIFICATION` / `READY FOR MERGE` / `NEEDS FIX` |
 
 If the verdict is anything other than `READY FOR MERGE`, list the specific blockers and the smallest next action that resolves each one.

@@ -18,7 +18,7 @@
 
 export const RAILWAY_PROJECT_ID = '706ceff8-23ac-404c-a45b-449de5920848';
 export const RAILWAY_GRAPHQL = 'https://backboard.railway.com/graphql/v2';
-export const GITHUB_REPO = 'ctol3r/vitalcv';
+export const GITHUB_REPO = 'equals9/vitalcv-monorepo';
 
 /** The canonical configuration every production service must agree on. */
 export const EXPECTED = {

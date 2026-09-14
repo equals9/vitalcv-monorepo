@@ -31,7 +31,7 @@ cannot hold.** Where it disagrees with `CLAUDE.md`, `CLAUDE.md` wins. Where it d
 
 ## 1. Canonical repository
 
-- **Repository:** `ctol3r/vitalcv` — single authoritative monorepo.
+- **Repository:** `equals9/vitalcv-monorepo` — single authoritative monorepo.
 - All active development happens here. Other VitalCV-related repos are legacy / reference-only.
 - Legacy names that may still appear in comments and should not be reintroduced as dependencies:
   `ctol3r/chai-vc-platform`, `ctol3r/v0-vital-cv-frontend-mvp`.

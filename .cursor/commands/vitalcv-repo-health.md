@@ -11,7 +11,7 @@ package-manager conflicts, and violations of the canonical repo contract.
   - `pnpm-lock.yaml`
 - Flags duplicate frontends or backends
 - Verifies canonical repository:
-  - `ctol3r/vitalcv`
+  - `equals9/vitalcv-monorepo`
 - Scans for rogue apps, services, or infra roots
 - Ensures monorepo consistency
 
