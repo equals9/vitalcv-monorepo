@@ -461,6 +461,67 @@
   font-size: 12px;
 }
 
+/* Your terms — the role checked against the person's terms (see TermsCheck). */
+.mdk-terms {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--mdk-line-soft);
+}
+
+.mdk-terms-label {
+  font-family: var(--mdk-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mdk-ink-faint);
+}
+
+.mdk-terms-heading,
+.mdk-terms-lead,
+.mdk-terms-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mdk-terms-lead,
+.mdk-terms-note {
+  color: var(--mdk-ink-faint);
+}
+
+.mdk-terms-note {
+  margin: 0 0 12px;
+}
+
+/* Card face: two lines beside the role facts, never competing with the match block. */
+.mdk-terms--face {
+  flex: none;
+  gap: 3px;
+  margin-top: 0;
+  padding-top: 8px;
+}
+
+.mdk-terms--face .mdk-terms-label {
+  margin-right: 4px;
+}
+
+.mdk-terms-inline {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--mdk-ink-faint);
+}
+
+.mdk-terms-inline-item--met {
+  color: var(--mdk-green);
+}
+
+.mdk-terms-inline-item--not_met {
+  color: var(--mdk-watch);
+}
+
 .mdk-card-foot {
   display: flex;
   justify-content: space-between;

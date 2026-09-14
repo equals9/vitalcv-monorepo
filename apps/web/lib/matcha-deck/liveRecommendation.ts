@@ -17,8 +17,10 @@ import type {
   DeckRecommendation,
   ListingFreshness,
   OpportunityCardData,
+  OpportunityRecordFacts,
   WorkArrangement,
 } from '@/components/matcha-deck/types'
+import type { OpportunitySummary } from '@/lib/launch/marketplace'
 import { mapEngineExplanation, type EngineExplanation } from './explanationMapper'
 
 interface LiveMatch {
@@ -110,7 +112,53 @@ function isStale(postedMs: number, expiresAt: string | undefined, nowMs = Date.n
   return nowMs - postedMs > 45 * 86_400_000
 }
 
-function opportunityCard(opportunityId: string, opp: Record<string, unknown>): OpportunityCardData {
+/** The opportunity id a live match names, or undefined when it names none. */
+export function matchOpportunityId(match: unknown): string | undefined {
+  if (!match || typeof match !== 'object') return undefined
+  const m = match as LiveMatch
+  const opp = m.opportunity && typeof m.opportunity === 'object' ? m.opportunity : undefined
+  return str(m.opportunityId) ?? (opp ? str(opp.id) : undefined)
+}
+
+/**
+ * The subset of the canonical record a terms check reads. Copied field by field so the
+ * card never carries the whole projection, and absent when there is no record.
+ */
+function recordFacts(record: OpportunitySummary | null | undefined): OpportunityRecordFacts | undefined {
+  if (!record) return undefined
+  return {
+    state: record.state,
+    remote: record.remote,
+    schedule: record.schedule,
+    payRangeMin: record.payRangeMin,
+    payRangeMax: record.payRangeMax,
+    payUnit: record.payUnit,
+    compensationProvenance: record.compensationProvenance,
+    visaSponsorshipStatus: record.visaSponsorshipStatus,
+  }
+}
+
+/**
+ * Sponsorship as the deck's three-way label. Only the record's two definite positions
+ * become definite here; "case by case" and "not stated" stay unknown, and no record at
+ * all stays unknown.
+ */
+function sponsorshipFromRecord(record: OpportunitySummary | null | undefined): OpportunityCardData['sponsorship'] {
+  switch (record?.visaSponsorshipStatus) {
+    case 'available':
+      return 'available'
+    case 'not_available':
+      return 'not_available'
+    default:
+      return 'unknown'
+  }
+}
+
+function opportunityCard(
+  opportunityId: string,
+  opp: Record<string, unknown>,
+  record?: OpportunitySummary | null,
+): OpportunityCardData {
   return {
     opportunityId,
     title: str(opp.title) ?? 'Untitled role',
@@ -127,8 +175,9 @@ function opportunityCard(opportunityId: string, opp: Record<string, unknown>): O
     description: str(opp.description),
     licenseRequirements: strList(opp.credentialRequirements),
     experienceRequirements: strList(opp.experienceRequirements),
-    sponsorship: 'unknown',
+    sponsorship: sponsorshipFromRecord(record),
     benefits: strList(opp.benefits),
+    record: recordFacts(record),
   }
 }
 
@@ -165,18 +214,22 @@ function engineExplanation(raw: Record<string, unknown> | undefined): EngineExpl
  * identity to render honestly (no opportunity id). `now` is threaded so
  * freshness stays deterministic within a request.
  */
-export function toDeckRecommendation(match: LiveMatch | null | undefined, index: number): DeckRecommendation | null {
+export function toDeckRecommendation(
+  match: LiveMatch | null | undefined,
+  index: number,
+  record?: OpportunitySummary | null,
+): DeckRecommendation | null {
   if (!match || typeof match !== 'object') return null
   const opp = match.opportunity
   if (!opp || typeof opp !== 'object') return null
-  const opportunityId = str(match.opportunityId) ?? str(opp.id)
+  const opportunityId = matchOpportunityId(match)
   if (!opportunityId) return null
 
   const explanation = mapEngineExplanation(engineExplanation(match.explanation), `rec-${index}`)
   const canApply = explanation.blockers.length === 0
   return {
     recommendationId: `live-${opportunityId}`,
-    opportunity: opportunityCard(opportunityId, opp),
+    opportunity: opportunityCard(opportunityId, opp, record),
     // The opportunity model has no version column yet; updatedAt/postedAt is
     // the best available "what the clinician saw" pin (see J2 schema note).
     opportunityVersion: str(opp.updatedAt) ?? str(opp.postedAt) ?? 'v0',
@@ -190,9 +243,20 @@ export function toDeckRecommendation(match: LiveMatch | null | undefined, index:
   }
 }
 
-export function toDeckRecommendations(matches: unknown): DeckRecommendation[] {
+/**
+ * Map every live match; `records`, when given, supplies each match's canonical record by
+ * opportunity id. A match with no record still renders — its terms check says the record
+ * was unavailable instead of inventing unknowns.
+ */
+export function toDeckRecommendations(
+  matches: unknown,
+  records?: ReadonlyMap<string, OpportunitySummary>,
+): DeckRecommendation[] {
   if (!Array.isArray(matches)) return []
   return matches
-    .map((m, i) => toDeckRecommendation(m as LiveMatch, i))
+    .map((m, i) => {
+      const id = matchOpportunityId(m)
+      return toDeckRecommendation(m as LiveMatch, i, id ? records?.get(id) ?? null : null)
+    })
     .filter((r): r is DeckRecommendation => r !== null)
 }

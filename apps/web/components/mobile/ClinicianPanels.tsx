@@ -29,14 +29,8 @@ import { formatEventTimestamp } from '@/lib/mobile/formatEventTimestamp';
 import { ClinicianStatusBanner } from '@/components/mobile/ClinicianStatusBanner';
 import { trackClinicianEventOncePerSession } from '@/lib/mobile/analytics';
 import { useMatchaPreferences } from '@/components/matcha/useMatchaPreferences';
-import {
-  CONSTRAINT_STATUS_LABEL,
-  CONSTRAINT_VERDICT_HEADING,
-  evaluateConstraintFit,
-  statedConstraintKeys,
-  type ConstraintFit,
-  type ConstraintResult,
-} from '@/lib/matcha/constraintFit';
+import { TermsCheckStrip, TermsListNote } from '@/components/matcha/TermsCheck';
+import { evaluateConstraintFit, statedConstraintKeys } from '@/lib/matcha/constraintFit';
 import type { ClinicianNotification } from '@/lib/mobile/clinician-state';
 import {
   applicationStatusLabel,
@@ -217,7 +211,9 @@ export function OpportunityGrid({
         </div>
       ) : null}
 
-      {visibleOpportunities.length > 0 ? <TermsListNote terms={terms} statedCount={statedTerms.length} /> : null}
+      {visibleOpportunities.length > 0 ? (
+        <TermsListNote skin="mz" loaded={terms.loaded} sync={terms.sync} statedCount={statedTerms.length} />
+      ) : null}
 
       {visibleOpportunities.length > 0 ? (
         <div className="space-y-4">
@@ -289,7 +285,7 @@ export function OpportunityGrid({
                   </div>
                 ) : null}
 
-                {fit ? <TermsStrip fit={fit} /> : null}
+                {fit ? <TermsCheckStrip fit={fit} skin="mz" /> : null}
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 mz-small">
                   <span className="inline-flex items-center gap-1.5">
@@ -390,101 +386,6 @@ export function OpportunityGrid({
         />
       ) : null}
     </section>
-  );
-}
-
-/**
- * One line for the whole list about the clinician's terms: still loading, none set, or
- * checked from a browser copy because the account store did not answer. Rendered once,
- * above the rows, so a list of twenty roles does not say "set your terms" twenty times.
- */
-function TermsListNote({
-  terms,
-  statedCount,
-}: {
-  terms: Pick<ReturnType<typeof useMatchaPreferences>, 'loaded' | 'sync'>;
-  statedCount: number;
-}) {
-  if (!terms.loaded) {
-    return (
-      <p className="mb-4 mz-small" role="status" aria-live="polite" data-terms-state="loading">
-        Checking these roles against your terms…
-      </p>
-    );
-  }
-  if (statedCount === 0) {
-    return (
-      <p className="mb-4 mz-small" data-terms-state="no_terms">
-        Set the terms that matter to you — where you work, your minimum pay, the arrangement,
-        sponsorship — and every role here is checked against them.{' '}
-        <Link href="/holder/matcha/onboarding" className="underline underline-offset-2">
-          Set your terms
-        </Link>
-      </p>
-    );
-  }
-  if (terms.sync === 'degraded') {
-    return (
-      <p className="mb-4 mz-small" data-terms-state="degraded">
-        Your account store did not answer, so each role is checked against the terms held in
-        this browser only.
-      </p>
-    );
-  }
-  return null;
-}
-
-function termChipClass(result: ConstraintResult): string {
-  switch (result.status) {
-    case 'met':
-      return 'mz-chip-ok';
-    case 'not_met':
-      return result.hard ? 'mz-chip-p0' : 'mz-chip-watch';
-    default:
-      return 'mz-chip-unknown';
-  }
-}
-
-/**
- * The clinician's terms checked against this role record, on the row itself. Three
- * answers stay distinct — met, not met, unknown — and the first non-negotiable term the
- * record does not settle carries its reason and the question that would settle it. A hard
- * miss is stated; the role and its actions below are untouched. This is the role checked
- * against the person's terms, deliberately separate from "Requirements remaining" above,
- * which is the person checked against the role's.
- */
-function TermsStrip({ fit }: { fit: ConstraintFit }) {
-  if (fit.results.length === 0) return null;
-  const lead =
-    fit.results.find((r) => r.hard && r.status !== 'met')
-    ?? fit.results.find((r) => r.status === 'not_met')
-    ?? null;
-  return (
-    <div className="mt-3 mz-inset px-4 py-3" data-constraint-verdict={fit.verdict}>
-      <p className="mz-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--ink-500)]">Your terms</p>
-      <p className="mt-1 text-xs text-[var(--ink-700)]">{CONSTRAINT_VERDICT_HEADING[fit.verdict]}</p>
-      <ul className="mt-2 flex flex-wrap gap-2" aria-label="Your terms, checked against this role record">
-        {fit.results.map((result) => (
-          <li
-            key={result.key}
-            className={`mz-chip ${termChipClass(result)}`}
-            data-constraint-key={result.key}
-            data-constraint-status={result.status}
-            data-constraint-hard={result.hard ? 'true' : 'false'}
-          >
-            <span className="mz-gl" />
-            {result.label}: {CONSTRAINT_STATUS_LABEL[result.status]}
-            {result.hard ? <span className="sr-only"> (non-negotiable)</span> : null}
-          </li>
-        ))}
-      </ul>
-      {lead ? (
-        <p className="mt-2 text-xs text-[var(--ink-700)]" data-constraint-lead={lead.key}>
-          {lead.reason}
-          {lead.nextQuestion ? ` Next: ${lead.nextQuestion}` : ''}
-        </p>
-      ) : null}
-    </div>
   );
 }
 

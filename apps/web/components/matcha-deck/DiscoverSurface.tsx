@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { MatchaDeck } from './MatchaDeck'
+import { DeckTermsContext } from './DeckTerms'
 import { DiscoveryModeBar } from './DiscoveryModeBar'
 import { PassReasonBar } from './PassReasonBar'
 import { PreferenceNudge } from './PreferenceNudge'
@@ -25,6 +26,9 @@ import { useDeckSignals } from './useDeckSignals'
 import { applyDiscoveryMode, type DiscoveryMode } from '@/lib/matcha-deck/discoveryModes'
 import { applyPreferenceNudge } from '@/lib/matcha-deck/applyPreferenceNudge'
 import { emitPassReason } from '@/lib/matcha-deck/emitPassReason'
+import { TermsListNote } from '@/components/matcha/TermsCheck'
+import { useMatchaPreferences } from '@/components/matcha/useMatchaPreferences'
+import { statedConstraintKeys } from '@/lib/matcha/constraintFit'
 import {
   loadPassReasonSuppressed,
   persistPassReasonSuppressed,
@@ -52,6 +56,15 @@ export interface DiscoverSurfaceProps {
 export function DiscoverSurface({ payload, npi }: DiscoverSurfaceProps) {
   const [mode, setMode] = useState<DiscoveryMode>('for_you')
   const modeCtx = useMemo(() => ({ homeState: payload.homeState }), [payload.homeState])
+
+  // The clinician's own terms, read once for the whole deck from the account-scoped
+  // store; each card checks its record against them. Terms never reorder or drop a card.
+  const terms = useMatchaPreferences(npi ?? undefined)
+  const deckTerms = useMemo(
+    () => ({ preferences: terms.preferences, loaded: terms.loaded }),
+    [terms.preferences, terms.loaded],
+  )
+  const statedTermCount = terms.loaded ? statedConstraintKeys(terms.preferences).length : 0
 
   // The mode re-orders the SAME loaded recommendations — a pure lens, no fetch.
   // A new source object per mode makes the deck reload in the chosen order;
@@ -201,6 +214,10 @@ export function DiscoverSurface({ payload, npi }: DiscoverSurfaceProps) {
           <DiscoveryModeBar mode={mode} onChange={setMode} ctx={modeCtx} />
         ) : null}
 
+        {payload.recommendations.length > 0 ? (
+          <TermsListNote skin="mdk" loaded={terms.loaded} sync={terms.sync} statedCount={statedTermCount} />
+        ) : null}
+
         {unsavedCount > 0 ? (
           <p className="mdk-unsaved-banner" role="status" data-mdk-unsaved={unsavedCount}>
             <span aria-hidden="true">◌</span>
@@ -214,7 +231,9 @@ export function DiscoverSurface({ payload, npi }: DiscoverSurfaceProps) {
           </p>
         ) : null}
 
-        <MatchaDeck source={source} onSignal={handleSignal} />
+        <DeckTermsContext.Provider value={deckTerms}>
+          <MatchaDeck source={source} onSignal={handleSignal} />
+        </DeckTermsContext.Provider>
       </div>
 
       {pendingPass ? (

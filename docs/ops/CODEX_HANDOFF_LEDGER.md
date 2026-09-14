@@ -3,6 +3,37 @@
 Append-only. **Newest entry at the top.** One entry per work order is recorded
 in the same pull request as its implementation or takeover evidence.
 
+## ON-WO-1c · Your terms on the Discover deck, fed by the canonical record — OPEN
+
+- **Date:** 2026-09-14
+- **Lane:** Claude Code (branch `feat/whats-next-terms-on-deck`, worktree `/tmp/vitalcv-on-wo1b`,
+  stacked on `feat/whats-next-terms-on-list` (#1479) → `feat/whats-next-intent-fit` (#1478);
+  base `origin/main` @ `fa7e47b71`).
+- **Claim-check:** the engine's match payload (`liveMatchaService.ts`, `matchaModels.ts`) and the
+  underlying `Opportunity` table carry no schedule, pay unit, pay provenance, or sponsorship; those
+  are derived by `buildOpportunityTruth` and served by `/api/opportunities/:id`, which the list and
+  detail already read. No open PR touches the deck loader or mapper. #1462 (`ClinicianPanels`)
+  overlap unchanged from ON-WO-1b.
+- **Change:** the deck's server loader reads each match's canonical record by id (capped, once
+  per id, failures absent) and the mapper copies only the eight facts a terms check reads; a
+  `DeckTermsContext` provided by `DiscoverSurface` lets the card face (two-line summary) and the
+  detail sheet (full strip) check the record; a card with no record says the check was
+  unavailable. `TermsCheck.tsx` is the one component now rendering the check on the list and the
+  deck. Program record §6c.
+- **Truth, authority, and transaction boundary:** No backend, schema, route, API, packet, consent,
+  acceptance, decision, or apply-path change. The record is read from the public projection the
+  person can already open; nothing is emitted to an employer; a hard miss is reported, never used
+  to hide, drop, or reorder a card; unknown is neither a pass nor a fail; an unreadable record is
+  its own state, not a set of unknowns.
+- **Evidence:** deck, list, and record suites green; `tsc` clean; web lint clean; design, copy,
+  claims, and route gates PASS; `next build` PASS; full web vitest recorded in the PR. Rendered on a
+  local production build of the fixture preview (`/dev/matcha-deck`, documented preview flags):
+  card and sheet at 1440×900, card at 390×844 under reduced motion, zero horizontal overflow,
+  record-unavailable and no-terms states. The live deck is not renderable locally with a sanctioned
+  synthetic identity (NPPES-backed profile); the loader join is covered by test, not frames.
+- **Next gate:** review, after #1478 and #1479. Merge is not authorized by this entry (push to
+  `main` deploys). Next work order: WO-1d, the Interested workspace.
+
 ## ON-WO-1b · Your terms on every row of the signed-in Roles list — OPEN
 
 - **Date:** 2026-09-14

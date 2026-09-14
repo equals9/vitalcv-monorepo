@@ -145,3 +145,61 @@ describe('live recommendation mapper — freshness', () => {
     expect(relativePosted(NOW - 10 * 86_400_000, NOW)).toBe('Posted 1 week ago')
   })
 })
+
+describe('canonical record pass-through (WO-1c)', () => {
+  const record = {
+    id: 'opp-uuid-1',
+    state: 'CA',
+    remote: false,
+    schedule: 'full_time',
+    payRangeMin: 300000,
+    payRangeMax: 340000,
+    payUnit: 'year',
+    compensationProvenance: { state: 'supplied', method: 'source_text', sourceLabel: 'Source', observedAt: null },
+    visaSponsorshipStatus: 'not_available',
+  } as unknown as import('@/lib/launch/marketplace').OpportunitySummary
+
+  it('carries only the record facts a terms check reads, and nothing else from the projection', () => {
+    const rec = toDeckRecommendation(match(), 0, record)!
+    expect(rec.opportunity.record).toEqual({
+      state: 'CA',
+      remote: false,
+      schedule: 'full_time',
+      payRangeMin: 300000,
+      payRangeMax: 340000,
+      payUnit: 'year',
+      compensationProvenance: { state: 'supplied', method: 'source_text', sourceLabel: 'Source', observedAt: null },
+      visaSponsorshipStatus: 'not_available',
+    })
+    expect((rec.opportunity.record as Record<string, unknown>).id).toBeUndefined()
+  })
+
+  it('derives the deck sponsorship label from the record, leaving case-by-case and not-stated unknown', () => {
+    expect(toDeckRecommendation(match(), 0, record)!.opportunity.sponsorship).toBe('not_available')
+    expect(
+      toDeckRecommendation(match(), 0, { ...record, visaSponsorshipStatus: 'available' })!.opportunity.sponsorship,
+    ).toBe('available')
+    expect(
+      toDeckRecommendation(match(), 0, { ...record, visaSponsorshipStatus: 'case_by_case' })!.opportunity.sponsorship,
+    ).toBe('unknown')
+    expect(toDeckRecommendation(match(), 0, null)!.opportunity.sponsorship).toBe('unknown')
+  })
+
+  it('leaves record undefined when none was read — never a fabricated empty record', () => {
+    expect(toDeckRecommendation(match(), 0)!.opportunity.record).toBeUndefined()
+    expect(toDeckRecommendation(match(), 0, null)!.opportunity.record).toBeUndefined()
+  })
+
+  it('joins records by opportunity id across a list, leaving unmatched ids without one', () => {
+    const records = new Map([['opp-uuid-1', record]])
+    const recs = toDeckRecommendations(
+      [match(), match({ opportunity: { id: 'opp-uuid-2' } }), { opportunityId: 'opp-uuid-2', opportunity: { id: 'opp-uuid-2', title: 'X' } }],
+      records,
+    )
+    expect(recs.map((r) => [r.opportunity.opportunityId, r.opportunity.record !== undefined])).toEqual([
+      ['opp-uuid-1', true],
+      ['opp-uuid-1', true],
+      ['opp-uuid-2', false],
+    ])
+  })
+})

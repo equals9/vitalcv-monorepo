@@ -6,7 +6,7 @@ it records decisions and evidence; it does not change positioning, vocabulary, o
 privacy, or security contract. The canonical strategy documents stay canonical.
 
 **Base:** `origin/main` @ `fa7e47b71` · **Branches:** `feat/whats-next-intent-fit` (WO-1a, #1478) →
-`feat/whats-next-terms-on-list` (WO-1b, stacked on it)
+`feat/whats-next-terms-on-list` (WO-1b, #1479) → `feat/whats-next-terms-on-deck` (WO-1c)
 
 ## 1. Verdict
 
@@ -150,6 +150,22 @@ Format: question → decision affected → finding → source/date → confidenc
   strip above the footer; the hunks are distinct but adjacent. Whichever lands second
   rebases; #1462's render test mocks `RoleContext` without `useOptionalRoleContext` and will
   need the one-line mock addition made here in `mobile-launch-analytics.test.tsx`.
+- 2026-09-14 · **Slice WO-1c = the same check on the Discover deck, fed by the canonical
+  record.** The engine's match payload does not carry schedule, pay unit, pay provenance, or
+  sponsorship, so the deck's server loader now reads each match's canonical record from
+  `/api/opportunities/:id` — the same owner the list and the detail read — and the card
+  carries only the facts a terms check reads. A record that cannot be read is absent and the
+  card says so; it never reports invented unknowns. One shared component (`TermsCheck.tsx`)
+  now renders the check on the list and the deck so the two cannot drift.
+- 2026-09-14 · **Card face carries a two-line summary, not the strip.** The deck card is
+  absolutely positioned in a fixed-height stack; the first rendered frame showed the full
+  strip colliding with the match reasons. The face now states the verdict and each term's
+  answer inline, placed beside the role facts and above the match block — the block is the
+  card's flexible region and already overflows under the floating action bar at 390px
+  (pre-existing, not changed here), so the terms never sit under it. The detail sheet carries
+  reasons and questions.
+- 2026-09-14 · **Not built in WO-1c:** backend enrichment of the match payload (a broader
+  contract change than the read the loader now does); `/explore`.
 - 2026-09-14 · **Merge is not authorized by this record.** Push to `main` deploys web and
   API; production promotion needs an explicit founder instruction.
 
@@ -199,13 +215,43 @@ Format: question → decision affected → finding → source/date → confidenc
   synthetic feed row; 1440×900 and 390×844, zero horizontal overflow, reduced-motion pass,
   keyboard focus on the terms link.
 
+## 6c. Work order WO-1c (done in `feat/whats-next-terms-on-deck`)
+
+- **User problem:** the Discover deck could not check a card against the clinician's terms
+  because its payload never stated the facts a check reads; a naive check would have said
+  "unknown" for facts the record states.
+- **Outcome:** each live card carries its canonical record facts; the card face shows the
+  verdict and each term's answer, the detail sheet the full strip with reasons and questions;
+  a card with no readable record says the check was unavailable; one deck-level line covers
+  loading, no terms, and a degraded store.
+- **Owner / delta:** `lib/matcha-deck/liveFeed.ts` (+`loadMatchRecords`, capped at 24, one
+  read per id, failures absent), `lib/matcha-deck/liveRecommendation.ts` (+record facts,
+  sponsorship from the record, `matchOpportunityId`), `components/matcha-deck/types.ts`
+  (+`record`), `components/matcha-deck/DeckTerms.tsx` (context + block), `MatchaDeckCard`,
+  `DeckDetailSheet`, `DiscoverSurface` (provider + note), `components/matcha/TermsCheck.tsx`
+  (shared strip, summary, note, unavailable; the list now uses it), fixtures (two sample
+  records), `styles/matcha-deck.css`.
+- **Non-goals:** ranking, filtering, backend payload changes, `/explore`, any schema, route,
+  API, packet, consent, acceptance, or apply-path change.
+- **Negative criteria (tested):** only the eight record facts are copied, never the projection;
+  a failed record read leaves that card without a record and never drops another's; each id is
+  read once; the deck sponsorship label becomes definite only from the record's two definite
+  positions; no provider, not loaded, or no terms renders no block; a card with no record
+  renders no per-term unknown; no score, percentage, eligibility wording, or bare `Verified`.
+- **Tests:** `matcha-deck-terms.test.tsx` (6), `matcha-deck-live-feed-records.test.ts` (2),
+  `matcha-deck-live-recommendation.test.ts` (+4), plus the existing deck, list, and surface
+  suites.
+- **Rendered:** `docs/design/evidence/on-wo1c-terms-on-deck-2026-09-14/` — fixture preview on a
+  local production build (the live deck needs an NPPES-backed identity; see the README), card
+  and sheet at 1440×900, card at 390×844 under reduced motion, zero horizontal overflow,
+  record-unavailable and no-terms states.
+
 ## 7. Next work orders (ranked)
 
-1. **WO-1c** — pass `schedule`, `visaSponsorshipStatus`, `payUnit`, `payRangeMin/Max` and
-   `compensationProvenance` through `lib/matcha-deck/liveRecommendation.ts` from the backend
-   match payload (which already serves them to the list), then mount the same strip on the
-   deck card and detail sheet. Without the pass-through a deck check would say "unknown" for
-   facts the record states — a false silence.
+1. **WO-1d** — the Interested workspace (`WorkspaceCard`, `/holder/opportunities/interested`)
+   and its compare columns: the same check on saved roles, and a "changed since you saved it"
+   re-evaluation when the record moves. Reuses `TermsCheck` and the record already on the
+   recommendation; needs the workspace loader to pass records the same way the deck does.
 2. **WO-6-lite** — first employer-confirmed role via a manual confirmation record
    (`listingSource = 'employer_posted'` through the existing employer route) with a named
    confirmer and response commitment. Prerequisite: a reachable employer (founder).
