@@ -59,7 +59,7 @@
     "dotenv": "^17.4.2",
     "ethers": "^6.15.0",
     "ethr-did-resolver": "^14.1.0",
-    "express": "^4.19.2",
+    "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "jose": "^5.10.0",
     "key-did-resolver": "^4.0.0",
@@ -75,7 +75,7 @@
   },
   "devDependencies": {
     "@types/archiver": "^7.0.0",
-    "@types/express": "^4.17.23",
+    "@types/express": "^5.0.6",
     "@types/jest": "^29.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node-cron": "^3.0.11",
