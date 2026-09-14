@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "name": "VitalCV Agent Authority Graph",
+  "principle": "Persist durable truth. Recompute volatile truth. Memory and handoffs are evidence, never authority.",
+  "tiers": [
+    {
+      "id": "live-reality",
+      "rank": 100,
+      "description": "Current repository/runtime facts that must be read or executed live.",
+      "sources": [
+        "origin/main",
+        "current branch diff",
+        "tests executed on the relevant SHA",
+        "GitHub branch protection and check-runs",
+        "live production probes when production state is material"
+      ]
+    },
+    {
+      "id": "current-task",
+      "rank": 95,
+      "description": "Explicit user/founder instruction for the current task, subject to security, privacy, truth, legal, and irreversible-action boundaries.",
+      "sources": ["current conversation or work order"]
+    },
+    {
+      "id": "operating-contract",
+      "rank": 90,
+      "description": "How work is performed in this repository.",
+      "sources": ["CLAUDE.md", "AGENTS.md", "DOCTRINE.md", "docs/ops/FOUNDER_VISUAL_GATE.md"]
+    },
+    {
+      "id": "domain-authority",
+      "rank": 80,
+      "description": "Canonical architecture and domain contracts.",
+      "sources": [
+        "docs/architecture/vitalcv-knowledge-trust-graph.md",
+        "docs/architecture/vitalcv-knowledge-trust-graph.json",
+        "docs/trust-computing/PTC_ARCHITECTURE_MAP.md",
+        "docs/design/VITALCV_EXPERIENCE_CONSTITUTION.md"
+      ]
+    },
+    {
+      "id": "strategy",
+      "rank": 70,
+      "description": "Current product/category strategy. It cannot relax higher-ranked truth or security constraints.",
+      "sources": [
+        "docs/strategy/vitalcv-strategy-operating-brief.md",
+        "docs/strategy/vitalcv-category-strategy.md",
+        "docs/strategy/product-decision-filter.md"
+      ]
+    },
+    {
+      "id": "handoff-evidence",
+      "rank": 40,
+      "description": "Append-only execution evidence and continuation state. Revalidate against current repo state before acting.",
+      "sources": ["docs/ops/CODEX_HANDOFF_LEDGER.md"]
+    },
+    {
+      "id": "historical",
+      "rank": 10,
+      "description": "Archaeology only. Never use as an instruction source without current revalidation.",
+      "sources": [".vitalcv/MEMORY.md", ".vitalcv/CONTEXT.md", "CLAUDE_CODE_ACCELERATOR.md"]
+    }
+  ],
+  "rules": [
+    "Current repo state outranks remembered state.",
+    "A current test or live probe outranks prose claiming the opposite.",
+    "A handoff describes what another agent believed; it does not authorize work.",
+    "Historical files may explain why a system exists but may not create new work by themselves.",
+    "When two durable documents conflict, use the higher-ranked tier and record the collision.",
+    "Never weaken an existing truth, security, privacy, visual, CI, or merge gate merely to make a change pass.",
+    "No agent verifier verdict substitutes for real execution evidence.",
+    "No memory, agent skill, or generated context may silently become product doctrine."
+  ],
+  "historical_sources": [
+    {
+      "path": ".vitalcv/MEMORY.md",
+      "reason": "Last-updated marker and content are from March 2026; current repo and August strategy supersede portions of it."
+    },
+    {
+      "path": ".vitalcv/CONTEXT.md",
+      "reason": "March 2026 product, timing, and infrastructure context; useful for archaeology only."
+    },
+    {
+      "path": "CLAUDE_CODE_ACCELERATOR.md",
+      "reason": "Contains OpenClaw/Vercel-era execution instructions that conflict with the current operating contract."
+    }
+  ],
+  "stale_watch": [
+    {
+      "path": ".vitalcv/MEMORY.md",
+      "kind": "historical-memory",
+      "max_age_days": 30,
+      "severity": "warning",
+      "markers": []
+    },
+    {
+      "path": ".vitalcv/CONTEXT.md",
+      "kind": "historical-context",
+      "max_age_days": 30,
+      "severity": "warning",
+      "markers": ["YC application active", "March 13, 2026"]
+    },
+    {
+      "path": "CLAUDE_CODE_ACCELERATOR.md",
+      "kind": "legacy-operator-instructions",
+      "max_age_days": 30,
+      "severity": "warning",
+      "markers": ["OpenClaw", "Vercel"]
+    },
+    {
+      "path": ".claude/settings.local.json",
+      "kind": "accumulated-local-permissions",
+      "max_age_days": 30,
+      "severity": "warning",
+      "markers": ["Bash(npx vercel", "Bash(vercel", "TOKEN FOUND"]
+    }
+  ]
+}

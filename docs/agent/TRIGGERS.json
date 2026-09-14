@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "default_risk": "tier_1",
+  "risk_order": ["tier_0", "tier_1", "tier_2"],
+  "risk_tiers": {
+    "tier_0": {
+      "description": "Docs, agent infrastructure, tests, and non-runtime metadata with no product behavior change.",
+      "default_gates": [],
+      "independent_review": "not_required",
+      "manual_evidence": []
+    },
+    "tier_1": {
+      "description": "Normal application behavior with bounded user impact.",
+      "default_gates": ["typecheck", "lint"],
+      "independent_review": "optional",
+      "manual_evidence": ["Exercise the changed behavior directly; do not infer correctness from CI alone."]
+    },
+    "tier_2": {
+      "description": "Trust, auth, security, database, deployment, source truth, employer decision, or other high-consequence boundaries.",
+      "default_gates": ["typecheck", "lint"],
+      "independent_review": "recommended_not_gate",
+      "manual_evidence": [
+        "Exercise the exact changed boundary directly.",
+        "Record rollback/risk notes.",
+        "A Codex/Claude second opinion is useful but is not merge authorization."
+      ]
+    }
+  },
+  "gate_catalog": {
+    "agent-kernel-tests": ["node", "--test", "scripts/agent/__tests__/agent-kernel.test.mjs"],
+    "stale-instructions": ["node", "scripts/agent/stale-instructions.mjs", "--strict"],
+    "typecheck": ["pnpm", "typecheck"],
+    "lint": ["pnpm", "lint"],
+    "web-build": ["pnpm", "turbo", "run", "build", "--filter", "@vitalcv/web"],
+    "backend-db": ["pnpm", "test:backend:db"],
+    "claims": ["pnpm", "check:claims"],
+    "copy": ["pnpm", "check:copy"],
+    "design": ["pnpm", "check:design"],
+    "routes": ["pnpm", "check:routes"],
+    "canonical-source-adapters": ["pnpm", "check:canonical-source-adapters"],
+    "workflow-contract": ["pnpm", "check:workflow-contract"]
+  },
+  "triggers": [
+    {
+      "id": "agent-kernel",
+      "paths": [
+        "docs/agent/**",
+        "scripts/agent/**",
+        ".claude/skills/vitalcv-agent-kernel/**",
+        ".agents/skills/vitalcv-agent-kernel/**"
+      ],
+      "risk": "tier_0",
+      "read": ["docs/agent/README.md", "docs/agent/AUTHORITY.json", "docs/agent/TRIGGERS.json"],
+      "gates": ["agent-kernel-tests", "stale-instructions"],
+      "manual_evidence": ["Confirm no product/runtime files changed and no ECC dependency was introduced."]
+    },
+    {
+      "id": "public-experience",
+      "paths": ["apps/web/app/**", "apps/web/components/**", "apps/web/styles/**"],
+      "risk": "tier_1",
+      "read": [
+        "docs/strategy/vitalcv-strategy-operating-brief.md",
+        "docs/strategy/vitalcv-category-strategy.md",
+        "docs/design/VITALCV_EXPERIENCE_CONSTITUTION.md",
+        "docs/ops/FOUNDER_VISUAL_GATE.md"
+      ],
+      "gates": ["claims", "copy", "design", "routes", "web-build"],
+      "manual_evidence": ["Render and inspect the changed experience at the widths/states required by the founder visual gate when applicable."]
+    },
+    {
+      "id": "trust-computing",
+      "paths": ["packages/domain-evidence/src/trust-computing/**", "docs/trust-computing/**"],
+      "risk": "tier_2",
+      "read": [
+        "docs/trust-computing/PTC_ARCHITECTURE_MAP.md",
+        "docs/architecture/vitalcv-knowledge-trust-graph.md"
+      ],
+      "gates": ["typecheck", "lint"],
+      "manual_evidence": [
+        "For compiler semantics, prove deterministic replay and golden cases.",
+        "For incremental compilation, prove equality with a full compile.",
+        "Never equate computational SATISFIED with credentialed, privileged, hired, or employer-accepted."
+      ]
+    },
+    {
+      "id": "source-truth",
+      "paths": ["packages/source-adapters/**", "packages/trust-state/sourceCoverage.ts", "apps/api/backend/src/services/trust-state/**"],
+      "risk": "tier_2",
+      "read": ["docs/architecture/vitalcv-knowledge-trust-graph.md"],
+      "gates": ["canonical-source-adapters", "typecheck", "lint"],
+      "manual_evidence": ["Exercise the affected source state including unavailable/conflicted/degraded behavior."]
+    },
+    {
+      "id": "auth-security",
+      "paths": [
+        "apps/api/backend/src/middleware/**",
+        "apps/authz/**",
+        "apps/api/backend/src/services/decision/**",
+        "apps/api/backend/src/services/opportunities/employerWorkflowService.ts",
+        "apps/api/backend/src/services/activation/applicationStartCommandService.ts"
+      ],
+      "risk": "tier_2",
+      "read": ["CLAUDE.md", "DOCTRINE.md", "docs/architecture/vitalcv-knowledge-trust-graph.md"],
+      "gates": ["backend-db", "routes", "typecheck", "lint"],
+      "manual_evidence": ["Exercise authorization, anti-enumeration, negative paths, and audit consequences for the changed boundary."]
+    },
+    {
+      "id": "database",
+      "paths": ["apps/api/backend/prisma/schema.prisma", "apps/api/backend/prisma/migrations/**"],
+      "risk": "tier_2",
+      "read": ["CLAUDE.md", ".ai/snapshot.md"],
+      "gates": ["backend-db", "typecheck", "lint"],
+      "manual_evidence": ["Use the migration-backed real-Postgres harness; typecheck alone is insufficient."]
+    },
+    {
+      "id": "deployment",
+      "paths": ["railway.toml", "apps/web/railway.toml", "**/Dockerfile", "scripts/deploy*.mjs", "scripts/railway/**", ".github/workflows/deploy-*.yml"],
+      "risk": "tier_2",
+      "read": ["CLAUDE.md", "docs/deployment/railway-migration.md"],
+      "gates": ["workflow-contract", "typecheck", "lint"],
+      "manual_evidence": ["After promotion, verify the exact deployed SHA on the affected service and run its production smoke/probe."]
+    },
+    {
+      "id": "github-workflows",
+      "paths": [".github/workflows/**", "scripts/check-workflow-path-filters.js"],
+      "risk": "tier_2",
+      "read": ["AGENTS.md", ".ai/snapshot.md"],
+      "gates": ["workflow-contract"],
+      "manual_evidence": ["Read required branch-protection contexts live; do not rely on a copied list."]
+    },
+    {
+      "id": "agent-configuration",
+      "paths": ["CLAUDE.md", "AGENTS.md", ".claude/**", ".agents/**", "CLAUDE_CODE_ACCELERATOR.md", ".vitalcv/MEMORY.md", ".vitalcv/CONTEXT.md"],
+      "risk": "tier_0",
+      "read": ["docs/agent/README.md", "docs/agent/AUTHORITY.json"],
+      "gates": ["stale-instructions"],
+      "manual_evidence": ["Confirm the change does not create a second authority source or silently revive historical instructions."]
+    }
+  ]
+}
