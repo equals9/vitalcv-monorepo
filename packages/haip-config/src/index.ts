@@ -24,6 +24,17 @@ export type {
   VpFormat,
 } from './types';
 
+export {
+  DigitalCredentialEnvelopeError,
+  normalizeOID4VPPresentationEnvelope,
+  OID4VP_DIGITAL_CREDENTIAL_PROTOCOLS,
+} from './oid4vp/digitalCredentialEnvelope';
+export type {
+  DigitalCredentialEnvelopeErrorCode,
+  NormalizedOID4VPPresentationInput,
+  OID4VPDigitalCredentialProtocol,
+} from './oid4vp/digitalCredentialEnvelope';
+
 import type {
   HaipConfig,
   HaipAlgorithm,

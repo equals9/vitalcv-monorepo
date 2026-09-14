@@ -10,6 +10,10 @@
 
 import type { Express, Request, Response } from 'express';
 import {
+  DigitalCredentialEnvelopeError,
+  normalizeOID4VPPresentationEnvelope,
+} from '@vitalcv/haip-config';
+import {
   createPresentationRequest,
   getPresentationRequest,
   verifyPresentationResponse,
@@ -17,6 +21,7 @@ import {
   listPresentationRequests,
   buildMedicalCredentialDefinition,
 } from '../services/oid4vp/presentationServer';
+import type { PresentationResponseInput } from '../services/oid4vp/presentationServer';
 import { log } from '../obs/logger';
 
 export function registerOID4VPRoutes(app: Express): void {
@@ -74,17 +79,33 @@ export function registerOID4VPRoutes(app: Express): void {
   // ── POST /api/oid4vp/response/:id ─────────────────────────────────
   app.post('/api/oid4vp/response/:id', async (req: Request, res: Response) => {
     try {
-      const { presentation_submission, vp_token, state } = req.body ?? {};
+      let normalized;
+      try {
+        normalized = normalizeOID4VPPresentationEnvelope(req.body ?? {});
+      } catch (err) {
+        if (err instanceof DigitalCredentialEnvelopeError) {
+          res.status(400).json({
+            error: 'invalid_request',
+            error_description: err.message,
+            code: err.code,
+          });
+          return;
+        }
+        throw err;
+      }
 
-      if (!presentation_submission || !vp_token) {
-        res.status(400).json({ error: 'presentation_submission and vp_token are required' });
+      if (!normalized.presentationSubmission || typeof normalized.presentationSubmission !== 'object') {
+        res.status(400).json({ error: 'presentation_submission is required' });
         return;
       }
 
       const result = await verifyPresentationResponse(req.params.id, {
-        presentation_submission,
-        vp_token,
-        state,
+        presentationSubmission:
+          normalized.presentationSubmission as PresentationResponseInput['presentationSubmission'],
+        // Keep untrusted transport payload unknown. The presentation server
+        // validates the representation it supports before credential verification.
+        presentationPayload: normalized.presentationPayload,
+        state: typeof normalized.state === 'string' ? normalized.state : undefined,
       });
 
       const status = result.valid ? 200 : 422;
@@ -94,7 +115,7 @@ export function registerOID4VPRoutes(app: Express): void {
       log('error', 'oid4vp_response_error', { requestId: req.params.id, error: msg });
       const status =
         msg.includes('not found') ? 404 :
-        msg.includes('expired') || msg.includes('already') ? 400 :
+        msg.startsWith('presentation payload') || msg.includes('expired') || msg.includes('already') ? 400 :
         500;
       res.status(status).json({ error: msg });
     }

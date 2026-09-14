@@ -74,8 +74,15 @@ export interface VerifiablePresentation {
   };
 }
 
+/**
+ * Protocol-neutral presentation input.
+ *
+ * OID4VP / Digital Credentials API wire names are normalized at the HTTP
+ * boundary before this service is called. The payload remains `unknown` until
+ * this verifier validates the presentation format it actually supports.
+ */
 export interface PresentationResponseInput {
-  presentation_submission: {
+  presentationSubmission: {
     id: string;
     definition_id: string;
     descriptor_map: Array<{
@@ -84,7 +91,7 @@ export interface PresentationResponseInput {
       path: string;
     }>;
   };
-  vp_token: VerifiablePresentation | string;
+  presentationPayload: unknown;
   state?: string;
 }
 
@@ -105,6 +112,54 @@ export interface PresentationVerificationResult {
 
 const requests = new Map<string, PresentationRequest>();
 const results = new Map<string, PresentationVerificationResult>();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Validate the legacy JSON Verifiable Presentation payload supported by this
+ * presentation server.
+ *
+ * The Digital Credentials API normalizer is intentionally format-agnostic: an
+ * OpenID4VP 1.0 response may carry another representation (for example a DCQL
+ * result object containing SD-JWT presentations). This server must therefore
+ * fail closed instead of treating every object-valued payload as the legacy VP
+ * model it understands.
+ */
+export function parseVerifiablePresentationPayload(payload: unknown): VerifiablePresentation {
+  let parsed: unknown = payload;
+
+  if (typeof payload === 'string') {
+    try {
+      parsed = JSON.parse(payload) as unknown;
+    } catch {
+      throw new Error('presentation payload is not valid JSON');
+    }
+  }
+
+  if (!isRecord(parsed)) {
+    throw new Error('presentation payload must be a VerifiablePresentation object');
+  }
+
+  if (!Array.isArray(parsed.type) || !parsed.type.includes('VerifiablePresentation')) {
+    throw new Error('presentation payload type must include VerifiablePresentation');
+  }
+
+  if (typeof parsed.holder !== 'string' || parsed.holder.trim().length === 0) {
+    throw new Error('presentation payload holder is required');
+  }
+
+  if (!Array.isArray(parsed.verifiableCredential) || parsed.verifiableCredential.length === 0) {
+    throw new Error('presentation payload must contain at least one verifiableCredential');
+  }
+
+  if (parsed.verifiableCredential.some((credential) => !isRecord(credential))) {
+    throw new Error('presentation payload contains an invalid verifiableCredential');
+  }
+
+  return parsed as unknown as VerifiablePresentation;
+}
 
 // ── Public API ────────────────────────────────────────────────────────
 
@@ -169,24 +224,13 @@ export async function verifyPresentationResponse(
     throw new Error(`Presentation request ${requestId} has expired`);
   }
 
-  const vpToken = response.vp_token;
-  let vp: VerifiablePresentation;
-
-  if (typeof vpToken === 'string') {
-    try {
-      vp = JSON.parse(vpToken) as VerifiablePresentation;
-    } catch {
-      throw new Error('vp_token is not valid JSON');
-    }
-  } else {
-    vp = vpToken;
-  }
+  const vp = parseVerifiablePresentationPayload(response.presentationPayload);
 
   const credentialResults: PresentationVerificationResult['credentialResults'] = [];
   const errors: string[] = [];
 
   // Verify each credential in the presentation
-  for (const cred of vp.verifiableCredential ?? []) {
+  for (const cred of vp.verifiableCredential) {
     try {
       const result = await verifyCredential(cred);
       credentialResults.push({
@@ -208,11 +252,11 @@ export async function verifyPresentationResponse(
     }
   }
 
-  // Check presentation_submission maps to the right definition
-  const sub = response.presentation_submission;
+  // Check the normalized presentation submission maps to the right definition.
+  const sub = response.presentationSubmission;
   if (sub.definition_id !== req.presentation_definition.id) {
     errors.push(
-      `presentation_submission.definition_id mismatch: got ${sub.definition_id}, expected ${req.presentation_definition.id}`,
+      `presentation submission definition_id mismatch: got ${sub.definition_id}, expected ${req.presentation_definition.id}`,
     );
   }
 
@@ -223,7 +267,7 @@ export async function verifyPresentationResponse(
   const verificationResult: PresentationVerificationResult = {
     requestId,
     valid,
-    holder: vp.holder ?? 'unknown',
+    holder: vp.holder,
     credentialResults,
     errors,
     verifiedAt: new Date().toISOString(),

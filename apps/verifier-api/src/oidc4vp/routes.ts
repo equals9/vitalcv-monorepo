@@ -1,9 +1,14 @@
 import { Request, Response, Router } from 'express';
 import { decodeProtectedHeader, importJWK, jwtVerify } from 'jose';
-import { haipConfig } from '@vitalcv/haip-config';
+import {
+  DigitalCredentialEnvelopeError,
+  haipConfig,
+  normalizeOID4VPPresentationEnvelope,
+} from '@vitalcv/haip-config';
 import {
   assertCanonicalPathValid,
   CanonicalPathViolation,
+  type EmploymentVerificationPath,
 } from '@vitalcv/domain-common';
 import { policyEnforcer } from '../policyEnforcer';
 import { consumeNonce, issueNonce } from '../security/nonceTable';
@@ -41,7 +46,25 @@ router.get('/nonce', async (_req: Request, res: Response) => {
  * POST /oidc4vp/presentation
  */
 router.post('/presentation', policyEnforcer, async (req: Request, res: Response) => {
-  const { vp_token, canonicalPath, nonce: bodyNonce } = req.body ?? {};
+  let normalized;
+  try {
+    normalized = normalizeOID4VPPresentationEnvelope(req.body ?? {});
+  } catch (error) {
+    if (error instanceof DigitalCredentialEnvelopeError) {
+      return res.status(400).json({
+        error: 'invalid_request',
+        error_description: error.message,
+        code: error.code,
+      });
+    }
+    return res.status(500).json({
+      error: 'server_error',
+      error_description: error instanceof Error ? error.message : 'Envelope normalization failed.',
+    });
+  }
+
+  const canonicalPath = normalized.canonicalPath;
+  const bodyNonce = normalized.nonce;
 
   // Nonce validation (single-use, ≤5min TTL)
   const nonceHeader = typeof req.headers['x-nonce'] === 'string' ? req.headers['x-nonce'].trim() : '';
@@ -72,7 +95,10 @@ router.post('/presentation', policyEnforcer, async (req: Request, res: Response)
   }
 
   try {
-    assertCanonicalPathValid(canonicalPath);
+    // The canonical guard is the runtime authority. The transport normalizer
+    // deliberately returns `unknown` so it cannot smuggle a domain type across
+    // the protocol boundary without this validation step.
+    assertCanonicalPathValid(canonicalPath as EmploymentVerificationPath);
   } catch (error) {
     const message =
       error instanceof CanonicalPathViolation ? error.message : 'Canonical path validation failed.';
@@ -82,16 +108,17 @@ router.post('/presentation', policyEnforcer, async (req: Request, res: Response)
     });
   }
 
-  if (!vp_token || typeof vp_token !== 'string') {
+  const vpToken = normalized.presentationPayload;
+  if (typeof vpToken !== 'string') {
     return res.status(400).json({
       error: 'invalid_request',
-      error_description: 'Missing vp_token',
+      error_description: 'VP presentation payload must be a compact JWT string.',
     });
   }
 
   // VP token cryptographic validation
   try {
-    const header = decodeProtectedHeader(vp_token);
+    const header = decodeProtectedHeader(vpToken);
     if (!(haipConfig.allowedAlgorithms as readonly string[]).includes(header.alg ?? '')) {
       return res.status(400).json({
         error: 'invalid_vp_token',
@@ -107,7 +134,7 @@ router.post('/presentation', policyEnforcer, async (req: Request, res: Response)
     }
 
     const publicKey = await importJWK(header.jwk as Parameters<typeof importJWK>[0], header.alg);
-    const { payload } = await jwtVerify(vp_token, publicKey, {
+    const { payload } = await jwtVerify(vpToken, publicKey, {
       algorithms: [...haipConfig.allowedAlgorithms],
     });
 
