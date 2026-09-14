@@ -123,7 +123,7 @@ jobs:
       # so the SHA has already landed and nothing here re-races the deploy.
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 
