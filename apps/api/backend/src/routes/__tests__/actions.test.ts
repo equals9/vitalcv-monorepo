@@ -4,6 +4,14 @@ import { Prisma } from '@prisma/client';
 import prisma from '../../graphql/prisma_client';
 import { registerActionsRoutes } from '../actions';
 
+// The action engine only surfaces findings whose lastSeenAt falls inside its
+// 180-day window (actionEngineService.ts, loadActionStorylines). Pinned calendar
+// dates aged out of that window on 2026-09-11 and the suite went red on every
+// branch. Anchor the fixture to the run clock so it cannot rot again.
+const FIXTURE_NOW = Date.now();
+const FIRST_SEEN_AT = new Date(FIXTURE_NOW - 2 * 86_400_000);
+const LAST_SEEN_AT = new Date(FIXTURE_NOW - 1 * 86_400_000);
+
 function buildApp() {
   const app = express();
   app.use(express.json());
@@ -66,10 +74,10 @@ async function seedFinding(input: {
       metadata: input.metadata as Prisma.InputJsonValue,
       storylineKey: `${input.findingType}:${input.entityLinks[0]!.entityId}`,
       dedupeKey: input.findingId,
-      firstSeenAt: new Date('2026-03-14T12:00:00.000Z'),
-      lastSeenAt: new Date('2026-03-15T12:00:00.000Z'),
-      createdAt: new Date('2026-03-14T12:00:00.000Z'),
-      updatedAt: new Date('2026-03-15T12:00:00.000Z'),
+      firstSeenAt: FIRST_SEEN_AT,
+      lastSeenAt: LAST_SEEN_AT,
+      createdAt: FIRST_SEEN_AT,
+      updatedAt: LAST_SEEN_AT,
       occurrenceCount: 1,
       entityLinks: {
         create: input.entityLinks.map((entity) => ({
@@ -176,8 +184,8 @@ async function seedActionFixtures(): Promise<void> {
         metadata: {
           graphDegree: 9,
         } as Prisma.InputJsonValue,
-        createdAt: new Date('2026-03-15T10:00:00.000Z'),
-        updatedAt: new Date('2026-03-15T10:00:00.000Z'),
+        createdAt: LAST_SEEN_AT,
+        updatedAt: LAST_SEEN_AT,
       },
       {
         id: '00000000-0000-0000-0000-000000000202',
@@ -195,8 +203,8 @@ async function seedActionFixtures(): Promise<void> {
         ] as Prisma.InputJsonValue,
         explanation: 'Mayo Clinic research activity is likely to accelerate within 90d.',
         metadata: {} as Prisma.InputJsonValue,
-        createdAt: new Date('2026-03-15T10:00:00.000Z'),
-        updatedAt: new Date('2026-03-15T10:00:00.000Z'),
+        createdAt: LAST_SEEN_AT,
+        updatedAt: LAST_SEEN_AT,
       },
       {
         id: '00000000-0000-0000-0000-000000000203',
@@ -215,8 +223,8 @@ async function seedActionFixtures(): Promise<void> {
         ] as Prisma.InputJsonValue,
         explanation: 'CA Cardiology is likely to face a deeper workforce shortage within 90d.',
         metadata: {} as Prisma.InputJsonValue,
-        createdAt: new Date('2026-03-15T10:00:00.000Z'),
-        updatedAt: new Date('2026-03-15T10:00:00.000Z'),
+        createdAt: LAST_SEEN_AT,
+        updatedAt: LAST_SEEN_AT,
       },
     ],
   });
