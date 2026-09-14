@@ -567,3 +567,80 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Your terms — met / not met / unknown rows on the signed-in role detail. */
+.vod-terms li {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.vod-terms-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vod-terms-label {
+  font-weight: 600;
+}
+
+.vod-terms-status,
+.vod-terms-hard {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  border: 1px solid color-mix(in srgb, var(--ink-900) 13%, transparent);
+  color: var(--ink-600);
+}
+
+.vod-terms-status[data-status='met'] {
+  background: var(--vt-badge-checked-bg);
+  color: var(--vt-badge-checked-text);
+  border-color: transparent;
+}
+
+.vod-terms-status[data-status='not_met'] {
+  background: var(--vt-badge-unavailable-bg);
+  color: var(--vt-badge-unavailable-text);
+  border-color: transparent;
+}
+
+.vod-terms-status[data-status='unknown'] {
+  background: var(--vt-badge-pending-bg);
+  color: var(--vt-badge-pending-text);
+  border-color: transparent;
+}
+
+.vod-terms-reason,
+.vod-terms-next {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.vod-terms-next {
+  color: var(--ink-600);
+}
+
+.vod-terms-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.vod-terms-sides dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-600);
+}
+
+.vod-terms-sides dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}

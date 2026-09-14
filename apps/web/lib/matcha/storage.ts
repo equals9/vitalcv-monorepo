@@ -204,6 +204,7 @@ const FIELD_LABELS: Partial<Record<PreferenceField, string>> = {
   desiredSalary: 'your target compensation',
   remoteInterest: 'your interest in remote work',
   employmentTypes: 'the arrangements that work for you',
+  hardConstraints: 'the terms you will not move on',
   startUrgency: 'how soon you want to start',
   leadershipAspiration: 'your leadership goals',
   workLifeBalanceImportance: 'how much work–life balance matters',
