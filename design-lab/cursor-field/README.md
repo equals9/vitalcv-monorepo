@@ -105,3 +105,22 @@ Verified against `origin/main` @ `57dfe9f8b` (2026-08-16):
    review URL), and the production-build verification.
 4. Perf budget: DPR ≤ 2, sim texture ≤ 64², ~1–2k particles, rAF paused
    offscreen/hidden — measured, not assumed, per EC-29.
+
+## Production-build verification (2026-09-15, rebased on main at `24dd7c1a7`)
+
+`next start` of the production build with `BACKEND_URL` pointed at a dead port, a
+well-formed unknown NPI (`1234567893`) submitted on `/`, driven by the repo's
+Playwright (`@playwright/test` 1.62.1, Chromium 1234):
+
+- `home-beat-prod-midflight-{1280,390}.png`, `home-beat-prod-midflight-narration-1280.png`
+  — the real narration, newest `is-read` step frozen at 30ms of its 220ms settle.
+- `home-beat-prod-reduced-motion-settled-{1280,390}.png` — the resting frame under
+  `prefers-reduced-motion: reduce`.
+
+Runtime facts read off `document.getAnimations()` on that build: both
+`ezh-read-settle` animations run with `iterations: 1`, computed
+`animation-iteration-count: 1`, `animation-duration: 0.22s`; the read step's
+colour was sampled at `rgb(67,56,202)` (`--vt-home-f-signal`) and settled to
+`rgb(43,40,35)` (`--vt-home-f-ink`); 3 s after the narration unmounted, zero
+`ezh-read-settle*` animations existed. Under reduced motion every step computed
+`animation-name: none` and `getAnimations()` was empty for the whole narration.
