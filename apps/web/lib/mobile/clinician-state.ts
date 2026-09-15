@@ -8,6 +8,7 @@ import {
   type MobileTrustState,
 } from '@/lib/mobile/dashboard';
 import type { ClinicianProofPayload, OutcomeStateChange } from '@/lib/proof/types';
+import { opportunityApplicationMode } from '@/lib/explore/opportunity-display';
 
 export interface MobileProfileCompleteness {
   score: number;
@@ -792,8 +793,13 @@ export function buildRecommendedAction(input: {
     ?? null;
 
   if (availableOpportunity) {
-    const canApplyDirectly = availableOpportunity.match?.band === 'CLEAR'
-      || availableOpportunity.match?.band === 'NEAR_CLEAR';
+    // A feed-carried role cannot be applied to through VitalCV — the server
+    // refuses it — so the next step for one is to read it, never to apply.
+    // Match band alone used to decide this, and match band says nothing about
+    // whether the employer posted the role here.
+    const canApplyDirectly = opportunityApplicationMode(availableOpportunity) === 'vitalcv'
+      && (availableOpportunity.match?.band === 'CLEAR'
+        || availableOpportunity.match?.band === 'NEAR_CLEAR');
 
     return {
       kind: 'apply_now',

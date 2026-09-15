@@ -29,6 +29,7 @@ import {
   type HiringTimelineEvent,
 } from '../actions/hiringAutomationService';
 import { parseOrganizationRequirementsEnvelope } from '../employers/pilotPolicy';
+import { evaluateIntegratedApply } from './integratedApply';
 import {
   computeClinicianTrustState,
   type ClinicianTrustState,
@@ -391,6 +392,30 @@ export async function applyToOpportunity(input: ApplyInput): Promise<Marketplace
   }) as ApplicationRecord | null;
   if (existing && existing.status !== 'WITHDRAWN' && existing.sealedPacketVersion !== null) {
     return hydrateApplication(existing, applicantRecord);
+  }
+
+  // Integrated apply is a server-enforced contract, not a rendering choice.
+  //
+  // The public surfaces already refuse to show "Apply with VitalCV" for a
+  // feed-copied row, but the surfaces were the only thing standing there: this
+  // service accepted any ACTIVE opportunity. A signed-in card that did not
+  // consult applicationMode, or a direct POST, would seal an immutable packet
+  // naming the ingestion placeholder organization as the recipient of the
+  // clinician's disclosure. Packets are never rewritten, so that consent
+  // receipt would misname the receiving party permanently.
+  //
+  // This sits AFTER the idempotent fast path and BEFORE evidence resolution,
+  // deliberately. A clinician who already sealed an application must keep
+  // being able to read it back even if the row is later re-stamped as a feed
+  // listing — eligibility governs sealing a NEW disclosure, and must never
+  // retroactively hide one that was properly made. Nothing about the clinician
+  // is computed for a disclosure that cannot be delivered.
+  const eligibility = evaluateIntegratedApply({
+    listingSource: opp.listingSource,
+    organizationName: opp.organization?.name,
+  });
+  if (!eligibility.eligible) {
+    throw new HttpError(409, eligibility.message);
   }
 
   // Resolve the CURRENT evidence set outside the transaction (network I/O).

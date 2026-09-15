@@ -1,5 +1,6 @@
 import prisma from '../../graphql/prisma_client';
 import { parseOrganizationRequirementsEnvelope } from '../employers/pilotPolicy';
+import { isFeedListingSource } from './integratedApply';
 
 type RequirementLevel = 'L1' | 'L2' | 'L3';
 type CredentialKey =
@@ -1468,7 +1469,7 @@ export function buildOpportunityTruth(input: {
 }): OpportunityTruth {
   const now = input.now ?? new Date();
   const opportunity = input.opportunity;
-  const isFeedListing = opportunity.listingSource === 'public_feed';
+  const isFeedListing = isFeedListingSource(opportunity.listingSource);
   // A feed row is sourced from the feed, never from a profile attached to the
   // placeholder organization. Keeping that boundary here prevents a later
   // profile merge from silently relabelling pay, benefits, start timing, or

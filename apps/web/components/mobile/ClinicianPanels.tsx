@@ -28,6 +28,7 @@ import { useClinicianMobile } from '@/components/mobile/ClinicianMobileProvider'
 import { formatEventTimestamp } from '@/lib/mobile/formatEventTimestamp';
 import { ClinicianStatusBanner } from '@/components/mobile/ClinicianStatusBanner';
 import { trackClinicianEventOncePerSession } from '@/lib/mobile/analytics';
+import { opportunityApplicationMode } from '@/lib/explore/opportunity-display';
 import type { ClinicianNotification } from '@/lib/mobile/clinician-state';
 import {
   applicationStatusLabel,
@@ -156,7 +157,10 @@ export function OpportunityGrid({
     }
 
     const target = opportunities.find((opportunity) => opportunity.id === applyId) ?? null;
-    if (target) {
+    // A deep link is an entry point like any other. Gating only the card's
+    // button would leave ?apply=<feed row> opening the integrated modal for a
+    // role the server refuses — other surfaces still build that link.
+    if (target && opportunityApplicationMode(target) === 'vitalcv') {
       setActiveOpportunityId((current) => (current === applyId ? current : applyId));
       selectOpportunity(applyId);
       return;
@@ -272,6 +276,47 @@ export function OpportunityGrid({
                       View application
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
+                  ) : opportunityApplicationMode(opportunity) === 'external' ? (
+                    /*
+                     * Carried from the employer's own posting: the application
+                     * happens on their site. The public explore surfaces
+                     * already drew this distinction; this signed-in card did
+                     * not. The server now refuses these outright, so offering
+                     * "Apply now" here would promise something that cannot
+                     * happen. Other surfaces still advertise apply for feed
+                     * rows (the MATCHA deck and WorkspaceCard) — those are
+                     * separate follow-ups, not closed here.
+                     */
+                    opportunity.source?.url ? (
+                      <a
+                        href={opportunity.source.url}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        onClick={() => {
+                          void trackClinicianEventOncePerSession(`opportunity-view:${opportunity.id}`, 'clinician.opportunity_viewed', {
+                            npi: data.workspace?.personProfile?.npi ?? null,
+                            opportunityId: opportunity.id,
+                            organizationId: opportunity.organizationId,
+                            requirementLevel: opportunity.requirementLevel,
+                          });
+                          selectOpportunity(opportunity.id);
+                        }}
+                        className="mz-btn min-h-11 justify-center"
+                      >
+                        View original listing
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </a>
+                    ) : (
+                      /* No source page recorded — never render a dead control. */
+                      <Link
+                        href={`/holder/opportunities/${encodeURIComponent(opportunity.id)}`}
+                        onClick={() => selectOpportunity(opportunity.id)}
+                        className="mz-btn min-h-11 justify-center"
+                      >
+                        View role
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    )
                   ) : (
                     <button
                       type="button"
