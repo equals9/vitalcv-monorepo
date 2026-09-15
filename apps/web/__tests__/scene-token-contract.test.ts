@@ -26,6 +26,61 @@ function token(name: string): string {
   return m[1];
 }
 
+/** The raw right-hand side of a declaration, first occurrence. */
+function raw(name: string): string {
+  const m = themes.match(new RegExp(`${name}:\\s*([^;]+);`));
+  if (!m) throw new Error(`token ${name} is not declared in themes/index.css`);
+  return m[1].replace(/\s+/g, ' ').trim();
+}
+
+function declared(name: string): boolean {
+  return new RegExp(`(?:^|[{;\\n])\\s*${name}\\s*:`).test(themes);
+}
+
+/** Follow var() aliases to a hex literal (the file now aliases two deep). */
+function resolve(name: string, depth = 0): string {
+  if (depth > 6) throw new Error(`alias chain too deep at ${name}`);
+  const value = raw(name);
+  const alias = value.match(/^var\((--[a-z0-9-]+)\)$/);
+  if (alias) return resolve(alias[1], depth + 1);
+  const hex = value.match(/^#[0-9a-fA-F]{6}$/);
+  if (!hex) throw new Error(`token ${name} resolves to a non-hex value: ${value}`);
+  return hex[0];
+}
+
+/**
+ * What a bg token PAINTS over a solid surface. `transparent` paints the
+ * surface; `color-mix(in oklab, var(X) N%, transparent)` is approximated as
+ * an N% sRGB blend of X into the surface. oklab and sRGB mixing differ by a
+ * few units per channel; the 4.5 floor below is checked with that slack in
+ * mind, and the rendered value is measured in the browser evidence.
+ */
+function terminal(name: string, depth = 0): string {
+  if (depth > 6) throw new Error(`alias chain too deep at ${name}`);
+  const value = raw(name);
+  const alias = value.match(/^var\((--[a-z0-9-]+)\)$/);
+  return alias ? terminal(alias[1], depth + 1) : value;
+}
+
+function paint(name: string, surface?: string): string {
+  const value = terminal(name);
+  if (value === 'transparent') {
+    if (!surface) throw new Error(`${name} is transparent; pass the surface it sits on`);
+    return resolve(surface);
+  }
+  const mix = value.match(/^color-mix\(in oklab, var\((--[a-z0-9-]+)\) (\d+)%, transparent\)$/);
+  if (mix) {
+    if (!surface) throw new Error(`${name} is a wash; pass the surface it sits on`);
+    const tint = resolve(mix[1]);
+    const base = resolve(surface);
+    const p = Number(mix[2]) / 100;
+    const ch = (hexColor: string, i: number) => parseInt(hexColor.slice(1 + i * 2, 3 + i * 2), 16);
+    const blended = [0, 1, 2].map((i) => Math.round(ch(tint, i) * p + ch(base, i) * (1 - p)));
+    return `#${blended.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+  }
+  return resolve(name);
+}
+
 function luminance(hexColor: string): number {
   const channel = (i: number) => {
     const c = parseInt(hexColor.slice(1 + i * 2, 3 + i * 2), 16) / 255;
@@ -50,24 +105,158 @@ describe('scene register token contract (D-01A)', () => {
     }
   });
 
-  it('A-2 — every primary-action state clears AA', () => {
+  it('A-2 — every primary-action state clears AA (the four legacy names still resolve)', () => {
     const pairs: Array<[string, string, string]> = [
       ['--vt-action-primary-fg', '--vt-action-primary-bg', 'rest'],
-      ['--vt-action-primary-fg-press', '--vt-action-primary-bg-press', 'hover/focus'],
+      ['--vt-action-primary-fg-press', '--vt-action-primary-bg-press', 'press'],
       ['--vt-action-primary-inverse-fg', '--vt-action-primary-inverse-bg', 'inverse rest'],
       ['--vt-action-primary-inverse-fg-press', '--vt-action-primary-inverse-bg-press', 'inverse press'],
     ];
     for (const [fg, bg, state] of pairs) {
-      // -press tokens may alias non-press ones via var(); resolve one level.
-      const resolve = (name: string): string => {
-        const alias = themes.match(new RegExp(`${name}:\\s*var\\((--[a-z0-9-]+)\\)`));
-        return alias ? token(alias[1]) : token(name);
-      };
       expect(
         contrast(resolve(fg), resolve(bg)),
         `primary action at ${state} — the old green treatment was 2.99:1 here`,
       ).toBeGreaterThanOrEqual(4.5);
     }
+  });
+
+  describe('component-state ladder — rest / hover / focus / press / disabled (2026-09-15)', () => {
+    const STATES = ['rest', 'hover', 'focus', 'press', 'disabled'] as const;
+    const FAMILIES = [
+      '--vt-action-primary',
+      '--vt-action-primary-inverse',
+      '--vt-action-quiet',
+      '--vt-action-quiet-inverse',
+    ] as const;
+
+    /** The solid surface a transparent / washed quiet action sits on. */
+    const SURFACE: Record<string, string> = {
+      '--vt-action-quiet': '--vt-scene-panel',
+      '--vt-action-quiet-inverse': '--vt-scene-paper',
+    };
+
+    it('every family declares all five states for both fg and bg', () => {
+      for (const family of FAMILIES) {
+        for (const state of STATES) {
+          for (const side of ['bg', 'fg']) {
+            expect(declared(`${family}-${side}-${state}`), `${family}-${side}-${state} is not declared`).toBe(true);
+          }
+        }
+      }
+    });
+
+    it('the legacy un-suffixed names alias -rest byte-for-byte', () => {
+      for (const family of ['--vt-action-primary', '--vt-action-primary-inverse']) {
+        for (const side of ['bg', 'fg']) {
+          expect(resolve(`${family}-${side}`)).toBe(resolve(`${family}-${side}-rest`));
+        }
+      }
+    });
+
+    it('every (fg, bg) pair in every state clears WCAG 4.5:1 — disabled included', () => {
+      for (const family of FAMILIES) {
+        for (const state of STATES) {
+          const fg = resolve(`${family}-fg-${state}`);
+          const bg = paint(`${family}-bg-${state}`, SURFACE[family]);
+          expect(
+            contrast(fg, bg),
+            `${family} at ${state}: ${fg} on ${bg}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    });
+
+    it('hover sits strictly between rest and press in luminance — it may not collapse back onto press', () => {
+      for (const family of ['--vt-action-primary', '--vt-action-primary-inverse', '--vt-home-f-action']) {
+        const [rest, hover, press] =
+          family === '--vt-home-f-action'
+            ? [resolve(family), resolve(`${family}-hover`), resolve(`${family}-press`)]
+            : [resolve(`${family}-bg-rest`), resolve(`${family}-bg-hover`), resolve(`${family}-bg-press`)];
+        const [lr, lh, lp] = [rest, hover, press].map(luminance);
+        expect(lh, `${family}: hover ${hover} equals rest ${rest}`).not.toBe(lr);
+        expect(lh, `${family}: hover ${hover} equals press ${press}`).not.toBe(lp);
+        expect(
+          (lh - lr) * (lh - lp),
+          `${family}: hover ${hover} (L ${lh.toFixed(3)}) is not between rest ${rest} (L ${lr.toFixed(3)}) and press ${press} (L ${lp.toFixed(3)})`,
+        ).toBeLessThan(0);
+      }
+    });
+
+    it('the focus fill equals rest — focus is carried by the indigo ring (EC-5), never a fill', () => {
+      for (const family of FAMILIES) {
+        expect(raw(`${family}-bg-focus`)).toBe(`var(${family}-bg-rest)`);
+      }
+      expect(raw('--vt-home-f-action-focus')).toBe('var(--vt-home-f-action)');
+    });
+
+    it('no state resolves to a state hue, the reserved severity red, or the indigo accent', () => {
+      const reserved = [
+        '--vt-scene-state-source-confirmed',
+        '--vt-scene-state-source-confirmed-deep',
+        '--vt-scene-state-needs-person',
+        '--vt-scene-state-waiting',
+        '--vt-severity-critical',
+        '--vt-accent-editorial-on-dark',
+        '--vt-accent-editorial-on-paper',
+        '--vt-state-source-confirmed',
+        '--vt-state-pending',
+        '--vt-home-f-snapshot',
+      ].map((t) => token(t).toLowerCase());
+      for (const family of FAMILIES) {
+        for (const state of STATES) {
+          for (const side of ['bg', 'fg']) {
+            const name = `${family}-${side}-${state}`;
+            if (terminal(name) === 'transparent') continue;
+            const value = paint(name, SURFACE[family]).toLowerCase();
+            expect(reserved, `${name} resolved to a reserved hue ${value}`).not.toContain(value);
+          }
+        }
+      }
+      for (const name of ['--vt-home-f-action-hover', '--vt-home-f-action-disabled', '--vt-home-f-action-label-disabled']) {
+        expect(reserved, `${name} resolved to a reserved hue`).not.toContain(resolve(name).toLowerCase());
+      }
+    });
+
+    it('the F action ladder (homepage) clears AA in every state', () => {
+      const pairs: Array<[string, string]> = [
+        ['--vt-home-f-action-label', '--vt-home-f-action'],
+        ['--vt-home-f-action-label', '--vt-home-f-action-hover'],
+        ['--vt-home-f-action-label', '--vt-home-f-action-focus'],
+        ['--vt-home-f-action-label', '--vt-home-f-action-press'],
+        ['--vt-home-f-action-label-disabled', '--vt-home-f-action-disabled'],
+      ];
+      for (const [fg, bg] of pairs) {
+        expect(contrast(resolve(fg), resolve(bg)), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+
+    it('every --vt-action-* / --vt-home-f-action* token a consumer references is declared', () => {
+      const consumers = [
+        join(__dirname, '..', 'components', 'vital', 'VitalAction.tsx'),
+        join(__dirname, '..', 'components', 'employer', 'EmployerDecisionControls.tsx'),
+        join(stylesDir, 'eyebrow.css'),
+        join(stylesDir, 'easy-home.css'),
+      ];
+      for (const file of consumers) {
+        const refs = new Set(
+          [...readFileSync(file, 'utf8').matchAll(/var\((--vt-(?:action|home-f-action)[a-z0-9-]*)\)/g)].map((m) => m[1]),
+        );
+        expect(refs.size, `${file} references no ladder token — the consumer came unwired`).toBeGreaterThan(0);
+        for (const ref of refs) {
+          expect(declared(ref), `${file} references ${ref}, which themes/index.css does not declare`).toBe(true);
+        }
+      }
+    });
+
+    it('the eyebrow paints every state through the ladder, not through a borrowed press value', () => {
+      const eyebrow = readFileSync(join(stylesDir, 'eyebrow.css'), 'utf8');
+      // The defect this PR closes: `:hover, :focus-visible { background: …-press }`.
+      expect(eyebrow).not.toMatch(/\.vcv-eb__cta:hover,\s*\n?\s*\.vcv-eb__cta:focus-visible/);
+      for (const state of ['hover', 'focus', 'press', 'disabled']) {
+        expect(eyebrow, `--eb-rail-action-bg-${state} is not mapped`).toContain(`--eb-rail-action-bg-${state}: var(--vt-action-primary-bg-${state})`);
+        expect(eyebrow, `--eb-rail-action-bg-${state} (light) is not mapped`).toContain(`--eb-rail-action-bg-${state}: var(--vt-action-primary-inverse-bg-${state})`);
+      }
+    });
   });
 
   it('decision 3 — the focus ring is indigo and visible on its registers', () => {

@@ -119,22 +119,53 @@
   --eb-rail-surface: color-mix(in oklab, var(--vt-scene-panel) 74%, transparent);
   --eb-rail-solid: var(--vt-scene-panel);
   --eb-rail-hairline: color-mix(in oklab, var(--vt-scene-text) 16%, transparent);
-  --eb-rail-hover-wash: color-mix(in oklab, var(--vt-scene-text) 12%, transparent);
+  /* Quiet family (word-labels, sign-in, icon instruments): the wash and the
+     text tiers come from the `--vt-action-quiet-*` ladder. */
+  --eb-rail-hover-wash: var(--vt-action-quiet-bg-hover);
+  --eb-rail-press-wash: var(--vt-action-quiet-bg-press);
+  --eb-rail-focus-wash: var(--vt-action-quiet-bg-focus);
+  --eb-rail-quiet-fg: var(--vt-action-quiet-fg-rest);
+  --eb-rail-quiet-fg-hover: var(--vt-action-quiet-fg-hover);
+  --eb-rail-quiet-fg-focus: var(--vt-action-quiet-fg-focus);
+  --eb-rail-quiet-fg-press: var(--vt-action-quiet-fg-press);
+  --eb-rail-quiet-fg-disabled: var(--vt-action-quiet-fg-disabled);
 
   /* the dominant action is a FILLED instrument in both registers */
-  --eb-rail-action-bg: var(--vt-action-primary-bg);          /* paper on dark */
-  --eb-rail-action-fg: var(--vt-action-primary-fg);          /* ink */
+  /* The dominant action: the full `--vt-action-primary-*` state ladder. */
+  --eb-rail-action-bg: var(--vt-action-primary-bg-rest);      /* paper on dark */
+  --eb-rail-action-fg: var(--vt-action-primary-fg-rest);      /* ink */
+  --eb-rail-action-bg-hover: var(--vt-action-primary-bg-hover);
+  --eb-rail-action-fg-hover: var(--vt-action-primary-fg-hover);
+  --eb-rail-action-bg-focus: var(--vt-action-primary-bg-focus);
+  --eb-rail-action-fg-focus: var(--vt-action-primary-fg-focus);
   --eb-rail-action-bg-press: var(--vt-action-primary-bg-press);
+  --eb-rail-action-fg-press: var(--vt-action-primary-fg-press);
+  --eb-rail-action-bg-disabled: var(--vt-action-primary-bg-disabled);
+  --eb-rail-action-fg-disabled: var(--vt-action-primary-fg-disabled);
 }
 
 .vcv-eb[data-eb-theme='light'] {
   --eb-rail-surface: color-mix(in oklab, var(--vt-scene-paper) 80%, transparent);
   --eb-rail-solid: var(--vt-scene-paper);
   --eb-rail-hairline: color-mix(in oklab, var(--vt-scene-paper-text) 12%, transparent);
-  --eb-rail-hover-wash: color-mix(in oklab, var(--vt-scene-paper-text) 7%, transparent);
-  --eb-rail-action-bg: var(--vt-action-primary-inverse-bg);  /* ink on paper */
-  --eb-rail-action-fg: var(--vt-action-primary-inverse-fg);  /* paper */
+  --eb-rail-hover-wash: var(--vt-action-quiet-inverse-bg-hover);
+  --eb-rail-press-wash: var(--vt-action-quiet-inverse-bg-press);
+  --eb-rail-focus-wash: var(--vt-action-quiet-inverse-bg-focus);
+  --eb-rail-quiet-fg: var(--vt-action-quiet-inverse-fg-rest);
+  --eb-rail-quiet-fg-hover: var(--vt-action-quiet-inverse-fg-hover);
+  --eb-rail-quiet-fg-focus: var(--vt-action-quiet-inverse-fg-focus);
+  --eb-rail-quiet-fg-press: var(--vt-action-quiet-inverse-fg-press);
+  --eb-rail-quiet-fg-disabled: var(--vt-action-quiet-inverse-fg-disabled);
+  --eb-rail-action-bg: var(--vt-action-primary-inverse-bg-rest);  /* ink on paper */
+  --eb-rail-action-fg: var(--vt-action-primary-inverse-fg-rest);  /* paper */
+  --eb-rail-action-bg-hover: var(--vt-action-primary-inverse-bg-hover);
+  --eb-rail-action-fg-hover: var(--vt-action-primary-inverse-fg-hover);
+  --eb-rail-action-bg-focus: var(--vt-action-primary-inverse-bg-focus);
+  --eb-rail-action-fg-focus: var(--vt-action-primary-inverse-fg-focus);
   --eb-rail-action-bg-press: var(--vt-action-primary-inverse-bg-press);
+  --eb-rail-action-fg-press: var(--vt-action-primary-inverse-fg-press);
+  --eb-rail-action-bg-disabled: var(--vt-action-primary-inverse-bg-disabled);
+  --eb-rail-action-fg-disabled: var(--vt-action-primary-inverse-fg-disabled);
 }
 
 /* The header is a zero-layout wrapper for the fixed rail + fixed takeover; its
@@ -219,15 +250,30 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1;
-  color: var(--eb-text2);
+  color: var(--eb-rail-quiet-fg);
+  background: var(--vt-action-quiet-bg-rest);
   white-space: nowrap;
   transition: color 0.24s ease, background-color 0.24s ease;
 }
 
-.vcv-eb__link:hover,
+/* Quiet ladder, in state-priority order: focus (no fill — the ring carries
+   it, EC-5) < hover < press < disabled. */
 .vcv-eb__link:focus-visible {
-  color: var(--eb-text);
+  color: var(--eb-rail-quiet-fg-focus);
+  background: var(--eb-rail-focus-wash);
+}
+.vcv-eb__link:hover {
+  color: var(--eb-rail-quiet-fg-hover);
   background: var(--eb-rail-hover-wash);
+}
+.vcv-eb__link:active {
+  color: var(--eb-rail-quiet-fg-press);
+  background: var(--eb-rail-press-wash);
+}
+.vcv-eb__link[aria-disabled='true'] {
+  color: var(--eb-rail-quiet-fg-disabled);
+  background: var(--vt-action-quiet-bg-disabled);
+  pointer-events: none;
 }
 
 /* ── the right cluster: sign-in, verify, action, menu ───────────────────── */
@@ -262,10 +308,17 @@
   transition: color 0.24s ease, opacity 0.24s ease, background-color 0.24s ease;
 }
 
-.vcv-eb__signin:hover,
 .vcv-eb__signin:focus-visible {
   opacity: 1;
+  background: var(--eb-rail-focus-wash);
+}
+.vcv-eb__signin:hover {
+  opacity: 1;
   background: var(--eb-rail-hover-wash);
+}
+.vcv-eb__signin:active {
+  opacity: 1;
+  background: var(--eb-rail-press-wash);
 }
 
 /* Icon instruments — verify (shield-check) and the menu trigger. 44px targets,
@@ -285,9 +338,19 @@
   transition: color 0.24s ease, background-color 0.24s ease;
 }
 
-.vcv-eb__icon-btn:hover,
 .vcv-eb__icon-btn:focus-visible {
+  background: var(--eb-rail-focus-wash);
+}
+.vcv-eb__icon-btn:hover {
   background: var(--eb-rail-hover-wash);
+}
+.vcv-eb__icon-btn:active {
+  background: var(--eb-rail-press-wash);
+}
+.vcv-eb__icon-btn:disabled {
+  color: var(--eb-rail-quiet-fg-disabled);
+  background: var(--vt-action-quiet-bg-disabled);
+  cursor: default;
 }
 
 .vcv-eb__icon-btn svg {
@@ -316,9 +379,25 @@
   transition: background-color 0.24s ease, color 0.24s ease, border-color 0.24s ease;
 }
 
-.vcv-eb__cta:hover,
+/* Primary ladder, in state-priority order. Hover no longer borrows the press
+   value; focus keeps the rest fill under the indigo ring (EC-5). The CTA is
+   an anchor, so disabled is the aria form. */
 .vcv-eb__cta:focus-visible {
+  background: var(--eb-rail-action-bg-focus);
+  color: var(--eb-rail-action-fg-focus);
+}
+.vcv-eb__cta:hover {
+  background: var(--eb-rail-action-bg-hover);
+  color: var(--eb-rail-action-fg-hover);
+}
+.vcv-eb__cta:active {
   background: var(--eb-rail-action-bg-press);
+  color: var(--eb-rail-action-fg-press);
+}
+.vcv-eb__cta[aria-disabled='true'] {
+  background: var(--eb-rail-action-bg-disabled);
+  color: var(--eb-rail-action-fg-disabled);
+  pointer-events: none;
 }
 
 .vcv-eb__cta-short {

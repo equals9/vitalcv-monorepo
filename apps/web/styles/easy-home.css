@@ -160,9 +160,17 @@
   transition: background-color 120ms ease-out;
 }
 
-.ezh .ezh-action:hover { background: var(--vt-home-f-ink); }
+/* The F action's five-state ladder (themes/index.css). Order is the state
+   priority: focus (fill = rest, the ring carries it) < hover < press <
+   disabled. Rest and press are the values this rule always painted. */
+.ezh .ezh-action:focus-visible { background: var(--vt-home-f-action-focus); }
+.ezh .ezh-action:hover { background: var(--vt-home-f-action-hover); }
 .ezh .ezh-action:active { background: var(--vt-home-f-action-press); }
-.ezh .ezh-action:disabled { opacity: 0.6; cursor: default; }
+.ezh .ezh-action:disabled {
+  background: var(--vt-home-f-action-disabled);
+  color: var(--vt-home-f-action-label-disabled);
+  cursor: default;
+}
 
 .ezh a { color: var(--vt-home-f-signal); }
 
