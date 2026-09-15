@@ -161,7 +161,7 @@ describe('comment stripping is enabled on the content rules', () => {
     return next === -1 ? source.slice(start) : source.slice(start, start + 1 + next);
   }
 
-  it.each(['LINT-01', 'LINT-03', 'LINT-05', 'LINT-06', 'LINT-09', 'LINT-12', 'LINT-13'])(
+  it.each(['LINT-01', 'LINT-03', 'LINT-05', 'LINT-06', 'LINT-09', 'LINT-12', 'LINT-13', 'LINT-16'])(
     '%s strips comments before scanning',
     (id) => {
       expect(ruleBody(id)).toContain('stripComments: true');
@@ -176,5 +176,54 @@ describe('comment stripping is enabled on the content rules', () => {
     // The implementation blanks comment bodies rather than deleting them.
     const impl = source.slice(source.indexOf('function stripComments'));
     expect(impl.slice(0, 220)).toMatch(/replace\(\/\[\^\\n\]\/g, ' '\)/);
+  });
+});
+
+/**
+ * LINT-16 — a custom property accepts ANY value at parse time, so a garbled
+ * unit (`22pxx`) or a unit-less length (`--icon-size-9xl: 112`) declares
+ * fine and only fails, silently, where it is used. Both sides are pinned:
+ * the rule must fire on the malformed shapes and must NOT fire where a bare
+ * number is legal CSS (z-index stops, font weights, unit-less line-height,
+ * ratios, counts) or where the value carries a unit.
+ */
+describe('LINT-16 — malformed custom-property value', () => {
+  const re = patternFor('LINT-16');
+
+  it.each([
+    '--x: 0;',
+    '--vt-z-raised: 10;',
+    '--font-weight-mid: 450;',
+    '--type-body-line: 1.6;',
+    '--type-body-line-height: 1.5;', // unit-less line-height is the recommended form
+    '--vt-shape-control: 10px;',
+    '--icon-size-md: 24px;',
+    '--vt-space-scale: 1.25;',
+    '--vt-stagger-index: 3;',
+    '--vt-opacity-muted: 0.6;',
+    '--vt-aspect-ratio: 1.5;',
+    '--type-body-tracking: 0;',
+    '--vt-size-count: 3;',
+    "  '--icon-size-md': '24px',", // TS object form with a unit
+    ':root { --vt-gap-lg: 24px; }',
+    'padding: var(--vt-gap-lg);', // a REFERENCE, never a declaration
+  ])('accepts %s', (line) => {
+    expect(re.test(line)).toBe(false);
+  });
+
+  it.each([
+    '--sm-line-height: 22pxx;',
+    '--icon-size-9xl: 112;',
+    '--vt-gap-lg: 24;',
+    '--x-radius: 8pxpx;',
+    '--vt-blur-card: 12;',
+    '--vt-inset-hero: 1.5remm;',
+    '--type-caption-tracking: 0.02;', // unit-less letter-spacing is invalid
+    '--vt-gap-lg: 24', // last line of a block, no semicolon
+    ':root { --vt-gap-lg: 24 }', // the one-line form
+    "  '--icon-size-9xl': '112',", // TS object form
+    "  '--icon-size-9xl': 112,",
+  ])('rejects %s', (line) => {
+    expect(re.test(line)).toBe(true);
   });
 });

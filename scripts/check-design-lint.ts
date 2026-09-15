@@ -33,10 +33,11 @@
  *   pnpm check:design --update   # rewrite baselines (review the diff!)
  */
 
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const web = join('apps', 'web');
 const BASELINE_PATH = join(repoRoot, 'scripts', 'design-lint-baseline.json');
 const UPDATE = process.argv.includes('--update');
@@ -370,6 +371,42 @@ const RULES: Rule[] = [
       );
     },
   },
+  // ── Token integrity: a custom property accepts anything ────────────────────
+  // `--sm-line-height: 22pxx` and `--icon-size-9xl: 112` both parse. Custom
+  // properties are validated at the point of USE, not declaration, so a typo'd
+  // or unit-less value is silent: the declaration succeeds, `var()` substitutes
+  // it, the consuming property becomes invalid-at-computed-value-time and
+  // falls back to `unset`. Nothing warns. This is the class of defect the
+  // antigravity.google teardown found in its token layer, and this repository
+  // has had it too (--vt-state-stale unset; undeclared --vt-space-* at one
+  // point). LINT-16 covers the malformed VALUE; LINT-17 (a project rule,
+  // below the per-line rules) covers the reference with no declaration.
+  //
+  // Two shapes, one pattern:
+  //   1. any declaration whose value contains a doubled/garbled unit
+  //      (`22pxx`, `8pxpx`, `1remm`, `100vhh` …);
+  //   2. a bare unit-less NON-ZERO number as the ENTIRE value of a
+  //      length-named property (`--vt-gap-lg: 24`).
+  //
+  // Shape 2 is name-gated in both directions. It fires only when a segment of
+  // the name is a length word (size, width, height, gap, radius, inset,
+  // padding, margin, spacing, space, offset, blur, stroke, tracking) AND no
+  // segment is a word where unit-less is legal CSS: z, weight, opacity, scale,
+  // ratio, columns, count, order, index (so delay-index / stagger-index),
+  // opsz / wght / wdth (font-variation axes) and line — `line-height: 1.5` is
+  // the recommended unit-less form, so `--type-body-line-height: 1.5` must not
+  // fire; `22pxx` on the same name is still caught by shape 1. Zero needs no
+  // unit and never fires. `error`, not `ratchet`: measured 0 on origin/main.
+  {
+    id: 'LINT-16',
+    mode: 'error',
+    what: 'Malformed custom-property value (garbled unit, or unit-less length)',
+    fix: 'Give the token a real unit (`24px`, `1.5rem`) or, for a genuine ratio, name it so (--x-scale, --x-ratio, --x-line). A custom property accepts anything at parse time, so this is the only place the typo can be caught.',
+    roots: [join(web, 'styles'), join(web, 'app'), join(web, 'design-system')],
+    exts: [...CSS, ...TSX],
+    stripComments: true,
+    pattern: /(?:^|[{;'"])\s*--(?:[a-z0-9-]+['"]?\s*:\s*['"]?[^;'"]*?\d(?:\.\d+)?(?:pxx|pxpx|ppx|remm|emm|vhh|vww)\b|(?!(?:[a-z0-9]+-)*(?:z|weight|opacity|scale|ratio|columns|count|order|index|opsz|wght|wdth|line)(?:-|['"\s:]))(?:[a-z0-9]+-)*(?:size|width|height|gap|radius|inset|padding|margin|spacing|space|offset|blur|stroke|tracking)(?:-[a-z0-9]+)*['"]?\s*:\s*['"]?-?(?:0*[1-9]\d*(?:\.\d+)?|0*\.\d*[1-9]\d*)\s*['"]?\s*(?:[;,}]|$))/,
+  },
   // ── XS-1: the one scroll owner ──────────────────────────────────────────────
   // Added 2026-08-02 with the founder cinematic rulings. All three are `error`,
   // not `ratchet`: the tree was grepped first and carries ZERO violations, so
@@ -563,98 +600,319 @@ function walk(absPath: string, exts: string[], out: string[]): void {
   }
 }
 
-interface Hit { rule: Rule; file: string; line: number; text: string }
+// ── Project rules: cross-file checks ────────────────────────────────────────
+// A per-line `Rule` sees one line of one file. LINT-17 has to know every
+// declaration in the tree before it can judge a single reference, so it lives
+// here as a PROJECT rule with its own collector pass. The per-line loop above
+// is untouched; the two kinds share the reporter and the baseline file.
+//
+// The collectors are exported and PURE (strings in, findings out) so the
+// self-test can inject a defect and watch the rule fire — a gate nobody has
+// seen fail is not a gate. Importing this module does not run the gate: the
+// `isMainModule()` guard at the bottom keeps the procedural tail off the
+// import path.
 
-const hits: Hit[] = [];
+export interface SourceFile {
+  /** Repo-relative path, used in reports. */
+  path: string;
+  source: string;
+}
 
-for (const rule of RULES) {
-  const files: string[] = [];
-  for (const root of rule.roots) walk(join(repoRoot, root), rule.exts, files);
+export interface UndeclaredRef {
+  file: string;
+  line: number;
+  name: string;
+  text: string;
+}
 
-  for (const abs of files) {
-    const rel = relative(repoRoot, abs).split(sep).join(sep);
-    let source: string;
-    try {
-      source = readFileSync(abs, 'utf8');
-    } catch {
-      continue;
-    }
-    if (rule.stripComments) source = stripComments(source);
+/**
+ * Every custom-property NAME the tree declares, as `name` without the leading
+ * `--`. Generous by design — a reference is only a finding when NOTHING in
+ * apps/web could have declared it:
+ *
+ *   --name:            CSS declaration (also `@theme` blocks, `:root`, any rule)
+ *   '--name':          TS/TSX object key: inline `style={{ '--x': … }}`,
+ *                      design-system/styles/variables.ts, app/layout.tsx
+ *   ['--name' as T]:   the same key written as a computed property
+ *   setProperty('--name'   runtime declaration from a hook or effect
+ *   variable: '--name'     next/font's CSS-variable option
+ *   `--prefix-${…}`        a template-literal GENERATOR declares the whole
+ *                          `prefix-*` family (variables.ts builds every
+ *                          --vt-space-N and --ui-<theme>-* this way, and
+ *                          layout.tsx mounts them on <html>). A generator
+ *                          with no literal head (`--${…}`) declares nothing —
+ *                          an empty prefix would declare everything.
+ *
+ * Comments are blanked first, so a name that survives only in prose
+ * ("--vt-space-12 was retired") does not count as declared.
+ *
+ * What this cannot see: whether a generated family is actually MOUNTED. It
+ * takes the generator's existence as the declaration. That is the generous
+ * side of the trade, chosen so the ratchet holds a number made of real debt
+ * rather than of things the gate could not resolve.
+ */
+export function collectDeclared(files: SourceFile[]): Set<string> {
+  const declared = new Set<string>();
+  for (const { source } of files) {
+    const s = stripComments(source);
+    for (const m of s.matchAll(/--([a-z0-9-]+)['"]?\s*:/g)) declared.add(m[1]!);
+    // Computed key with a type assertion: `['--x' as string]: '120ms'` — five
+    // of these exist (BandSystemReference, CareerLoopHome, TrustFlowFigure).
+    for (const m of s.matchAll(/\[\s*['"`]--([a-z0-9-]+)['"`]\s*(?:as\s+[A-Za-z.]+\s*)?\]\s*:/g)) declared.add(m[1]!);
+    for (const m of s.matchAll(/setProperty\(\s*['"`]--([a-z0-9-]+)['"`]/g)) declared.add(m[1]!);
+    for (const m of s.matchAll(/variable\s*:\s*['"]--([a-z0-9-]+)['"]/g)) declared.add(m[1]!);
+    for (const m of s.matchAll(/`--([a-z0-9-]+)\$\{/g)) declared.add(`${m[1]!}*`);
+  }
+  return declared;
+}
 
-    source.split('\n').forEach((line, i) => {
-      if (!rule.pattern.test(line)) return;
-      if (rule.allow?.(rel, line)) return;
-      hits.push({ rule, file: rel, line: i + 1, text: line.trim().slice(0, 140) });
+/**
+ * Every `var(--name)` reference WITHOUT a fallback whose name is neither
+ * declared exactly nor covered by a generated family. A reference with a
+ * fallback (`var(--x, 8px)`) is excluded on purpose: the author has said what
+ * happens when the token is absent, so the failure is not silent.
+ *
+ * Matches the same text in CSS and in TSX class strings
+ * (`px-[var(--vt-space-12)]`) — the regex does not care which.
+ */
+export function collectUndeclaredRefs(files: SourceFile[], declared: Set<string>): UndeclaredRef[] {
+  const families = [...declared].filter((d) => d.endsWith('*')).map((d) => d.slice(0, -1));
+  const out: UndeclaredRef[] = [];
+  for (const { path, source } of files) {
+    stripComments(source).split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/var\(\s*--([a-z0-9-]+)\s*\)/g)) {
+        const name = m[1]!;
+        if (declared.has(name)) continue;
+        if (families.some((f) => name.startsWith(f))) continue;
+        out.push({ file: path, line: i + 1, name, text: line.trim().slice(0, 140) });
+      }
     });
   }
+  return out;
 }
 
-const counts = new Map<string, number>();
-for (const h of hits) counts.set(h.rule.id, (counts.get(h.rule.id) ?? 0) + 1);
+/**
+ * Names declared by an installed package rather than by this tree. Each entry
+ * was MEASURED, not guessed, and cites where the declaration lives. This gate
+ * runs in CI without `pnpm install` (see design-lint-gate.yml), so it cannot
+ * scan node_modules itself — doing so locally would make the count differ
+ * between a laptop and CI, which is a ratchet that cannot be trusted.
+ *
+ *   spacing   Tailwind v4 default theme: node_modules/tailwindcss/theme.css
+ *             (`--spacing: 0.25rem`), consumed by components/ui/alert.tsx.
+ *   radix-*   Radix UI sets its measurement properties at runtime via
+ *             style.setProperty (e.g. "--radix-accordion-content-height" in
+ *             @radix-ui/react-accordion/dist/index.mjs), consumed by
+ *             app/globals.css.
+ *
+ * Adding an entry here requires the same citation. `--tw-*` is deliberately
+ * absent: measured, no fallback-less `var(--tw-…)` reference exists.
+ */
+const VENDOR_DECLARED = ['spacing', 'radix-*'];
 
-let baseline: Record<string, number> = {};
-try {
-  baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
-} catch {
-  baseline = {};
+interface ProjectHit { file: string; line: number; text: string }
+
+interface ProjectRule {
+  id: string;
+  mode: Mode;
+  what: string;
+  fix: string;
+  run: () => ProjectHit[];
 }
 
-if (UPDATE) {
-  const next: Record<string, number> = {};
-  for (const rule of RULES) {
-    if (rule.mode === 'ratchet') next[rule.id] = counts.get(rule.id) ?? 0;
+function readTree(roots: string[], exts: string[]): SourceFile[] {
+  const files: string[] = [];
+  for (const root of roots) walk(join(repoRoot, root), exts, files);
+  const out: SourceFile[] = [];
+  for (const abs of files) {
+    try {
+      out.push({ path: relative(repoRoot, abs).split(sep).join(sep), source: readFileSync(abs, 'utf8') });
+    } catch {
+      /* unreadable: skip, same as the per-line loop */
+    }
   }
-  writeFileSync(BASELINE_PATH, `${JSON.stringify(next, null, 2)}\n`);
-  console.log('design-lint — baselines written to scripts/design-lint-baseline.json');
-  for (const [id, n] of Object.entries(next)) console.log(`  ${id}  ${n}`);
-  process.exit(0);
+  return out;
 }
 
-console.log('check-design-lint — DG-18.4 + COMPETE composition rules\n');
+const PROJECT_RULES: ProjectRule[] = [
+  // The other half of the antigravity finding. A `var(--x)` whose `--x` is
+  // declared nowhere is not an error to any tool in the pipeline: the property
+  // computes to its initial value and the surface quietly loses its spacing,
+  // colour or shadow. This repository shipped `--vt-state-stale` unset and, at
+  // one point, `--vt-space-*` references before the generator that declares
+  // them existed. `ratchet`: measured non-zero on origin/main — the debt is
+  // listed in the PR that added this rule and in DESIGN_LINT.md.
+  {
+    id: 'LINT-17',
+    mode: 'ratchet',
+    what: 'var(--x) with no fallback, where --x is declared nowhere in apps/web',
+    fix: 'Declare the token (usually in styles/tokens.css or themes/index.css), reference one that exists, or give the var() a fallback that states what happens without it.',
+    run: () => {
+      // Declarations: anywhere in apps/web (EXCLUDED_DIRS drops _archive, tests,
+      // build output). Generous on purpose — see collectDeclared.
+      const declared = collectDeclared(
+        readTree([web], [...CSS, ...TSX, '.mjs']),
+      );
+      for (const v of VENDOR_DECLARED) declared.add(v);
+      // References: the shipped surfaces only.
+      const refs = collectUndeclaredRefs(
+        readTree(
+          [join(web, 'styles'), join(web, 'app'), join(web, 'components'), join(web, 'design-system')],
+          [...CSS, '.ts', '.tsx'],
+        ),
+        declared,
+      );
+      return refs.map((r) => ({ file: r.file, line: r.line, text: `${r.text}  [--${r.name}]` }));
+    },
+  },
+];
 
-const failures: string[] = [];
+// ── The gate ─────────────────────────────────────────────────────────────────
 
-for (const rule of RULES) {
-  const n = counts.get(rule.id) ?? 0;
+interface Hit { rule: Rule; file: string; line: number; text: string }
 
-  if (rule.mode === 'error') {
-    if (n === 0) {
-      console.log(`  PASS   ${rule.id}  ${rule.what}`);
+/** One row of the report, whichever kind of rule produced it. */
+interface Report {
+  id: string;
+  mode: Mode;
+  what: string;
+  fix: string;
+  count: number;
+  sample: ProjectHit[];
+}
+
+/**
+ * True when this file is the process entry (`node … scripts/check-design-lint.ts`,
+ * which is what `pnpm check:design` and CI run) and false when it is merely
+ * imported (the self-test imports the collectors). Both sides are realpath'd:
+ * on macOS `/tmp` is a symlink to `/private/tmp`, and comparing a symlinked
+ * argv[1] against a resolved import.meta.url would silently turn the gate into
+ * a no-op that exits 0. Any error resolves toward RUNNING the gate.
+ */
+function isMainModule(): boolean {
+  const arg = process.argv[1];
+  if (!arg) return false;
+  try {
+    return realpathSync(resolve(arg)) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return true;
+  }
+}
+
+function main(): void {
+  const hits: Hit[] = [];
+
+  for (const rule of RULES) {
+    const files: string[] = [];
+    for (const root of rule.roots) walk(join(repoRoot, root), rule.exts, files);
+
+    for (const abs of files) {
+      const rel = relative(repoRoot, abs).split(sep).join(sep);
+      let source: string;
+      try {
+        source = readFileSync(abs, 'utf8');
+      } catch {
+        continue;
+      }
+      if (rule.stripComments) source = stripComments(source);
+
+      source.split('\n').forEach((line, i) => {
+        if (!rule.pattern.test(line)) return;
+        if (rule.allow?.(rel, line)) return;
+        hits.push({ rule, file: rel, line: i + 1, text: line.trim().slice(0, 140) });
+      });
+    }
+  }
+
+  const counts = new Map<string, number>();
+  for (const h of hits) counts.set(h.rule.id, (counts.get(h.rule.id) ?? 0) + 1);
+
+  const reports: Report[] = RULES.map((rule) => ({
+    id: rule.id,
+    mode: rule.mode,
+    what: rule.what,
+    fix: rule.fix,
+    count: counts.get(rule.id) ?? 0,
+    sample: hits.filter((x) => x.rule.id === rule.id).slice(0, 8),
+  }));
+  for (const rule of PROJECT_RULES) {
+    const found = rule.run();
+    reports.push({
+      id: rule.id,
+      mode: rule.mode,
+      what: rule.what,
+      fix: rule.fix,
+      count: found.length,
+      sample: found.slice(0, 8),
+    });
+  }
+
+  let baseline: Record<string, number> = {};
+  try {
+    baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
+  } catch {
+    baseline = {};
+  }
+
+  if (UPDATE) {
+    const next: Record<string, number> = {};
+    for (const r of reports) {
+      if (r.mode === 'ratchet') next[r.id] = r.count;
+    }
+    writeFileSync(BASELINE_PATH, `${JSON.stringify(next, null, 2)}\n`);
+    console.log('design-lint — baselines written to scripts/design-lint-baseline.json');
+    for (const [id, n] of Object.entries(next)) console.log(`  ${id}  ${n}`);
+    process.exit(0);
+  }
+
+  console.log('check-design-lint — DG-18.4 + COMPETE composition rules\n');
+
+  const failures: string[] = [];
+
+  for (const r of reports) {
+    const n = r.count;
+
+    if (r.mode === 'error') {
+      if (n === 0) {
+        console.log(`  PASS   ${r.id}  ${r.what}`);
+        continue;
+      }
+      failures.push(r.id);
+      console.log(`  FAIL   ${r.id}  ${r.what} — ${n} violation${n === 1 ? '' : 's'}`);
+      for (const h of r.sample.slice(0, 8)) {
+        console.log(`         ${h.file}:${h.line}  ${h.text}`);
+      }
+      console.log(`         fix: ${r.fix}`);
       continue;
     }
-    failures.push(rule.id);
-    console.log(`  FAIL   ${rule.id}  ${rule.what} — ${n} violation${n === 1 ? '' : 's'}`);
-    for (const h of hits.filter((x) => x.rule.id === rule.id).slice(0, 8)) {
-      console.log(`         ${h.file}:${h.line}  ${h.text}`);
+
+    const base = baseline[r.id];
+    if (base === undefined) {
+      failures.push(r.id);
+      console.log(`  FAIL   ${r.id}  no baseline recorded — run \`pnpm check:design --update\``);
+      continue;
     }
-    console.log(`         fix: ${rule.fix}`);
-    continue;
+    if (n > base) {
+      failures.push(r.id);
+      console.log(`  FAIL   ${r.id}  ${r.what} — ${n} now, baseline ${base} (+${n - base})`);
+      for (const h of r.sample.slice(0, 6)) {
+        console.log(`         ${h.file}:${h.line}  ${h.text}`);
+      }
+      console.log(`         fix: ${r.fix}`);
+    } else if (n < base) {
+      console.log(`  PASS   ${r.id}  ${n} (baseline ${base} — LOWER THE BASELINE: pnpm check:design --update)`);
+    } else {
+      console.log(`  HOLD   ${r.id}  ${n} at baseline — ${r.what}`);
+    }
   }
 
-  const base = baseline[rule.id];
-  if (base === undefined) {
-    failures.push(rule.id);
-    console.log(`  FAIL   ${rule.id}  no baseline recorded — run \`pnpm check:design --update\``);
-    continue;
+  console.log();
+  if (failures.length > 0) {
+    console.error(`design-lint FAILED: ${failures.join(', ')}`);
+    console.error('See docs/design/DESIGN_LINT.md for each rule and its exceptions.');
+    process.exit(1);
   }
-  if (n > base) {
-    failures.push(rule.id);
-    console.log(`  FAIL   ${rule.id}  ${rule.what} — ${n} now, baseline ${base} (+${n - base})`);
-    for (const h of hits.filter((x) => x.rule.id === rule.id).slice(0, 6)) {
-      console.log(`         ${h.file}:${h.line}  ${h.text}`);
-    }
-    console.log(`         fix: ${rule.fix}`);
-  } else if (n < base) {
-    console.log(`  PASS   ${rule.id}  ${n} (baseline ${base} — LOWER THE BASELINE: pnpm check:design --update)`);
-  } else {
-    console.log(`  HOLD   ${rule.id}  ${n} at baseline — ${rule.what}`);
-  }
+  console.log(`design-lint PASS — ${RULES.length + PROJECT_RULES.length} rules checked.`);
 }
 
-console.log();
-if (failures.length > 0) {
-  console.error(`design-lint FAILED: ${failures.join(', ')}`);
-  console.error('See docs/design/DESIGN_LINT.md for each rule and its exceptions.');
-  process.exit(1);
-}
-console.log(`design-lint PASS — ${RULES.length} rules checked.`);
+if (isMainModule()) main();
