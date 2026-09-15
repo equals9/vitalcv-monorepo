@@ -11,7 +11,7 @@ export default function VerifierGuidePage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-14">
       {/* Nav */}
-      <nav className="mb-8 flex items-center gap-4 text-sm">
+      <nav aria-label="Verify guide" className="mb-8 flex items-center gap-4 text-sm">
         <Link
           href="/verify"
           className="text-blue-600 hover:text-blue-800 underline underline-offset-2"

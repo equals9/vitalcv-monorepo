@@ -239,7 +239,7 @@ export function IssuerPortal() {
           </div>
 
           {/* Tab navigation */}
-          <nav className="flex gap-1 mt-4 -mb-px">
+          <nav aria-label="Issuer portal sections" className="flex gap-1 mt-4 -mb-px">
             {TABS.map((tab) => (
               <button
                 key={tab.key}

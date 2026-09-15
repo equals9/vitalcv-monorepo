@@ -66,7 +66,10 @@ export default function Footer() {
             * `overflow-x: hidden` ancestor means `scrollWidth - clientWidth`
             * still measures 0, so the e2e asserts element right edges instead.
             */}
-          <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end"
+          >
             {FOOTER_NAV.map((link) => (
               <Link
                 key={link.href}
