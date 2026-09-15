@@ -107,8 +107,8 @@
    untouched. Base is the dark register; the light override follows. */
 .vcv-eb {
   /* the detached glass bar */
-  --eb-rail-top: 14px;
-  --eb-rail-inset: 20px;               /* 20px each side → calc(100% - 40px) */
+  --eb-rail-top: var(--vt-space-14);
+  --eb-rail-inset: var(--vt-space-20);               /* 20px each side → calc(100% - 40px) */
   --eb-rail-max: 1400px;               /* aligns with the ~1400px content column */
   --eb-rail-radius: var(--vt-shape-card);        /* 20px — the chrome surface */
   --eb-rail-radius-inner: var(--vt-shape-action-page); /* 8px — word-labels/instruments */
@@ -186,8 +186,8 @@
   max-width: var(--eb-rail-max);
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 10px 8px 20px;
+  gap: var(--vt-space-4);
+  padding: var(--vt-space-8) var(--vt-space-10) var(--vt-space-8) var(--vt-space-20);
   background: var(--eb-rail-surface);
   -webkit-backdrop-filter: blur(14px) saturate(1.08);
   backdrop-filter: blur(14px) saturate(1.08);
@@ -210,8 +210,8 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--eb-ctl-h);
-  padding: 0 6px;
-  margin-right: 12px;
+  padding: 0 var(--vt-space-6);
+  margin-right: var(--vt-space-12);
   font-family: var(--font-geist);
   font-size: 18px;
   font-weight: 600;
@@ -235,7 +235,7 @@
 .vcv-eb__links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--vt-space-2);
   min-width: 0;
   overflow: hidden;
 }
@@ -244,7 +244,7 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--eb-ctl-h);
-  padding: 0 12px;
+  padding: 0 var(--vt-space-12);
   border-radius: var(--eb-rail-radius-inner);
   font-family: var(--font-geist);
   font-size: 14px;
@@ -284,7 +284,7 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--vt-space-6);
   flex-shrink: 0;
 }
 
@@ -296,7 +296,7 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--eb-ctl-h);
-  padding: 0 10px;
+  padding: 0 var(--vt-space-10);
   border-radius: var(--eb-rail-radius-inner);
   font-family: var(--font-geist);
   font-size: 14px;
@@ -365,8 +365,8 @@
   align-items: center;
   justify-content: center;
   min-height: var(--eb-ctl-h);
-  padding: 0 18px;
-  margin-left: 2px;
+  padding: 0 var(--vt-space-18);
+  margin-left: var(--vt-space-2);
   border: 1px solid transparent;
   border-radius: var(--eb-rail-radius-action);
   background: var(--eb-rail-action-bg);
@@ -421,6 +421,11 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* Drawn-glyph geometry, NOT spacing rhythm (UX-02A): the three 1.5px bars sit
+     in a fixed 18×14px box, so this gap is part of the drawing. On the rem
+     scale it doubles at a 200% user font-size, the bars overflow the box and,
+     being empty flex items, shrink to 0px — the glyph vanishes (measured
+     2026-09-15). Stays literal with the box it belongs to. */
   gap: 4px;
   width: 18px;
   height: 14px;
@@ -472,7 +477,7 @@
   /* the takeover's columns ride the same centred, capped band as the rail that
      stays live above them; the top padding clears the floating rail so the
      overlay's own controls are never under it (the rail paints above). */
-  padding: 84px max(var(--eb-rail-inset), calc((100% - var(--eb-rail-max)) / 2)) 48px;
+  padding: var(--vt-space-84) max(var(--eb-rail-inset), calc((100% - var(--eb-rail-max)) / 2)) var(--vt-space-48);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -486,10 +491,10 @@
   align-self: flex-end;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--vt-space-8);
   min-height: 44px;
-  margin-bottom: 20px;
-  padding: 0 10px;
+  margin-bottom: var(--vt-space-20);
+  padding: 0 var(--vt-space-10);
   border: 0;
   background: none;
   color: var(--ebm-text2);
@@ -517,13 +522,13 @@
   flex: 1 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 30px;
+  gap: var(--vt-space-30);
   align-items: start;
 }
 
 .vcv-eb-menu__col {
   border-top: 1px solid var(--ebm-text);
-  padding-top: 12px;
+  padding-top: var(--vt-space-12);
 }
 
 .vcv-eb-menu__label {
@@ -538,13 +543,13 @@
 
 .vcv-eb-menu__list {
   list-style: none;
-  margin: 28px 0 0;
+  margin: var(--vt-space-28) 0 0;
   padding: 0;
 }
 
 .vcv-eb-menu__link {
   display: block;
-  padding: 10px 0;
+  padding: var(--vt-space-10) 0;
   color: var(--ebm-text);
   transition: color 0.24s ease;
 }
@@ -564,7 +569,7 @@
   font-size: 13px;
   font-weight: 400;
   color: var(--ebm-text2);
-  margin-top: 6px;
+  margin-top: var(--vt-space-6);
   transition: color 0.24s ease;
 }
 
@@ -582,7 +587,7 @@
 
 .vcv-eb-menu__foot {
   flex: 0 0 auto;
-  padding-top: 32px;
+  padding-top: var(--vt-space-32);
   font-family: var(--font-geist-mono);
   font-size: 10px;
   font-weight: 500;
@@ -619,18 +624,18 @@
    deliberate mobile behaviour (EC-10 amendment A-4). */
 @media (max-width: 767px) {
   .vcv-eb__rail {
-    top: 10px;
+    top: var(--vt-space-10);
     width: calc(100% - 20px);
     max-width: none;
-    padding: 6px 8px 6px 14px;
-    gap: 2px;
+    padding: var(--vt-space-6) var(--vt-space-8) var(--vt-space-6) var(--vt-space-14);
+    gap: var(--vt-space-2);
     border-radius: var(--vt-shape-control);
   }
 
   .vcv-eb__wordmark {
     font-size: 17px;
-    margin-right: 4px;
-    padding: 0 4px;
+    margin-right: var(--vt-space-4);
+    padding: 0 var(--vt-space-4);
   }
 
   /* The middle link row and the standalone sign-in fold into the takeover. */
@@ -640,7 +645,7 @@
   }
 
   .vcv-eb__cta {
-    padding: 0 14px;
+    padding: 0 var(--vt-space-14);
   }
 
   .vcv-eb__cta-long {
@@ -656,12 +661,12 @@
   }
 
   .vcv-eb-menu {
-    padding: 76px 20px 96px;
+    padding: 76px var(--vt-space-20) var(--vt-space-96);
   }
 
   .vcv-eb-menu__grid {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: var(--vt-space-40);
   }
 
   .vcv-eb-menu__link-label {
