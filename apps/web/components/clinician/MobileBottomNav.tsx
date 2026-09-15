@@ -25,6 +25,7 @@ export function MobileBottomNav({ showClerkAccount = true }: { showClerkAccount?
 
   return (
     <nav
+      aria-label="Clinician workspace"
       className="fixed bottom-0 left-0 z-50 w-full border-t border-vt-neutral-800 bg-vt-surface-ops-base/90 backdrop-blur-lg pb-safe lg:hidden"
       data-holder-mobile-bottom-nav="true"
     >

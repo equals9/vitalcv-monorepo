@@ -405,7 +405,7 @@ export default function GetReadySurface() {
         </div>
         <noscript>
           <div className="mt-5 border-y border-[var(--vt-border)] py-5 text-left">
-            <p className="text-sm font-semibold text-[var(--vt-text-primary)]">JavaScript is needed to connect a workspace.</p>
+            <h1 className="text-sm font-semibold text-[var(--vt-text-primary)]">JavaScript is needed to connect a workspace.</h1>
             <p className="mz-small mt-2">You can still inspect a public NPI record without signing in or saving anything.</p>
             <Link href="/verify" className={`${secondaryBtn} mt-4`}>Look up an NPI</Link>
           </div>
@@ -599,7 +599,10 @@ export default function GetReadySurface() {
       <Shell>
         <div className="space-y-4 text-center">
           <AlertCircle className="mx-auto h-8 w-8 text-[var(--vt-risk-high)]" aria-hidden />
-          <p className="font-medium text-[var(--vt-text-primary)]">Couldn&apos;t check your workspace</p>
+          {/* text-[length:inherit] pins the size the <p> had: normalize's `h1 { font-size: 2em }`
+              sits above preflight in this app's cascade, so a bare h1 would grow. Measured
+              identical to the former <p> (15px / 23.25px) on the production build. */}
+          <h1 className="text-[length:inherit] font-medium text-[var(--vt-text-primary)]">Couldn&apos;t check your workspace</h1>
           <p className="mz-small">
             This is a system state — not a finding about your account. Try again shortly.
           </p>
@@ -989,9 +992,14 @@ function Shell({ children, headerStage }: { children: React.ReactNode; headerSta
       data-header-stage={headerStage}
       data-header-theme={headerStage ? 'light' : undefined}
     >
-      <div className="flex items-center justify-center px-6 py-12 lg:px-8">
+      {/* The page's content landmark. RootChrome supplies the skip-link
+          target (#main-content) as a div and expects each route to render
+          its own <main>; this surface rendered a bare div, so /onboarding
+          shipped with no main landmark (measured on production 2026-09-15).
+          Same classes as before — landmark only, no pixels change. */}
+      <main className="flex items-center justify-center px-6 py-12 lg:px-8">
         <div className="w-full max-w-md text-center">{children}</div>
-      </div>
+      </main>
       <ActivationPanel />
     </div>
   );

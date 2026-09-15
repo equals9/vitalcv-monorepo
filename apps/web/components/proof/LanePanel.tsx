@@ -55,7 +55,7 @@ export function ProofSplitPane({
         </div>
 
         {/* Lane List */}
-        <nav className="divide-y divide-slate-100">
+        <nav aria-label="Source checks" className="divide-y divide-slate-100">
           {lanes.map(lane => {
             const def = KNOWN_LANES.find(d => d.laneId === lane.laneId);
             const colors = STATUS_COLORS[lane.status as SourceStatus] ?? STATUS_COLORS.not_checked;

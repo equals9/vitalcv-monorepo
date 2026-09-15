@@ -1050,7 +1050,7 @@ function TopChrome({ surface }: any) {
         </div>
       </div>
       <div className="border-t border-white/[0.05]">
-        <nav className="max-w-[1560px] mx-auto px-4 flex items-center gap-0.5 overflow-x-auto scroll-thin" role="tablist">
+        <div className="max-w-[1560px] mx-auto px-4 flex items-center gap-0.5 overflow-x-auto scroll-thin" role="tablist" aria-label="Engine surfaces">
           {SURFACES.map((sf) => {
             const SI = Icon[sf.Icon] || Icon.Dot;
             const active = surface === sf.id;
@@ -1063,7 +1063,7 @@ function TopChrome({ surface }: any) {
               </button>
             );
           })}
-        </nav>
+        </div>
       </div>
     </div>
   );

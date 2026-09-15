@@ -177,7 +177,9 @@ function StepShell({
           backgroundSize: '84px 84px',
         }}
       />
-      <div className="relative z-10 mx-auto flex max-w-3xl flex-col gap-6 sm:gap-7">
+      {/* Content landmark (EC-5). RootChrome's #main-content is a div by
+          design; each route renders its own <main>. Same classes, no pixels. */}
+      <main className="relative z-10 mx-auto flex max-w-3xl flex-col gap-6 sm:gap-7">
         <div className="flex items-center justify-between gap-3 text-sm text-white/45">
           <Link
             href={backHref}
@@ -224,7 +226,7 @@ function StepShell({
           primaryHref={backHref}
           primaryLabel={backLabel}
         />
-      </div>
+      </main>
     </div>
   );
 }

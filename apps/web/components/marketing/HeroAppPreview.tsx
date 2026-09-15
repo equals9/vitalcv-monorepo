@@ -44,7 +44,7 @@ export function HeroAppPreview() {
         <div className="flex flex-col md:flex-row h-[400px]">
 
           {/* Sidebar */}
-          <nav className="hidden md:flex w-48 shrink-0 border-r border-[var(--vt-border)] bg-[var(--vt-surface-dim)] p-4 flex-col gap-1">
+          <div className="hidden md:flex w-48 shrink-0 border-r border-[var(--vt-border)] bg-[var(--vt-surface-dim)] p-4 flex-col gap-1">
             <div className="mb-4 flex items-center gap-2 px-2">
               <Shield className="h-4 w-4 text-[var(--vt-status-resolved)]" />
               <span className="text-xs font-semibold text-[var(--vt-text-secondary)]">VitalCV</span>
@@ -67,7 +67,7 @@ export function HeroAppPreview() {
                 {label}
               </div>
             ))}
-          </nav>
+          </div>
 
           {/* Main panel */}
           <div className="flex-1 flex flex-col overflow-hidden">
