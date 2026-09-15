@@ -249,6 +249,75 @@ first, line-anchored draft, which is pinned as a regression case in
 `design-lint-rules.test.ts`. The answer to "none of these fit" is UX-02 token
 work under `--vt-*`, not family seventy-one.
 
+## LINT-16 / LINT-17 — token integrity
+
+Added 2026-09-15 from a teardown of antigravity.google, whose token layer
+carried `--sm-line-height: 22pxx` (a typo) and `--icon-size-9xl: 112` (no
+unit). Both declared without complaint: a custom property accepts **any**
+value at parse time and is validated only where it is used, so the consuming
+property becomes invalid at computed-value time and falls back to `unset`.
+Nothing warns. This repository has had the same class of defect
+(`--vt-state-stale` unset; `--vt-space-*` references before their generator
+existed; the reserved-red badge collision). These two rules make it a CI
+failure.
+
+**LINT-16 — malformed custom-property value.** `error`, measured **0** on
+`origin/main`. A per-line rule over `styles/`, `app/` and `design-system/`
+(CSS and TS/TSX, since `variables.ts` and `layout.tsx` declare tokens as
+strings). Two shapes:
+
+1. any declaration whose value contains a doubled or garbled unit —
+   `pxx`, `pxpx`, `ppx`, `remm`, `emm`, `vhh`, `vww`;
+2. a bare unit-less **non-zero** number as the **entire** value of a
+   length-named property.
+
+Shape 2 is gated on the token's **name**, in both directions. It fires when a
+segment is a length word (`size width height gap radius inset padding margin
+spacing space offset blur stroke tracking`) and no segment is a word where a
+bare number is legal CSS (`z weight opacity scale ratio columns count order
+index opsz wght wdth line`). So `--vt-gap-lg: 24` fails; `--vt-z-raised: 10`,
+`--font-weight-mid: 450`, `--type-body-line-height: 1.5` (unit-less
+line-height is the recommended form) and `--x: 0` pass. Fix: give the token
+its unit, or if it really is a ratio, name it so. The self-test pins sixteen
+accepting and eleven rejecting lines.
+
+**LINT-17 — reference to an undeclared custom property.** `ratchet`,
+baseline **109** on `origin/main`. This is the first **project rule** — a
+cross-file pass that sits beside the per-line loop in the same script. It
+collects every declared name from all of `apps/web` (CSS `--x:`; TS keys
+`'--x':` and `['--x' as T]:`; `setProperty('--x'`; `next/font`
+`variable: '--x'`; and template-literal generators, which declare their whole
+family — `variables.ts` builds every `--vt-space-N` and `--ui-<theme>-*` that
+way and `layout.tsx` mounts them on `<html>`), then reports every
+fallback-less `var(--x)` in `styles/`, `app/`, `components/` and
+`design-system/` whose `--x` is in none of them. A reference **with** a
+fallback is exempt: the author has said what happens when the token is
+absent. Two vendor-declared names are honoured with a citation in the script
+(`--spacing` from Tailwind v4's `theme.css`; `--radix-*`, set at runtime by
+Radix) — the gate runs in CI with no `pnpm install`, so it cannot scan
+`node_modules` without making the laptop and CI counts disagree.
+
+The 109, by family, all measured with no declaration anywhere in the tree:
+`--warm-charcoal` ×42 (seven components, a retired palette), `--glass-*` ×28
+(`utilities.css`, `globals.css`, four components — the glass sheet W1083
+removed), `--gf-*` ×26 (all in `GraphControls.tsx`), `--vt-surface-3` ×4,
+`--vt-color-{critical,accent,neutral}` ×6 (`FindingCard.tsx`),
+`--vital-ops-surface-tertiary` ×2, `--mz-rule` ×1. Each is a surface that
+has silently lost the property. Paying the debt is separate work; this rule
+only stops it growing.
+
+What the collector **cannot** see, stated so the number is read honestly: it
+takes a generator's existence as the declaration and cannot prove the family
+is mounted (it is, today, via `layout.tsx`); and a generated family admits any
+suffix, so `var(--vt-space-999)` would pass. Both are the generous side of
+the trade, chosen so the ratchet holds real debt rather than things the gate
+could not resolve. The collectors are exported pure functions
+(`collectDeclared`, `collectUndeclaredRefs`) and
+`apps/web/__tests__/design-lint-token-integrity.test.ts` injects the defect
+against each declaration shape, and proves the script still runs as an entry
+point after the export — a wrong entry guard would exit 0 having checked
+nothing.
+
 ## Not yet built
 
 - **DG-18.2 — `/dev/design`**, the living style guide: every primitive in every
