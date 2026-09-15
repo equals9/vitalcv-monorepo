@@ -66,15 +66,15 @@ Three disjoint pull requests, one per file set so none can make another `CONFLIC
 
 Plus this record (#1481).
 
-## 3. Open founder decisions (YES / NO each)
+## 3. Founder rulings (2026-09-15, in session: "move forward with your recommendations for each")
 
-1. **Distinct hover step on the primary action** (item 1) — evidence in the state-layer PR.
-   Recommendation: YES.
-2. **Draft PR #1441**, the read-settle beat descended from the cursor-field study (item 23).
-   Recommendation: rule it; it has been open since 2026-08-16.
-3. **Spacing scale with island adoption** (item 13) as a named UX-02A wave. Recommendation: YES.
-4. **Hide-on-scroll rail** (item 15). Recommendation: NO.
-5. **Micro-weight 450** (item 10). Recommendation: NO.
+1. **Distinct hover step on the primary action** (item 1) — **GO.** #1484 carries `FOUNDER VISUAL DECISION: GO`.
+2. **Draft PR #1441**, the read-settle beat (item 23) — **land it** under the standing 2026-08-16 "move on this" directive, once re-verified against current main.
+3. **Spacing scale with island adoption** (item 13) — **YES**, as a UX-02A wave: declare `--vt-space-*`, migrate the two public islands with zero pixel change, amend the EC-20 spacing row in the same PR.
+4. **Hide-on-scroll rail** (item 15) — **NO.** The chrome carries the primary action on every route; hiding it costs a click and buys nothing (EC-10, A-4).
+5. **Micro-weight 450** (item 10) — **NO.** Sub-perceptual; would need an EC-22 amendment to a LOCKED row (same class as the 2026-08-16 tracking ruling).
+
+Landed the same day: #1482 (`bfe8f0e5a`), #1483 (`24dd7c1a7`).
 
 ## 4. Method note
 
