@@ -27,12 +27,12 @@ specificity, so this list is the precedence:
 
 | # | File | `--vt-*` declarations |
 |---|---|---|
-| 1 | `apps/web/styles/themes/index.css` | 190 |
+| 1 | `apps/web/styles/themes/index.css` | 230 |
 | 2 | `apps/web/styles/tokens.css` | 32 |
 | 3 | `apps/web/styles/vitalTokens.css` | 65 |
 | 4 | `apps/web/styles/matcha-zen.css` | 16 |
 
-**303 declarations across 4 files, 214 distinct tokens.**
+**343 declarations across 4 files, 254 distinct tokens.**
 
 ### Route-scoped token files (outside the global cascade)
 
@@ -212,7 +212,7 @@ table — the table says what exists, this says what to do.
 
 ## Tokens
 
-Role sentences come from `docs/design/design-md-roles.json`. **12 of 214**
+Role sentences come from `docs/design/design-md-roles.json`. **12 of 254**
 tokens have a documented role; the rest say so plainly rather than inventing one.
 
 | Token | Effective value | Declared in | Role |
@@ -225,14 +225,50 @@ tokens have a documented role; the rest say so plainly rather than inventing one
 | `--vt-accent-press` | `#322BA6` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-accent-strong` | `var(--ink-900)` | `styles/matcha-zen.css` | — *(role not documented)* |
 | `--vt-accent-wash` | `#ECEBF8` | `styles/themes/index.css` | — *(role not documented)* |
-| `--vt-action-primary-bg` | `var(--vt-scene-paper)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-bg` | `var(--vt-action-primary-bg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-bg-disabled` | `var(--vt-scene-panel-raised)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-bg-focus` | `var(--vt-action-primary-bg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-bg-hover` | `#EDEBE5` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-action-primary-bg-press` | `#E4E1D8` | `styles/themes/index.css` | — *(role not documented)* |
-| `--vt-action-primary-fg` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-bg-rest` | `var(--vt-scene-paper)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-fg` | `var(--vt-action-primary-fg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-fg-disabled` | `var(--vt-scene-text-secondary)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-fg-focus` | `var(--vt-action-primary-fg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-fg-hover` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-action-primary-fg-press` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
-| `--vt-action-primary-inverse-bg` | `#151412` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-fg-rest` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-bg` | `var(--vt-action-primary-inverse-bg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-bg-disabled` | `#E9E7E0` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-bg-focus` | `var(--vt-action-primary-inverse-bg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-bg-hover` | `#242220` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-action-primary-inverse-bg-press` | `#32302D` | `styles/themes/index.css` | — *(role not documented)* |
-| `--vt-action-primary-inverse-fg` | `#F6F5F1` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-bg-rest` | `#151412` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-fg` | `var(--vt-action-primary-inverse-fg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-fg-disabled` | `var(--vt-scene-paper-text-secondary)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-fg-focus` | `var(--vt-action-primary-inverse-fg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-fg-hover` | `#F6F5F1` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-action-primary-inverse-fg-press` | `#F6F5F1` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-primary-inverse-fg-rest` | `#F6F5F1` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-bg-disabled` | `transparent` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-bg-focus` | `var(--vt-action-quiet-bg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-bg-hover` | `color-mix(in oklab, var(--vt-scene-text) 12%, transparent)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-bg-press` | `color-mix(in oklab, var(--vt-scene-text) 18%, transparent)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-bg-rest` | `transparent` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-fg-disabled` | `var(--vt-scene-text-tertiary)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-fg-focus` | `var(--vt-scene-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-fg-hover` | `var(--vt-scene-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-fg-press` | `var(--vt-scene-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-fg-rest` | `var(--vt-scene-text-secondary)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-bg-disabled` | `transparent` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-bg-focus` | `var(--vt-action-quiet-inverse-bg-rest)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-bg-hover` | `color-mix(in oklab, var(--vt-scene-paper-text) 7%, transparent)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-bg-press` | `color-mix(in oklab, var(--vt-scene-paper-text) 11%, transparent)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-bg-rest` | `transparent` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-fg-disabled` | `var(--vt-scene-paper-text-secondary)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-fg-focus` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-fg-hover` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-fg-press` | `var(--vt-scene-paper-text)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-action-quiet-inverse-fg-rest` | `var(--vt-scene-paper-text-secondary)` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-badge-access-bg` | `#F0F1F3` | `styles/tokens.css` | — *(role not documented)* |
 | `--vt-badge-access-text` | `#676257` | `styles/tokens.css` | Warm grey ink for gated and access-required states. Warm on purpose: CD-4 requires a warm ramp, and the prior blue-leaning value put cool ink on a warm surface. |
 | `--vt-badge-checked-bg` | `#E8F5EE` | `styles/tokens.css` | — *(role not documented)* |
@@ -324,7 +360,11 @@ tokens have a documented role; the rest say so plainly rather than inventing one
 | `--vt-home-e-source` | `#0F6D4E` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-home-f-access` | `var(--vt-state-access)` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-home-f-action` | `#1A1815` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-home-f-action-disabled` | `var(--vt-home-f-inset)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-home-f-action-focus` | `var(--vt-home-f-action)` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-home-f-action-hover` | `var(--vt-home-f-ink)` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-home-f-action-label` | `#F6F4EF` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-home-f-action-label-disabled` | `var(--vt-home-f-ink-muted)` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-home-f-action-press` | `#32302D` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-home-f-attention` | `var(--vt-state-pending)` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-home-f-confirmed` | `var(--vt-state-source-confirmed)` | `styles/themes/index.css` | — *(role not documented)* |

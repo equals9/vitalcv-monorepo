@@ -8,8 +8,9 @@ import Link from 'next/link';
  * ink fill with paper text on a paper band. Full pill (decision 4). Green is
  * never an action colour — it belongs to source-confirmed / completed-work
  * states, and this component cannot reach it: every colour routes through
- * `--vt-action-primary-*` (styles/themes/index.css), whose contract test pins
- * the values away from the state hues.
+ * the `--vt-action-primary-*` state ladder (styles/themes/index.css), whose
+ * contract test pins the values away from the state hues and pins hover
+ * strictly between rest and press.
  *
  * `label` is a STRING by design, not children. An action that accepts
  * arbitrary children eventually swallows a nested link or button, and a
@@ -44,14 +45,29 @@ const SIZE: Record<'md' | 'lg', string> = {
   lg: 'h-12 px-[22px] text-[14px]',
 };
 
+/**
+ * The five-state ladder, one token per state per side (styles/themes/index.css,
+ * "Component-state ladder"). The component names a STATE and never a surface:
+ * rest → hover → focus → press → disabled. Tailwind v4 orders these variants
+ * hover < focus-visible < active < disabled, so press beats hover and
+ * disabled beats everything; the focus fill equals rest by contract (the
+ * indigo ring carries focus, EC-5), so a keyboard-focused button that is also
+ * hovered paints its rest fill under the ring.
+ */
 const REGISTER: Record<'scene' | 'paper', string> = {
   scene:
-    'bg-[var(--vt-action-primary-bg)] text-[var(--vt-action-primary-fg)] ' +
-    'hover:bg-[var(--vt-action-primary-bg-press)] hover:text-[var(--vt-action-primary-fg-press)] ' +
+    'bg-[var(--vt-action-primary-bg-rest)] text-[var(--vt-action-primary-fg-rest)] ' +
+    'hover:bg-[var(--vt-action-primary-bg-hover)] hover:text-[var(--vt-action-primary-fg-hover)] ' +
+    'focus-visible:bg-[var(--vt-action-primary-bg-focus)] focus-visible:text-[var(--vt-action-primary-fg-focus)] ' +
+    'active:bg-[var(--vt-action-primary-bg-press)] active:text-[var(--vt-action-primary-fg-press)] ' +
+    'disabled:bg-[var(--vt-action-primary-bg-disabled)] disabled:text-[var(--vt-action-primary-fg-disabled)] ' +
     'focus-visible:outline-[var(--vt-focus-ring-scene)]',
   paper:
-    'bg-[var(--vt-action-primary-inverse-bg)] text-[var(--vt-action-primary-inverse-fg)] ' +
-    'hover:bg-[var(--vt-action-primary-inverse-bg-press)] hover:text-[var(--vt-action-primary-inverse-fg-press)] ' +
+    'bg-[var(--vt-action-primary-inverse-bg-rest)] text-[var(--vt-action-primary-inverse-fg-rest)] ' +
+    'hover:bg-[var(--vt-action-primary-inverse-bg-hover)] hover:text-[var(--vt-action-primary-inverse-fg-hover)] ' +
+    'focus-visible:bg-[var(--vt-action-primary-inverse-bg-focus)] focus-visible:text-[var(--vt-action-primary-inverse-fg-focus)] ' +
+    'active:bg-[var(--vt-action-primary-inverse-bg-press)] active:text-[var(--vt-action-primary-inverse-fg-press)] ' +
+    'disabled:bg-[var(--vt-action-primary-inverse-bg-disabled)] disabled:text-[var(--vt-action-primary-inverse-fg-disabled)] ' +
     'focus-visible:outline-[var(--vt-focus-ring-scene-paper)]',
 };
 
@@ -72,9 +88,10 @@ export function VitalAction({
   const text = showPending ? pendingLabel : label;
   const shared =
     'inline-flex items-center justify-center whitespace-nowrap rounded-full font-semibold leading-none ' +
-    'cursor-pointer transition-colors duration-150 ' +
+    // Control-feedback band (80–150ms, EC-29) on the one house curve.
+    'cursor-pointer transition-colors duration-[var(--duration-instant)] ease-[var(--vt-ease-system)] ' +
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ' +
-    'disabled:cursor-default disabled:bg-[var(--vt-scene-panel-raised)] disabled:text-[var(--vt-scene-text-secondary)] ' +
+    'disabled:cursor-default ' +
     `${SIZE[size]} ${REGISTER[register]} ${className ?? ''}`;
 
   if (href && !disabled && !pending) {

@@ -97,7 +97,7 @@ export function EmployerDecisionControls({ data }: { data: HireToStartCase }) {
             <Button type="button" disabled={busy !== null} variant="outline" onClick={() => void decide('request_info')} className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white">
               {busy === 'request_info' ? 'Recording…' : 'Request clarification'}
             </Button>
-            <Button type="button" disabled={busy !== null || !canAccept} onClick={() => void decide('accept')} className="bg-[var(--vt-action-primary-inverse-bg)] text-[var(--vt-action-primary-inverse-fg)] hover:bg-[var(--vt-action-primary-inverse-bg-press)] hover:text-[var(--vt-action-primary-inverse-fg-press)]">
+            <Button type="button" disabled={busy !== null || !canAccept} onClick={() => void decide('accept')} className="bg-[var(--vt-action-primary-inverse-bg-rest)] text-[var(--vt-action-primary-inverse-fg-rest)] hover:bg-[var(--vt-action-primary-inverse-bg-hover)] hover:text-[var(--vt-action-primary-inverse-fg-hover)] focus-visible:bg-[var(--vt-action-primary-inverse-bg-focus)] focus-visible:text-[var(--vt-action-primary-inverse-fg-focus)] active:bg-[var(--vt-action-primary-inverse-bg-press)] active:text-[var(--vt-action-primary-inverse-fg-press)] disabled:bg-[var(--vt-action-primary-inverse-bg-disabled)] disabled:text-[var(--vt-action-primary-inverse-fg-disabled)]">
               {busy === 'accept' ? 'Recording…' : 'Accept as a head start'}
             </Button>
             <Button type="button" disabled={busy !== null} variant="ghost" onClick={() => void decide('reject')} className="text-rose-200 hover:bg-rose-500/10 hover:text-rose-100">

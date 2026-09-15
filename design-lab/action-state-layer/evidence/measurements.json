@@ -1,0 +1,853 @@
+[
+  {
+    "tag": "home",
+    "w": 1280,
+    "ebTheme": "light"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "rest",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 162,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-rest-1280.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "hover",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#242220",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "14.53",
+    "outline": "none 3px",
+    "box": {
+      "w": 162,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-hover-1280.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "focus",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "solid 2px",
+    "box": {
+      "w": 162,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-focus-1280.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "active",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#32302d",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "12.06",
+    "outline": "none 3px",
+    "box": {
+      "w": 162,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-active-1280.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "disabled",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#e9e7e0",
+    "bgAlpha": 255,
+    "fg": "#5b5c57",
+    "contrast": "5.45",
+    "outline": "none 3px",
+    "box": {
+      "w": 162,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-disabled-1280.png"
+  },
+  {
+    "tag": "home-eb-link-light",
+    "state": "rest",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#000000",
+    "bgAlpha": 255,
+    "fg": "#5b5c57",
+    "contrast": "3.11",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "home-eb-link-light-rest-1280.png"
+  },
+  {
+    "tag": "home-eb-link-light",
+    "state": "hover",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#010101",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "1.13",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "home-eb-link-light-hover-1280.png"
+  },
+  {
+    "tag": "home-eb-link-light",
+    "state": "focus",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#000000",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "1.14",
+    "outline": "solid 2px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "home-eb-link-light-focus-1280.png"
+  },
+  {
+    "tag": "home-eb-link-light",
+    "state": "active",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#020202",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "1.13",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "home-eb-link-light-active-1280.png"
+  },
+  {
+    "tag": "home-eb-link-light",
+    "state": "disabled",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#000000",
+    "bgAlpha": 255,
+    "fg": "#5b5c57",
+    "contrast": "3.11",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "home-eb-link-light-disabled-1280.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "rest",
+    "w": 1280,
+    "sel": ".ezh-action",
+    "bg": "#1a1815",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "16.12",
+    "outline": "none 3px",
+    "box": {
+      "w": 177,
+      "h": 48
+    },
+    "file": "home-ezh-action-rest-1280.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "hover",
+    "w": 1280,
+    "sel": ".ezh-action",
+    "bg": "#2b2823",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "13.36",
+    "outline": "none 3px",
+    "box": {
+      "w": 177,
+      "h": 48
+    },
+    "file": "home-ezh-action-hover-1280.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "focus",
+    "w": 1280,
+    "sel": ".ezh-action",
+    "bg": "#1a1815",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "16.12",
+    "outline": "solid 2px",
+    "box": {
+      "w": 177,
+      "h": 48
+    },
+    "file": "home-ezh-action-focus-1280.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "active",
+    "w": 1280,
+    "sel": ".ezh-action",
+    "bg": "#32302d",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "11.97",
+    "outline": "none 3px",
+    "box": {
+      "w": 173,
+      "h": 47
+    },
+    "file": "home-ezh-action-active-1280.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "disabled",
+    "w": 1280,
+    "sel": ".ezh-action",
+    "bg": "#e3dfd5",
+    "bgAlpha": 255,
+    "fg": "#57534a",
+    "contrast": "5.76",
+    "outline": "none 3px",
+    "box": {
+      "w": 177,
+      "h": 48
+    },
+    "file": "home-ezh-action-disabled-1280.png"
+  },
+  {
+    "tag": "home-runtime",
+    "w": 1280,
+    "overflow": false,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ]
+  },
+  {
+    "tag": "explore",
+    "w": 1280,
+    "ebTheme": "light"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "rest",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-rest-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "hover",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#242220",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "14.53",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-hover-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "focus",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "solid 2px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-focus-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "active",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#32302d",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "12.06",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-active-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "disabled",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#e9e7e0",
+    "bgAlpha": 255,
+    "fg": "#5b5c57",
+    "contrast": "5.45",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-disabled-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "rest",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#f6f5f1",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "16.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-rest-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "hover",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#edebe5",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "15.44",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-hover-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "focus",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#f6f5f1",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "16.88",
+    "outline": "solid 2px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-focus-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "active",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#e4e1d8",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "14.08",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-active-1280.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "disabled",
+    "w": 1280,
+    "sel": ".vcv-eb__cta",
+    "bg": "#232120",
+    "bgAlpha": 255,
+    "fg": "#9c9d99",
+    "contrast": "5.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 140,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-disabled-1280.png"
+  },
+  {
+    "tag": "explore-eb-link-dark-forced",
+    "state": "rest",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#000000",
+    "bgAlpha": 255,
+    "fg": "#9c9d99",
+    "contrast": "7.70",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "explore-eb-link-dark-forced-rest-1280.png"
+  },
+  {
+    "tag": "explore-eb-link-dark-forced",
+    "state": "hover",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#1d1d1d",
+    "bgAlpha": 255,
+    "fg": "#f2f1ed",
+    "contrast": "14.92",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "explore-eb-link-dark-forced-hover-1280.png"
+  },
+  {
+    "tag": "explore-eb-link-dark-forced",
+    "state": "focus",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#000000",
+    "bgAlpha": 255,
+    "fg": "#f2f1ed",
+    "contrast": "18.58",
+    "outline": "solid 2px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "explore-eb-link-dark-forced-focus-1280.png"
+  },
+  {
+    "tag": "explore-eb-link-dark-forced",
+    "state": "active",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#2c2b2b",
+    "bgAlpha": 255,
+    "fg": "#f2f1ed",
+    "contrast": "12.49",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "explore-eb-link-dark-forced-active-1280.png"
+  },
+  {
+    "tag": "explore-eb-link-dark-forced",
+    "state": "disabled",
+    "w": 1280,
+    "sel": ".vcv-eb__link",
+    "bg": "#000000",
+    "bgAlpha": 255,
+    "fg": "#888a85",
+    "contrast": "6.02",
+    "outline": "none 3px",
+    "box": {
+      "w": 56,
+      "h": 44
+    },
+    "file": "explore-eb-link-dark-forced-disabled-1280.png"
+  },
+  {
+    "tag": "home",
+    "w": 390,
+    "ebTheme": "light"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "rest",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-rest-390.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "hover",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#242220",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "14.53",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-hover-390.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "focus",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "solid 2px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-focus-390.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "active",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#32302d",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "12.06",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-active-390.png"
+  },
+  {
+    "tag": "home-eb-cta-light",
+    "state": "disabled",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#e9e7e0",
+    "bgAlpha": 255,
+    "fg": "#5b5c57",
+    "contrast": "5.45",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "home-eb-cta-light-disabled-390.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "rest",
+    "w": 390,
+    "sel": ".ezh-action",
+    "bg": "#1a1815",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "16.12",
+    "outline": "none 3px",
+    "box": {
+      "w": 342,
+      "h": 48
+    },
+    "file": "home-ezh-action-rest-390.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "hover",
+    "w": 390,
+    "sel": ".ezh-action",
+    "bg": "#2b2823",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "13.36",
+    "outline": "none 3px",
+    "box": {
+      "w": 342,
+      "h": 48
+    },
+    "file": "home-ezh-action-hover-390.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "focus",
+    "w": 390,
+    "sel": ".ezh-action",
+    "bg": "#1a1815",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "16.12",
+    "outline": "solid 2px",
+    "box": {
+      "w": 342,
+      "h": 48
+    },
+    "file": "home-ezh-action-focus-390.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "active",
+    "w": 390,
+    "sel": ".ezh-action",
+    "bg": "#32302d",
+    "bgAlpha": 255,
+    "fg": "#f6f4ef",
+    "contrast": "11.97",
+    "outline": "none 3px",
+    "box": {
+      "w": 335,
+      "h": 47
+    },
+    "file": "home-ezh-action-active-390.png"
+  },
+  {
+    "tag": "home-ezh-action",
+    "state": "disabled",
+    "w": 390,
+    "sel": ".ezh-action",
+    "bg": "#e3dfd5",
+    "bgAlpha": 255,
+    "fg": "#57534a",
+    "contrast": "5.76",
+    "outline": "none 3px",
+    "box": {
+      "w": 342,
+      "h": 48
+    },
+    "file": "home-ezh-action-disabled-390.png"
+  },
+  {
+    "tag": "home-runtime",
+    "w": 390,
+    "overflow": false,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ]
+  },
+  {
+    "tag": "explore",
+    "w": 390,
+    "ebTheme": "light"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "rest",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-rest-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "hover",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#242220",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "14.53",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-hover-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "focus",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#151412",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "16.88",
+    "outline": "solid 2px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-focus-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "active",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#32302d",
+    "bgAlpha": 255,
+    "fg": "#f6f5f1",
+    "contrast": "12.06",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-active-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-light",
+    "state": "disabled",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#e9e7e0",
+    "bgAlpha": 255,
+    "fg": "#5b5c57",
+    "contrast": "5.45",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-light-disabled-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "rest",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#f6f5f1",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "16.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-rest-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "hover",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#edebe5",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "15.44",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-hover-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "focus",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#f6f5f1",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "16.88",
+    "outline": "solid 2px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-focus-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "active",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#e4e1d8",
+    "bgAlpha": 255,
+    "fg": "#151412",
+    "contrast": "14.08",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-active-390.png"
+  },
+  {
+    "tag": "explore-eb-cta-dark-forced",
+    "state": "disabled",
+    "w": 390,
+    "sel": ".vcv-eb__cta",
+    "bg": "#232120",
+    "bgAlpha": 255,
+    "fg": "#9c9d99",
+    "contrast": "5.88",
+    "outline": "none 3px",
+    "box": {
+      "w": 63,
+      "h": 44
+    },
+    "file": "explore-eb-cta-dark-forced-disabled-390.png"
+  },
+  {
+    "tag": "PROD-rest",
+    "theme": "light",
+    "cta": {
+      "bg": "#151412",
+      "fg": "#f6f5f1"
+    },
+    "link": {
+      "fg": "#5b5c57"
+    },
+    "ezh": {
+      "bg": "#1a1815",
+      "fg": "#f6f4ef"
+    }
+  }
+]

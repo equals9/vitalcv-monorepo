@@ -277,6 +277,16 @@ html[data-theme='dark'] {
   --vt-home-f-action: #1A1815; /* paper-inverse instrument (A-1); label 16.12:1 */
   --vt-home-f-action-label: #F6F4EF;
   --vt-home-f-action-press: #32302D; /* label 11.97:1 */
+  /* The F action's five-state ladder (2026-09-15), completed the same way as
+     `--vt-action-primary-*`: rest and press are the two values above, hover
+     is the step easy-home.css already painted (`--vt-home-f-ink`, luminance
+     strictly between rest and press), focus fill equals rest (indigo ring,
+     EC-5), and disabled is an explicit inset-paper pair replacing the
+     hand-rolled `opacity: 0.6` — which composited to 4.60:1 on ground. */
+  --vt-home-f-action-hover: var(--vt-home-f-ink);            /* #2B2823 · label 13.5:1 */
+  --vt-home-f-action-focus: var(--vt-home-f-action);
+  --vt-home-f-action-disabled: var(--vt-home-f-inset);       /* #E3DFD5 */
+  --vt-home-f-action-label-disabled: var(--vt-home-f-ink-muted); /* #57534A · 5.76:1 on inset */
   --vt-home-f-confirmed: var(--vt-state-source-confirmed); /* #047857 · 4.56:1 ground */
   --vt-home-f-snapshot: #6E5A1C; /* minted · 5.56:1 ground */
   --vt-home-f-attention: var(--vt-state-pending); /* #92400E · 5.90:1 ground */
@@ -318,14 +328,86 @@ html[data-theme='dark'] {
      2.99:1 on hover AND :focus-visible in the page island, and at REST for the
      eyebrow's action over every light band. Every state below clears AA by a
      wide margin, asserted in the token-contract test. */
-  --vt-action-primary-bg:               var(--vt-scene-paper);
-  --vt-action-primary-fg:               var(--vt-scene-paper-text);
-  --vt-action-primary-bg-press:         #E4E1D8;
-  --vt-action-primary-fg-press:         var(--vt-scene-paper-text);
-  --vt-action-primary-inverse-bg:       #151412;
-  --vt-action-primary-inverse-fg:       #F6F5F1;
-  --vt-action-primary-inverse-bg-press: #32302D;
-  --vt-action-primary-inverse-fg-press: #F6F5F1;
+  --vt-action-primary-bg:               var(--vt-action-primary-bg-rest);
+  --vt-action-primary-fg:               var(--vt-action-primary-fg-rest);
+  --vt-action-primary-inverse-bg:       var(--vt-action-primary-inverse-bg-rest);
+  --vt-action-primary-inverse-fg:       var(--vt-action-primary-inverse-fg-rest);
+
+  /* ── Component-state ladder (2026-09-15) — the third token layer ──────
+     palette (tokens.css) → semantic role (the scene register above) →
+     COMPONENT STATE (this block). A consumer touches only this layer and
+     never picks a surface colour per state. Every action family declares
+     the same five states, so a control cannot be "mostly" tokenised:
+
+       rest · hover · focus · press · disabled
+
+     Rules, asserted in __tests__/scene-token-contract.test.ts:
+       - `-rest` and `-press` carry the values the four-token contract above
+         shipped with; the un-suffixed `-bg`/`-fg` names above now alias
+         `-rest`, so rest and press paint byte-identically to before.
+       - `-hover` is a NEW step whose luminance sits strictly between rest
+         and press — a shade of the same paper/ink family, never a hue —
+         so hover can no longer silently reuse the press value.
+       - `-focus` fill EQUALS rest. Focus is carried by the indigo ring
+         (`--vt-focus-ring-scene*`, EC-5, A-1), never by a fill.
+       - `-disabled` is the pair VitalAction hand-rolled until now on the
+         scene register, and the paper equivalent on the inverse register.
+       - Every fg/bg pair, disabled included, clears WCAG 4.5:1.
+       - No step is a `--vt-scene-state-*` hue or the reserved severity red.
+         Never green, never indigo as a fill (EC-20 interaction row, A-1). */
+
+  /* primary · scene register — paper instrument on the dark canvas */
+  --vt-action-primary-bg-rest:      var(--vt-scene-paper);
+  --vt-action-primary-fg-rest:      var(--vt-scene-paper-text);
+  --vt-action-primary-bg-hover:     #EDEBE5;  /* between paper and press · ink 15.44:1 */
+  --vt-action-primary-fg-hover:     var(--vt-scene-paper-text);
+  --vt-action-primary-bg-focus:     var(--vt-action-primary-bg-rest);
+  --vt-action-primary-fg-focus:     var(--vt-action-primary-fg-rest);
+  --vt-action-primary-bg-press:     #E4E1D8;
+  --vt-action-primary-fg-press:     var(--vt-scene-paper-text);
+  --vt-action-primary-bg-disabled:  var(--vt-scene-panel-raised);   /* 5.88:1 */
+  --vt-action-primary-fg-disabled:  var(--vt-scene-text-secondary);
+
+  /* primary · inverse register — ink instrument on a paper band */
+  --vt-action-primary-inverse-bg-rest:      #151412;
+  --vt-action-primary-inverse-fg-rest:      #F6F5F1;
+  --vt-action-primary-inverse-bg-hover:     #242220;  /* between ink and press · paper 14.53:1 */
+  --vt-action-primary-inverse-fg-hover:     #F6F5F1;
+  --vt-action-primary-inverse-bg-focus:     var(--vt-action-primary-inverse-bg-rest);
+  --vt-action-primary-inverse-fg-focus:     var(--vt-action-primary-inverse-fg-rest);
+  --vt-action-primary-inverse-bg-press:     #32302D;
+  --vt-action-primary-inverse-fg-press:     #F6F5F1;
+  --vt-action-primary-inverse-bg-disabled:  #E9E7E0;  /* inset paper · secondary ink 5.45:1 */
+  --vt-action-primary-inverse-fg-disabled:  var(--vt-scene-paper-text-secondary);
+
+  /* quiet · the text family (word-labels in the chrome: nav links, sign-in,
+     the 44px icon instruments). Rest is bare text on the surface; hover and
+     press are a wash of the register's own ink over the surface — the
+     eyebrow's `--eb-rail-hover-wash`, now owned here. Focus fill equals
+     rest (ring-carried). There is no third ink tier on paper, so the paper
+     disabled fg stays the secondary ink: the state is still announced by
+     `disabled`/`aria-disabled` and the absent wash (EC-4). */
+  --vt-action-quiet-bg-rest:       transparent;
+  --vt-action-quiet-fg-rest:       var(--vt-scene-text-secondary);
+  --vt-action-quiet-bg-hover:      color-mix(in oklab, var(--vt-scene-text) 12%, transparent);
+  --vt-action-quiet-fg-hover:      var(--vt-scene-text);
+  --vt-action-quiet-bg-focus:      var(--vt-action-quiet-bg-rest);
+  --vt-action-quiet-fg-focus:      var(--vt-scene-text);
+  --vt-action-quiet-bg-press:      color-mix(in oklab, var(--vt-scene-text) 18%, transparent);
+  --vt-action-quiet-fg-press:      var(--vt-scene-text);
+  --vt-action-quiet-bg-disabled:   transparent;
+  --vt-action-quiet-fg-disabled:   var(--vt-scene-text-tertiary);  /* 4.92:1 on panel */
+
+  --vt-action-quiet-inverse-bg-rest:       transparent;
+  --vt-action-quiet-inverse-fg-rest:       var(--vt-scene-paper-text-secondary);
+  --vt-action-quiet-inverse-bg-hover:      color-mix(in oklab, var(--vt-scene-paper-text) 7%, transparent);
+  --vt-action-quiet-inverse-fg-hover:      var(--vt-scene-paper-text);
+  --vt-action-quiet-inverse-bg-focus:      var(--vt-action-quiet-inverse-bg-rest);
+  --vt-action-quiet-inverse-fg-focus:      var(--vt-scene-paper-text);
+  --vt-action-quiet-inverse-bg-press:      color-mix(in oklab, var(--vt-scene-paper-text) 11%, transparent);
+  --vt-action-quiet-inverse-fg-press:      var(--vt-scene-paper-text);
+  --vt-action-quiet-inverse-bg-disabled:   transparent;
+  --vt-action-quiet-inverse-fg-disabled:   var(--vt-scene-paper-text-secondary);  /* 6.18:1 */
 
   /* ── Editorial accent, register-scoped (decision 3) ───────────────────
      --vt-accent-editorial already switches #4338CA → #a5b4fc between the
