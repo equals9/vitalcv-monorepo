@@ -3,6 +3,36 @@
 Append-only. **Newest entry at the top.** One entry per work order is recorded
 in the same pull request as its implementation or takeover evidence.
 
+## ON-WO-1a · Your terms on the signed-in role detail — OPEN
+
+- **Date:** 2026-09-14
+- **Lane:** Claude Code (branch `feat/whats-next-intent-fit`, worktree `/tmp/vitalcv-whats-next`,
+  base `origin/main` @ `fa7e47b71`).
+- **Claim-check:** Open PRs #1462, #1469, #1438, #1471, #1472, #1377, #1381, #1382, #1460 and
+  merged #1427, #1436, #1437, #1429, #1446, #1459 were read. None adds a hard-term model, a
+  met/not-met/unknown evaluator, or a terms section on the role detail. `OpportunityAction`
+  already owns private saves, so no saved-list model was added. #1462 owns the apply write
+  path and is not touched.
+- **Change:** `MatchaPreferences.hardConstraints` (closed vocabulary, sanitizer-enforced), one
+  optional onboarding step to set it, pure `lib/matcha/constraintFit.ts`, and a "Your terms"
+  section on `/holder/opportunities/[id]` showing met / not met / unknown per stated term with
+  the settling question for each unknown. Program record:
+  `docs/strategy/opportunity-network-execution-2026-09-14.md`.
+- **Truth, authority, and transaction boundary:** No schema migration, route, API, packet,
+  consent, acceptance, decision, or apply-path change. Terms are self-stated preferences,
+  never evidence; a hard miss is reported, never used to hide a role or rank a person; unknown
+  is neither a pass nor a fail; hourly pay is never compared to an annual floor; feed
+  `hiringType` is never read as evidence. Nothing is emitted to an employer.
+- **Evidence:** focused vitest 55/55; full web vitest 4595 passed / 0 failed; `tsc` clean;
+  design-lint, copy, claims, and route-guard gates PASS; `next build` PASS. Rendered through the
+  real Clerk development-instance gate on a local production build against a disposable
+  database with one synthetic feed row: the authed `PUT`/`GET` on `/api/matcha/preferences`
+  round-tripped `hardConstraints`, and the detail page rendered `hard_not_met` with location
+  not met and compensation/arrangement unknown, at 1440×900 and 390×844 with no horizontal
+  overflow; clearing terms returned the section to `no_terms`.
+- **Next gate:** review. Merge is not authorized by this entry (push to `main` deploys).
+  Next work order: the same evaluator on the discover deck and `/explore` rows.
+
 ## PTC-WAVE-00 · Professional Trust Computing architecture — OPEN #1386
 
 - **Date:** 2026-08-14

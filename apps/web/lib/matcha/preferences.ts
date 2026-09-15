@@ -46,6 +46,37 @@ export type GreenCardStatus =
 /** How soon the clinician wants to start — mirrors the engine's StartUrgency band. */
 export type StartUrgency = 'immediate' | 'within_2_weeks' | 'within_month' | 'flexible';
 
+/**
+ * The preference dimensions a clinician may mark as non-negotiable. Each key names an
+ * existing preference field it hardens (see {@link HARD_CONSTRAINT_FIELD}); marking one
+ * changes nothing about the preference's value, only how a role that fails it is
+ * reported: as a hard miss the clinician decides on, never a quietly relaxed score.
+ */
+export type HardConstraintKey =
+  | 'location'
+  | 'compensation'
+  | 'employment_type'
+  | 'visa_sponsorship';
+
+export const HARD_CONSTRAINT_KEYS: readonly HardConstraintKey[] = [
+  'location',
+  'compensation',
+  'employment_type',
+  'visa_sponsorship',
+] as const;
+
+/** The preference field each hard-constraint key hardens. */
+export const HARD_CONSTRAINT_FIELD: Record<HardConstraintKey, PreferenceField> = {
+  location: 'preferredStates',
+  compensation: 'minimumSalary',
+  employment_type: 'employmentTypes',
+  visa_sponsorship: 'visaSponsorshipNeeded',
+};
+
+export function isHardConstraintKey(value: unknown): value is HardConstraintKey {
+  return typeof value === 'string' && (HARD_CONSTRAINT_KEYS as readonly string[]).includes(value);
+}
+
 // ── The preference model ────────────────────────────────────────────────────
 
 /**
@@ -77,6 +108,12 @@ export interface MatchaPreferences {
   shiftPreference?: ShiftPreference;
   scheduleFlexibility?: Importance;
   startUrgency?: StartUrgency;
+
+  /**
+   * Which of the clinician's stated preferences are non-negotiable. Empty or absent means
+   * every preference is advisory, which is how the model behaved before this field existed.
+   */
+  hardConstraints?: HardConstraintKey[];
 
   // Compensation & benefits
   desiredSalary?: number;
@@ -153,6 +190,7 @@ export const ALL_PREFERENCE_FIELDS: readonly PreferenceField[] = [
   'geographicFlexibility', 'preferredStates', 'statesWillingToLicense', 'commuteRadiusMiles',
   'remoteInterest', 'travelInterest',
   'employmentTypes', 'shiftPreference', 'scheduleFlexibility', 'startUrgency',
+  'hardConstraints',
   'desiredSalary', 'minimumSalary', 'signOnBonusImportance', 'ptoImportance',
   'retirementImportance', 'healthInsuranceImportance',
   'visaSponsorshipNeeded', 'greenCardStatus', 'military', 'newGraduate', 'yearsExperience',
@@ -196,6 +234,15 @@ export function sanitizeStoredPreferences(input: unknown): MatchaPreferences {
 
   for (const field of ALL_PREFERENCE_FIELDS) {
     const value = src[field as string];
+    if (field === 'hardConstraints') {
+      // Closed vocabulary: an unknown key can never become a constraint the
+      // evaluator silently ignores, so it is dropped here, not downstream.
+      if (Array.isArray(value)) {
+        const keys = Array.from(new Set(value.filter(isHardConstraintKey)));
+        if (keys.length > 0) out[field] = keys;
+      }
+      continue;
+    }
     if (Array.isArray(value)) {
       const arr = value
         .filter((x): x is string => typeof x === 'string' && x.trim().length > 0)

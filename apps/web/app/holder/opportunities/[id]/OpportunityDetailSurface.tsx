@@ -13,6 +13,7 @@ import { ArrowLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { PageFrame } from '@/components/layout/PageFrame';
 import { useClinicianMobile } from '@/components/mobile/ClinicianMobileProvider';
 import { CaptureInWorkbench } from '@/components/workbench/CaptureInWorkbench';
+import { useMatchaPreferences } from '@/components/matcha/useMatchaPreferences';
 import {
   AVAILABILITY_GLYPH,
   AVAILABILITY_LABEL,
@@ -31,6 +32,12 @@ import {
   opportunitySchedule,
 } from '@/lib/explore/opportunity-display';
 import type { OpportunitySummary } from '@/lib/launch/marketplace';
+import {
+  CONSTRAINT_STATUS_LABEL,
+  CONSTRAINT_VERDICT_HEADING,
+  evaluateConstraintFit,
+  type ConstraintResult,
+} from '@/lib/matcha/constraintFit';
 import type { MobileOpportunityCard } from '@/lib/mobile/dashboard';
 
 type FallbackState = 'idle' | 'loading' | 'not_found' | 'error';
@@ -43,6 +50,7 @@ export default function OpportunityDetailSurface({ opportunityId }: { opportunit
   );
   const [fallback, setFallback] = useState<OpportunitySummary | null>(null);
   const [fallbackState, setFallbackState] = useState<FallbackState>('idle');
+  const terms = useMatchaPreferences();
 
   useEffect(() => {
     if (card) return;
@@ -210,6 +218,13 @@ export default function OpportunityDetailSurface({ opportunityId }: { opportunit
         </p>
       </section>
 
+      <YourTermsSection
+        opportunity={opportunity}
+        preferences={terms.preferences}
+        loaded={terms.loaded}
+        degraded={terms.sync === 'degraded'}
+      />
+
       <div className="vod-product-grid">
         <ExplanationSection
           label="Why this may fit"
@@ -285,6 +300,96 @@ export default function OpportunityDetailSurface({ opportunityId }: { opportunit
         <p className="vod-product-note">{availability.limitation}</p>
       </aside>
     </Shell>
+  );
+}
+
+/**
+ * The clinician's own terms, checked one by one against the role record. Met, not met,
+ * and unknown are three different answers; an unknown carries the question that would
+ * settle it. A hard miss is stated as the heading and left for the person to decide on —
+ * the role is not hidden and the actions above are unchanged.
+ */
+function YourTermsSection({
+  opportunity,
+  preferences,
+  loaded,
+  degraded,
+}: {
+  opportunity: OpportunitySummary;
+  preferences: Parameters<typeof evaluateConstraintFit>[0];
+  loaded: boolean;
+  degraded: boolean;
+}) {
+  const fit = useMemo(
+    () => evaluateConstraintFit(preferences, opportunity),
+    [preferences, opportunity],
+  );
+
+  if (!loaded) {
+    return (
+      <section className="vod-product-section" aria-labelledby="your-terms-heading" data-constraint-verdict="loading">
+        <p className="vod-product-label">Your terms · from your preferences</p>
+        <h2 id="your-terms-heading">Checking this role against your terms.</h2>
+        <p className="vod-product-empty" role="status" aria-live="polite">Loading your saved terms…</p>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className="vod-product-section"
+      aria-labelledby="your-terms-heading"
+      data-constraint-verdict={fit.verdict}
+    >
+      <p className="vod-product-label">Your terms · from your preferences</p>
+      <h2 id="your-terms-heading">{CONSTRAINT_VERDICT_HEADING[fit.verdict]}</h2>
+      {degraded ? (
+        <p className="vod-product-note">
+          Your account store did not answer, so these are the terms held in this browser only.
+        </p>
+      ) : null}
+      {fit.results.length === 0 ? (
+        <p className="vod-product-empty">
+          Set the terms that matter to you — where you work, your minimum pay, the arrangement,
+          sponsorship — and each role is checked against them here.{' '}
+          <Link href="/holder/matcha/onboarding">Set your terms</Link>
+        </p>
+      ) : (
+        <ul className="vod-product-list vod-terms">
+          {fit.results.map((result) => <TermRow key={result.key} result={result} />)}
+        </ul>
+      )}
+      <p className="vod-product-note">
+        Checked against the role record as published. Unknown means the source did not state
+        the term; it is neither a pass nor a fail. Nothing here ranks you for an employer.
+      </p>
+    </section>
+  );
+}
+
+function TermRow({ result }: { result: ConstraintResult }) {
+  return (
+    <li
+      data-constraint-key={result.key}
+      data-constraint-status={result.status}
+      data-constraint-hard={result.hard ? 'true' : 'false'}
+    >
+      <div className="vod-terms-head">
+        <span className="vod-terms-label">{result.label}</span>
+        <span className="vod-terms-status" data-status={result.status}>
+          {CONSTRAINT_STATUS_LABEL[result.status]}
+        </span>
+        {result.hard ? <span className="vod-terms-hard">Non-negotiable</span> : null}
+      </div>
+      <p className="vod-terms-reason">{result.reason}</p>
+      <dl className="vod-terms-sides">
+        <div><dt>You</dt><dd>{result.yours}</dd></div>
+        <div><dt>Role record</dt><dd>{result.theirs}</dd></div>
+      </dl>
+      {result.nextQuestion ? (
+        <p className="vod-terms-next">Next: {result.nextQuestion}</p>
+      ) : null}
+    </li>
   );
 }
 
