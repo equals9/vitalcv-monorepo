@@ -37,6 +37,24 @@ you are reviewing is worse than no environment.
 | Indexing | **Refused at three layers.** | See below. This is the one that would silently hurt if wrong. |
 | Lifecycle | **Persistent, one at a time.** | Matches the one-wave-at-a-time design cadence, and keeps a stable URL the founder can bookmark. Cost is one small container. |
 
+### What a reviewer can and cannot exercise there
+
+Observed on the first real deployment, 2026-08-17. Both of these are the design
+above behaving as intended, not defects — but a reviewer who does not expect
+them will file them as bugs.
+
+- **Signed-in surfaces are inert, and the console says so loudly.** Clerk
+  refuses to initialise with `Production Keys are only allowed for domain
+  "vitalcv.com"`. The review environment inherits production's *publishable*
+  key, which is domain-locked — so auth is doubly off: no secret key, and a
+  client key that will not load on this host. Console errors from Clerk on the
+  review URL are expected.
+- **Database-backed reads 500, not just writes.** `/api/opportunities` returns
+  500 on the homepage because there is no `DATABASE_URL`. The row above says
+  "write paths degrade"; read paths that need the database degrade too.
+- **Public surfaces and the NPI hero work**, because they read through to
+  `https://api.vitalcv.com` rather than a local database.
+
 ## Indexing is refused, three ways
 
 A review deployment is a second copy of the public marketing site on another
@@ -76,31 +94,55 @@ extracted.
 
 ## Required setup, in order
 
-### 1. The environment must contain the web service
+### 1. The environment must contain the web service — **DONE 2026-08-17**
 
-**Observed 2026-08-09: it does not.** The `review` environment
-(`a6b02b32-0cff-45f1-9f3b-d1dba0c7298f`) exists but is **completely empty** —
-zero services. It was created with Railway's *Empty Environment* option rather
-than *Duplicate Environment*.
+**This is provisioned. Do not redo it.** The `review` environment is
+`3ec8b3bf-05cd-4cf8-98a2-2a75ebfb097c` and holds exactly one service instance:
+`vitalcv-web`, on the **pinned** service id `f31e461b-…`, with the service
+domain **`vitalcv-web-review.up.railway.app`** on `targetPort` 3000.
 
-This matters more than the credential. Every mutation this workflow performs
+The old id in this section (`a6b02b32-…`) is **gone**. From 2026-08-08 to
+2026-08-17 that environment existed but was **completely empty** — created with
+Railway's *Empty Environment* option rather than *Duplicate Environment*. That
+mattered more than the credential: every mutation this workflow performs
 addresses a **(serviceId, environmentId) pair** — variables, domain and deploy
 alike — so an environment the service does not live in fails all three, no
 matter how well-scoped the token is.
 
-Fix: recreate `review` by **duplicating `production`** (Railway → environment
-dropdown → New Environment → *Duplicate Environment* → source `production`),
-then delete the services a visual review does not need. Duplicating is what
-gives the environment an instance of the pinned `vitalcv-web` service; adding a
-fresh service from GitHub instead would mint a **new service id** and break the
-pin.
+It was fixed by duplicating `production` into a new environment, pruning it,
+then swapping it into the `review` name. Should it ever need redoing: duplicate
+`production` (Railway → environment dropdown → New Environment → *Duplicate
+Environment*), because duplication is what yields an instance of the **pinned**
+`vitalcv-web` service — adding a fresh service from GitHub instead mints a
+**new service id** and breaks the pin.
 
-> **Duplicating also copies production's VARIABLES**, including `DATABASE_URL`
-> and `CLERK_SECRET_KEY`. Clear both on the review service afterwards. This is
+> **Duplicating copies production's VARIABLES, and the dangerous ones are not
+> the two you expect.** Clear them on the review service afterwards. This is
 > not advisory: the workflow upserts a handful of variables *without*
-> `replace`, so anything inherited survives untouched, and a review deployment
-> holding production's `DATABASE_URL` can write to real records. The preflight
-> **refuses to deploy** while either is set.
+> `replace`, so anything inherited survives untouched.
+>
+> Measured on the real duplicate, 2026-08-17:
+>
+> | variable | form | why it must go |
+> |---|---|---|
+> | `RECEIPT_PRIVATE_KEY_JWK` | **literal**, 176 chars | The issuer signing key. A review deployment holding it could mint receipts that verify as genuine under `did:web:vitalcv.com`. |
+> | `CRON_SECRET` | **literal**, 64 chars | Authenticates the cron endpoints. |
+> | `DATABASE_URL` | reference `${{Postgres.DATABASE_URL}}` | Writes reaching real records. |
+> | `CLERK_SECRET_KEY` | reference `${{delightful-essence.CLERK_SECRET_KEY}}` | Signed-in surfaces are out of scope. |
+> | `NEXT_PUBLIC_POSTHOG_KEY` / `_HOST` | literal / url | Review browsing would pollute **live** product analytics. |
+> | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | url | Review errors into production Sentry. |
+>
+> **The two references are the trap.** They render as the empty string whenever
+> the service they point at is absent from this environment — so a *rendered*
+> read reports them "absent" and the preflight passed, while the keys sat there
+> waiting to resolve the moment anyone added a Postgres to `review`. The
+> preflight now reads `unrendered: true`, where a reference is visible as a
+> reference and is refused.
+>
+> **Keep `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`.** It is public by design (it
+> already ships in vitalcv.com's client bundle), and `VITALCV_REQUIRE_AUTH_ENV=1`
+> is inherited too — so `apps/web/scripts/docker-build.sh` aborts the build
+> without it.
 
 ### 2. One credential — **currently blocked by a GitHub fault, not by you**
 
@@ -122,6 +164,18 @@ pin.
 > works, and a missing secret really is missing. **Reads 0** → the fault is
 > open, and setting this secret again cannot work. Measured 2026-08-09: **0**,
 > while pre-fault secrets read 64 and 19 in the same job.
+>
+> **Still 0 on 2026-08-16** (run `31927043126`), with `CRON_SECRET` at 64 and
+> `PROBE_URL` at 19 in the same job. Eight days on, the fault is unchanged and
+> the credential remains unobtainable. `gh secret list` now shows only five
+> entries, all created 2026-08-02 or earlier — post-fault secrets have vanished
+> from the listing while still reading 0, so **listing absence is not evidence
+> anyone failed to set it.**
+>
+> **This step is therefore blocked on GitHub support, not on us.** Everything
+> the credential was needed *for* has been done by hand instead — see
+> *Provisioning without the workflow* below. The workflow itself stays red at
+> the preflight's first check until propagation is restored.
 >
 > Two production monitors (`Release verify`, `Synthetic Reconcile`) are red on
 > main for this same reason. That is correct behaviour — they are refusing to
@@ -206,10 +260,50 @@ trigger its own deploy of whatever ref the service last used, racing the
 exact-SHA deploy two steps later — two builds, and a window where the review
 URL serves the wrong commit.
 
-Everything after environment resolution is **still unexercised by a real run** —
-no invocation has got past it. The shapes above are verified against the docs
-and the preflight logic is proven against fixtures, but only a successful run
-proves the mutations themselves.
+**These shapes are no longer theoretical.** On 2026-08-17 every mutation in this
+workflow was executed for real against the live project — by hand, because the
+credential is unobtainable (§2) — and each returned success:
+`environmentCreate` (with `sourceEnvironmentId`, i.e. duplicate),
+`serviceDelete`, `variableDelete`, `variableCollectionUpsert`,
+`serviceDomainCreate`, `serviceInstanceDeployV2`, `environmentRename`,
+`environmentDelete`. The workflow's own *invocation* is still unproven — no run
+has got past the credential check — but the API calls it makes are now known to
+work as written.
+
+Two things were learned only by running them:
+
+- **`serviceDelete(environmentId:, id:)` is environment-scoped.** It removes the
+  service from that one environment and leaves every other environment intact —
+  verified by re-reading `production`'s service and volume lists immediately
+  after each call. Without the `environmentId` argument it would be a
+  project-wide delete, which on this project would take production down.
+- **`environmentRename` races `environmentDelete`.** Renaming into a name freed
+  microseconds earlier returns *"An environment with that name already exists"*.
+  Retry with a short backoff; it succeeded on the next attempt.
+
+## Provisioning without the workflow
+
+While the secret-propagation fault (§2) is open, the workflow cannot run, but
+the environment can still be driven directly. The Railway CLI on the founder's
+machine is already authenticated, and `~/.railway/config.json` holds a
+short-lived `user.accessToken` — **it expires roughly hourly**; run
+`railway whoami` from `/Users/christoler/vitalcv` first to refresh it.
+
+Every call is `POST https://backboard.railway.com/graphql/v2` with
+`Authorization: Bearer <accessToken>` and — non-obviously — **a `User-Agent`
+header**, without which Cloudflare answers `error code: 1010`.
+
+To publish a ref, the only step that needs repeating is the deploy:
+
+```bash
+railway whoami   # from /Users/christoler/vitalcv, to refresh the token
+```
+
+then `serviceInstanceDeployV2` with `serviceId: f31e461b-…`,
+`environmentId: 3ec8b3bf-…` and the exact `commitSha`, and poll
+`deployment(id:)` until `status` is `SUCCESS`. Verify exactly as the workflow
+would: assert `/api/version` **reports that SHA**, never a 200, then confirm the
+`robots.txt` disallow and the `X-Robots-Tag: noindex` header.
 
 ## Cost
 

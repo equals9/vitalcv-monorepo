@@ -213,23 +213,35 @@ jobs:
               fi
             fi
 
-            # The review environment must not carry a database URL or a Clerk
-            # secret. A REFUSAL, not a cleanup: the workflow upserts a few
-            # variables without `replace`, so anything inherited from a
-            # duplicated production environment survives untouched — and a
-            # review deploy holding production's DATABASE_URL can write to real
-            # records.
+            # The review environment must not carry production's secrets. A
+            # REFUSAL, not a cleanup: the workflow upserts a few variables
+            # without `replace`, so anything inherited from a duplicated
+            # production environment survives untouched.
+            #
+            # `unrendered: true` is load-bearing. Duplicating production copies
+            # DATABASE_URL and CLERK_SECRET_KEY as REFERENCES
+            # (`${{Postgres.DATABASE_URL}}`), and a reference to a service that
+            # does not exist in this environment renders as the empty string —
+            # so the rendered read called them "absent" and passed, while the
+            # keys sat there waiting to resolve the moment anyone added a
+            # Postgres to review. Read the raw value: a reference is a finding.
+            #
+            # The list is not just the database and Clerk. Duplication also
+            # copies LITERAL secrets, and RECEIPT_PRIVATE_KEY_JWK is the issuer
+            # signing key — a review deployment holding it could mint receipts
+            # that verify as genuine under did:web:vitalcv.com. Found on
+            # 2026-08-17, when the environment was first provisioned for real.
             if [ -n "$ENV_ID" ]; then
               echo "Inherited secrets"
               gql 'query V($projectId: String!, $environmentId: String!, $serviceId: String!) {
-                variables(projectId: $projectId, environmentId: $environmentId, serviceId: $serviceId)
+                variables(projectId: $projectId, environmentId: $environmentId, serviceId: $serviceId, unrendered: true)
               }' "$(jq -n --arg projectId "$RAILWAY_PROJECT_ID" --arg environmentId "$ENV_ID" \
                      --arg serviceId "$RAILWAY_WEB_SERVICE_ID" \
                      '{projectId:$projectId,environmentId:$environmentId,serviceId:$serviceId}')" > pf-vars.json
               if jq -e '.errors and (.errors|length>0)' pf-vars.json >/dev/null 2>&1; then
                 echo "    (variables unreadable — skipping)"
               else
-                for forbidden in DATABASE_URL CLERK_SECRET_KEY; do
+                for forbidden in DATABASE_URL CLERK_SECRET_KEY RECEIPT_PRIVATE_KEY_JWK CRON_SECRET; do
                   val=$(jq -r --arg k "$forbidden" '.data.variables[$k] // ""' pf-vars.json)
                   if [ -n "$val" ]; then
                     fail "${forbidden} is SET in '${REVIEW_ENVIRONMENT_NAME}' — clear it before deploying"
@@ -434,15 +446,31 @@ jobs:
           # If those two disagree the domain answers 404 with a perfectly
           # healthy container behind it — the single most common way a
           # correctly-deployed Railway service looks broken.
+          # NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is set ONLY when we actually have
+          # one. Writing it unconditionally wrote the EMPTY STRING whenever
+          # E2E_CLERK_PUBLISHABLE_KEY was absent — and that is not a no-op: it
+          # overwrites the key inherited from the duplicated production
+          # environment, and `apps/web/scripts/docker-build.sh` aborts the build
+          # ("FATAL: VITALCV_REQUIRE_AUTH_ENV=1 but NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+          # is not present") because VITALCV_REQUIRE_AUTH_ENV=1 is inherited too.
+          # The review deploy would have failed at BUILD, after a valid token had
+          # got it past every check above. A publishable key is public by design —
+          # it already ships in vitalcv.com's client bundle — so inheriting
+          # production's is correct here.
           VARS=$(jq -n \
-            --arg pub "${E2E_CLERK_PUBLISHABLE_KEY:-}" \
             --arg port "$REVIEW_TARGET_PORT" \
             '{
               BACKEND_URL: "https://api.vitalcv.com",
               NEXT_PUBLIC_API_BASE: "https://api.vitalcv.com",
-              NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: $pub,
               PORT: $port
             }')
+          if [ -n "${E2E_CLERK_PUBLISHABLE_KEY:-}" ]; then
+            VARS=$(jq -n --argjson vars "$VARS" --arg pub "$E2E_CLERK_PUBLISHABLE_KEY" \
+              '$vars + {NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: $pub}')
+            echo "Overriding NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY from E2E_CLERK_PUBLISHABLE_KEY."
+          else
+            echo "No E2E_CLERK_PUBLISHABLE_KEY — leaving the inherited publishable key in place."
+          fi
 
           MUTATION='mutation SetVars($input: VariableCollectionUpsertInput!) {
             variableCollectionUpsert(input: $input)
