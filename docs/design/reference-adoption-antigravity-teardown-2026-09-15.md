@@ -26,8 +26,8 @@ visual/product decision the founder must make; listed in §3.
 
 | # | Reference pattern | Verdict | Basis |
 |---|---|---|---|
-| 1 | Three token layers — palette → semantic role → component state; components touch only layer 3 | **ADOPTED** (partial: the action families) | Layers 1–2 already exist (`styles/tokens.css` scales; `styles/themes/index.css` `--vt-scene-*`). Layer 3 was rest + press only. PR `design/action-state-layer` completes rest / hover / focus / press / disabled for the primary action on both registers, wires `VitalAction`, the eyebrow rail action and the employer decision control, and pins every state pair ≥ 4.5:1 in `scene-token-contract.test.ts`. Hover is a new distinct step, so the PR carries founder-visual-gate evidence. |
-| 2 | Token typos that fail silently (`22pxx`, unit-less `112`) — the reference's own defect | **ADOPTED** as a gate | PR `chore/design-lint-token-integrity`: LINT-16 (malformed custom-property values) and LINT-17 (`var(--x)` with no fallback where `--x` is declared nowhere) in `scripts/check-design-lint.ts`, ratchet/error per the gate's standing mode rule, injection-proofed. |
+| 1 | Three token layers — palette → semantic role → component state; components touch only layer 3 | **ADOPTED** (partial: the action families) | Layers 1–2 already exist (`styles/tokens.css` scales; `styles/themes/index.css` `--vt-scene-*`). Layer 3 was rest + press only. PR #1484 (`design/action-state-layer`) completes rest / hover / focus / press / disabled for the primary action on both registers, wires `VitalAction`, the eyebrow rail action and the employer decision control, and pins every state pair ≥ 4.5:1 in `scene-token-contract.test.ts`. Hover is a new distinct step, so the PR carries founder-visual-gate evidence. |
+| 2 | Token typos that fail silently (`22pxx`, unit-less `112`) — the reference's own defect | **ADOPTED** as a gate | PR #1482 (`chore/design-lint-token-integrity`): LINT-16 (malformed custom-property values) and LINT-17 (`var(--x)` with no fallback where `--x` is declared nowhere) in `scripts/check-design-lint.ts`, ratchet/error per the gate's standing mode rule, injection-proofed. |
 | 3 | Headings as styled spans; unlabeled `<nav>` landmarks; nested `<main>`; no skip link — the reference's a11y findings | **ADOPTED** as fixes on vitalcv.com | Measured 2026-09-15: `/onboarding` rendered with no `h1` and no `main`; the shared footer `<nav>` was unlabeled on every interior route. PR `fix/a11y-landmarks-headings`. Skip link already exists (`RootChrome.tsx`); `/` already has one `h1`, real `h2`/`h3` hierarchy, labeled navs. EC-5. |
 | 4 | Zero reduced-motion handling (reference defect) | **ALREADY LAW**, better than the reference | `app/globals.css` global `prefers-reduced-motion` kill switch (`animation-duration: 0.01ms !important`, iteration-count 1, transition-duration, scroll-behavior); EC-25–29 treat reduced motion as a composition, not a fallback; Playwright reduced-motion sweep on `/`. Nothing to add. |
 | 5 | Image hygiene — 4K JPEGs at card size, no `srcset`/lazy/WebP (reference defect) | **ALREADY LAW / no finding** | `/` ships zero raster images (SVG illustration); interior routes serve `.avif` scenes with alt text. EC-29 budgets bound the hero. No defect measured; not built. |
@@ -58,13 +58,13 @@ visual/product decision the founder must make; listed in §3.
 
 Three disjoint pull requests, one per file set so none can make another `CONFLICTING`:
 
-1. `design/action-state-layer` — the component-state ladder (item 1). Public-facing visual PR:
+1. #1484 `design/action-state-layer` — the component-state ladder (item 1). Public-facing visual PR:
    creative owner named, desktop + mobile evidence, `FOUNDER VISUAL DECISION` pending.
-2. `chore/design-lint-token-integrity` — LINT-16 / LINT-17 (item 2). Tooling only.
-3. `fix/a11y-landmarks-headings` — `/onboarding` h1 + main, labeled navigation landmarks (item 3).
+2. #1482 `chore/design-lint-token-integrity` — LINT-16 / LINT-17 (item 2). Tooling only. Measured 109 references to undeclared custom properties on `origin/main` (`--warm-charcoal` ×42, `--glass-*` ×28, `--gf-*` ×26 among them) — silent style losses now frozen as a ratchet.
+3. #1483 `fix/a11y-landmarks-headings` — `/onboarding` main landmark and headings for its headingless states (the hydrated page already had one h1; the server shell did not), labeled navigation landmarks (item 3).
    Class A accessibility fix, no copy or pixel change.
 
-Plus this record. PR numbers are recorded in each PR's cross-links and in the memory note.
+Plus this record (#1481).
 
 ## 3. Open founder decisions (YES / NO each)
 
