@@ -26,6 +26,26 @@ Until this freeze lifts:
   2. the C3.1 five-second comprehension result filed in the evidence directory;
   3. funnel baseline collection started (PostHog key live).
 
+**2026-09-30 — criterion 1 recorded; the freeze is still in force.** The founder gave
+the visual GO in a Claude Code session and, asked whether that also waived criteria 2
+and 3, answered that it is the visual GO only. Criterion by criterion:
+
+1. **Recorded.** `FOUNDER VISUAL DECISION: GO` on the Direction A homepage as composed
+   on `main` at `e04b2c3a6` (last homepage change `9d7191a7d`, #1484). **Production SHA
+   not re-confirmed:** when the `9d7191a7d` rollout timed out at 600s, deploy-web run
+   34994595738 (2026-09-15) found production still serving `24dd7c1a7`, and no run has
+   confirmed a production SHA since. #1484 changed action hover/focus/disabled states
+   only (rest and press byte-identical per its commit), so the two SHAs differ in
+   interaction states, not composition. Confirm `vitalcv.com/api/version` before citing
+   a production SHA.
+2. **Open.** No `five-second-results.md` exists under `docs/design/evidence/`; run
+   `docs/design/five-second-test-protocol.md` on the production render.
+3. **Open.** #1415 made `NEXT_PUBLIC_POSTHOG_*` reach the client bundle; whether the key
+   is set in the Railway web environment is not visible from the repository, and no
+   baseline has been filed.
+
+The freeze lifts when 2 and 3 are filed here as dated notes.
+
 ### 1b. Standing rule (survives the freeze)
 
 **No new homepage visual direction without an explicit `FOUNDER VISUAL DECISION`.**

@@ -134,7 +134,10 @@ signal. Do not add an NPI-scale section to `app/sitemap.ts` — that file's
 guard for reasons unrelated to freshness.
 
 **3. Publishing provider pages to crawlers is a consent decision, not a copy fix.**
-Gated on `DIRECTORY_SITEMAP`, off until a founder ruling. Removal requests run through
+Gated on `DIRECTORY_SITEMAP`. **Founder ruled GO 2026-09-30.** The lever is unchanged:
+`DIRECTORY_SITEMAP=enabled` on the Railway web service, read per request (no rebuild);
+unset it to withdraw. Check production `robots.txt` before assuming it is live. Removal
+requests arrive at `privacy@vitalcv.com` (printed on every directory page) and run through
 `EXCLUDED_NPIS`, which drops the NPI from the sitemap **and** noindexes that record's
 page — honouring half would tell someone they were removed while their page stayed
 indexed.
@@ -150,6 +153,8 @@ pilot contract:
 **HOMEPAGE VISUAL FREEZE — 2026-08-15, ACTIVE.** A newer, homepage-scoped freeze is in
 force: see `docs/ops/FOUNDER_VISUAL_GATE.md` §1 (the single source of truth — this line is
 only a pointer). Only the Direction A recomposition (constitution amendment E) merges.
+Lift criterion 1 (`FOUNDER VISUAL DECISION: GO`) was recorded 2026-09-30; the five-second
+test and the funnel baseline are still owed.
 
 **The UI PR freeze is LIFTED (founder ruling, 2026-08-09).** UX-03 has shipped, in two parts:
 UX-V1 (#1190) delivered the public eyebrow and the homepage, and #1232 delivered the signed-in

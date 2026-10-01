@@ -128,7 +128,8 @@ canon rather than a replacement for it: it is *how* the reusable profile gets it
   is `noindex, nofollow` on consent grounds (#1329) — a link from it carries no crawl signal.
 - Advertising provider pages to crawlers is gated on `DIRECTORY_SITEMAP`, off until a founder
   ruling. Whether to show the public record for someone who never enrolled is a **consent
-  decision**, not a copy fix.
+  decision**, not a copy fix. *(Founder ruled GO 2026-09-30 — see
+  [`market-evidence-2026-08-18.md`](./market-evidence-2026-08-18.md) §1.)*
 - Removal requests are honoured through `EXCLUDED_NPIS`, which drops the NPI from the sitemap
   **and** noindexes that record's page. Honouring half of it would tell someone they were removed
   while their page stayed indexed.
