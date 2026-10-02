@@ -3,10 +3,12 @@
  *
  * Routes:
  *   POST /api/documents/parse   — upload a file, run OCR + extraction, return result
+ *                                 (503 when document reading is unavailable; nothing stored)
  *   POST /api/documents/verify  — verify an extracted document against primary sources
  *   GET  /api/documents/:id     — retrieve a stored extraction result by documentId
  *
- * Auth: all routes require `x-clerk-user-id` header.
+ * Auth: all routes require `x-clerk-user-id` header. Stored-extraction reads
+ * are scoped to that caller: another account's document id is a 404.
  *
  * Rate limiting (G3): parse + verify run OCR and primary-source calls, making them
  * the most expensive lanes in the API — both sit behind the 10/min
@@ -16,7 +18,7 @@
 
 import type { Express, NextFunction, Request, Response } from 'express';
 import multer from 'multer';
-import { documentPipeline } from '../services/ai/documentPipeline';
+import { DocumentReadingUnavailableError, documentPipeline } from '../services/ai/documentPipeline';
 import { sourceVerifier } from '../services/ai/sourceVerifier';
 import { log } from '../obs/logger';
 import { storeExtraction, getExtraction, isAllowedMimeType } from '../services/documents/documentStore';
@@ -128,6 +130,20 @@ export function registerDocumentRoutes(app: Express): void {
 
         res.status(200).json(result);
       } catch (err) {
+        if (err instanceof DocumentReadingUnavailableError) {
+          // Fail closed: no provider, provider fault or timeout. Nothing was
+          // stored and no audit row was written. The copy is a plain sentence
+          // and deliberately not a verification outcome.
+          log('warn', 'document_parse_unavailable', {
+            userId: req.headers['x-clerk-user-id'],
+          });
+          res.status(503).json({
+            error: 'document_reading_unavailable',
+            message: 'Document reading is unavailable right now. Nothing was stored; please try again later.',
+          });
+          return;
+        }
+
         const message = err instanceof Error ? err.message : 'Document parse failed';
         log('error', 'document_parse_error', {
           error: message,
@@ -159,7 +175,9 @@ export function registerDocumentRoutes(app: Express): void {
           return;
         }
 
-        const extraction = await getExtraction(documentId);
+        const clerkUserId = req.headers['x-clerk-user-id'] as string;
+
+        const extraction = await getExtraction(documentId, clerkUserId);
         if (!extraction) {
           res.status(404).json({ error: `No extraction found for documentId: ${documentId}` });
           return;
@@ -177,8 +195,6 @@ export function registerDocumentRoutes(app: Express): void {
             ],
           };
         }
-
-        const clerkUserId = req.headers['x-clerk-user-id'] as string;
 
         log('info', 'document_verify_start', {
           documentId,
@@ -221,8 +237,9 @@ export function registerDocumentRoutes(app: Express): void {
     async (req: Request, res: Response): Promise<void> => {
       try {
         const { id } = req.params;
+        const clerkUserId = req.headers['x-clerk-user-id'] as string;
 
-        const extraction = await getExtraction(id);
+        const extraction = await getExtraction(id, clerkUserId);
         if (!extraction) {
           res.status(404).json({ error: `No document found with id: ${id}` });
           return;

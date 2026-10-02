@@ -8,10 +8,9 @@
 import { auth } from '@clerk/nextjs/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { applyIdentityHeaders } from '@/lib/auth/forwardIdentity';
+import { BACKEND_URL } from '@/lib/backend-url';
 
 export const runtime = 'nodejs';
-
-const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:4000';
 
 export async function PATCH(
   req: NextRequest,

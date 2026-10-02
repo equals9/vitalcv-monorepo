@@ -30,6 +30,12 @@ exposes service variables as Docker build args, so set these on the web service:
   **Required on the web service too** — `lib/verifier/worklistRepo.ts` and
   `lib/issuer-verification/issuerPersistenceWriter.ts` query the web Prisma client
   (`IssuerRequest` / `ReceiptCandidate`) at runtime. Those routes fail without it.
+- `EVIDENCE_UPLOAD_ENABLED`
+  Shows the "Add evidence" upload panel (and its header link) on `/holder` only
+  when set to the literal `enabled`. Unset or any other value hides it. Read per
+  request (`lib/holder/evidenceUploadFlag.ts`). Leave unset until the document
+  lane (`/api/documents/parse` → `/api/credentials/ingest` → confirm) is confirmed
+  working end to end on production.
 
 ### Shared Backend Storage / Policy
 - `DATABASE_URL`
@@ -58,6 +64,13 @@ exposes service variables as Docker build args, so set these on the web service:
 
 - `SAM_API_KEY`
   Optional downstream service key used by `@vitalcv/api` integrations.
+
+- `OCR_PROVIDER`, `OPENAI_API_KEY`
+  Document reading on `@vitalcv/api` (`POST /api/documents/parse`). With
+  `OCR_PROVIDER=openai` and a key, uploads are read by that provider. With
+  neither set, or when the provider fails, the route answers 503 and stores
+  nothing — there is no fixture fallback outside `NODE_ENV=test`
+  (`services/ai/documentPipeline.ts`).
 
 - `SENTRY_DSN`
   Server-side Sentry DSN for `@vitalcv/api` crash/error reporting.

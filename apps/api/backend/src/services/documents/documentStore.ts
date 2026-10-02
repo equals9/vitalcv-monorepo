@@ -24,13 +24,17 @@ export function isAllowedMimeType(mimetype: string): boolean {
   return ALLOWED_MIME_TYPES.has(mimetype);
 }
 
-// ── Status mapping ────────────────────────────────────────────────────
+// ── Status ────────────────────────────────────────────────────────────
+//
+// A document the clinician uploaded is self-attested evidence. This used to
+// map OCR confidence to a status and wrote `VERIFIED` at >= 0.9 — the same
+// literal the trust engines read as a source-verified artifact. OCR
+// confidence describes how legible the image was; it says nothing about
+// whether an issuing body stands behind the document. The status is a
+// constant, and no confidence value may change it. Verification, if it ever
+// happens, is a separate artifact from a separate source.
 
-function confidenceToStatus(overallConfidence: number): string {
-  if (overallConfidence >= 0.9) return 'VERIFIED';
-  if (overallConfidence >= 0.7) return 'PENDING';
-  return 'NEEDS_REVIEW';
-}
+export const DOCUMENT_PARSE_STATUS = 'SELF_ATTESTED' as const;
 
 // ── SHA-256 checksum ──────────────────────────────────────────────────
 
@@ -52,7 +56,7 @@ export async function storeExtraction(
 ): Promise<string> {
   const rawPayload = extraction as unknown as Prisma.InputJsonValue;
   const checksum = checksumPayload(rawPayload);
-  const status = confidenceToStatus(extraction.overallConfidence);
+  const status = DOCUMENT_PARSE_STATUS;
 
   const artifact = await prisma.verificationArtifact.create({
     data: {
@@ -76,16 +80,26 @@ export async function storeExtraction(
 }
 
 /**
- * Retrieve a DocumentExtractionResult by documentId.
- * Returns null if not found or if the artifact is not a DOCUMENT_PARSE record.
+ * Retrieve a DocumentExtractionResult by documentId, scoped to its owner.
+ *
+ * Returns null if not found, not owned by `clerkUserId`, or not a
+ * DOCUMENT_PARSE record. A mismatch is indistinguishable from absence, so a
+ * caller cannot learn whether someone else's document id exists. The lookup
+ * used to be by id alone, which let any signed-in account read, verify or
+ * ingest another account's upload. The owner column is `npi` (the store
+ * writes the Clerk user id there for DOCUMENT_PARSE rows, see above).
  */
 export async function getExtraction(
   documentId: string,
+  clerkUserId: string,
 ): Promise<DocumentExtractionResult | null> {
+  if (!clerkUserId || clerkUserId.trim() === '') return null;
+
   const artifact = await prisma.verificationArtifact.findFirst({
     where: {
       id: documentId,
       source: 'DOCUMENT_PARSE',
+      npi: clerkUserId,
     },
   });
 

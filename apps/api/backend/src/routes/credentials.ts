@@ -981,7 +981,9 @@ export function registerCredentialRoutes(app: Express): void {
         return;
       }
 
-      const extraction = await getExtraction(documentId);
+      // Owner-scoped: an id that is not this caller's resolves to 404 and
+      // nothing is ingested under this profile.
+      const extraction = await getExtraction(documentId, clerkUserId);
       if (!extraction) {
         res.status(404).json({ error: `No extraction found for documentId: ${documentId}` });
         return;
