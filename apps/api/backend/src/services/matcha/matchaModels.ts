@@ -79,6 +79,14 @@ export interface Opportunity {
   active: boolean;
   recentHires?: number;
   tags?: string[];
+  /**
+   * Whether "Apply with VitalCV" exists for this listing, decided by the one
+   * server-side rule (`services/opportunities/integratedApply.ts`). Absent on
+   * in-memory demo opportunities; every consumer treats absent as external.
+   */
+  applicationMode?: 'external' | 'vitalcv';
+  /** The employer's own posting for a feed-carried row, when the feed had one. */
+  sourceUrl?: string;
 }
 
 // ── Clinician profile ─────────────────────────────────────────────────────────

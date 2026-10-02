@@ -143,6 +143,8 @@ describe('C2 — the public projection cannot leak compiled readiness', () => {
         opportunity: {
           id: 'opp-1', title: 'EM Physician', organizationName: 'Cascade Regional',
           organizationId: 'org-uuid-1', state: 'CO', hiringType: 'Full-time',
+          // Emitted by the live mapper from the server's integrated-apply rule.
+          applicationMode: 'vitalcv',
         },
         explanation: {
           matchBand: 'INELIGIBLE',
@@ -207,13 +209,28 @@ describe('C2 — the public projection cannot leak compiled readiness', () => {
       .not.toContain('sanction detail');
   });
 
-  it('reports apply availability from a real organization id, never invented', () => {
+  it('reports apply availability only when the server marked the listing integrated AND an organization resolves', () => {
     expect(publicResult.matches[0].applyAvailable).toBe(true);
     const noOrg = toPublicSafeMatches('1578672820', {
-      matches: [{ opportunity: { id: 'opp-3', title: 'Role' }, explanation: {} }],
+      matches: [{ opportunity: { id: 'opp-3', title: 'Role', applicationMode: 'vitalcv' }, explanation: {} }],
     });
     expect(noOrg.matches[0].applyAvailable).toBe(false);
     expect(noOrg.matches[0].organizationId).toBeUndefined();
+
+    // A feed placeholder has an organization id too. It is not a recipient.
+    const feedRow = toPublicSafeMatches('1578672820', {
+      matches: [{
+        opportunity: { id: 'opp-4', title: 'Role', organizationId: 'org-placeholder', applicationMode: 'external' },
+        explanation: {},
+      }],
+    });
+    expect(feedRow.matches[0].applyAvailable).toBe(false);
+
+    // No mode at all (an older mapper, an in-memory demo row): not available.
+    const unmarked = toPublicSafeMatches('1578672820', {
+      matches: [{ opportunity: { id: 'opp-5', title: 'Role', organizationId: 'org-2' }, explanation: {} }],
+    });
+    expect(unmarked.matches[0].applyAvailable).toBe(false);
   });
 
   it('degrades safely on an empty or malformed engine result', () => {

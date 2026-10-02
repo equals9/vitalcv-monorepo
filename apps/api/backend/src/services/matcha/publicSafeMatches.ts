@@ -98,9 +98,13 @@ export function toPublicSafeMatches(
       organizationId,
       state: str(opp.state),
       hiringType: str(opp.hiringType) ?? str(opp.employmentType),
-      // A listing can receive a share only when it resolves to a real
-      // organization — surfaced publicly so the UI can disable Apply honestly.
-      applyAvailable: Boolean(organizationId),
+      // A listing can receive a share only when the server's integrated-apply
+      // rule says so AND it resolves to a real organization. `applicationMode`
+      // is emitted by the live mapper from the same predicate the apply
+      // service enforces; when it is absent the answer is "not available",
+      // never a guess from the organization id alone — a feed placeholder has
+      // one of those too.
+      applyAvailable: opp.applicationMode === 'vitalcv' && Boolean(organizationId),
       fitIndication: (publicReasons.length > 0 ? 'possible_fit' : 'limited_public_signal') as PublicFitIndication,
       publicReasons,
     };

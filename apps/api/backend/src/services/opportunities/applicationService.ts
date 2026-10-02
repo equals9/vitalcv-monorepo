@@ -29,6 +29,7 @@ import {
   type HiringTimelineEvent,
 } from '../actions/hiringAutomationService';
 import { parseOrganizationRequirementsEnvelope } from '../employers/pilotPolicy';
+import { evaluateIntegratedApply } from './integratedApply';
 import {
   computeClinicianTrustState,
   type ClinicianTrustState,
@@ -46,7 +47,6 @@ import {
 import { resolveDisclosureSections } from './applicationDisclosure';
 
 const prisma = new PrismaClient();
-const NPI_RE = /^\d{10}$/;
 const HIRING_AUTOMATION_ACTION_TYPES = [
   'READY_TO_INTERVIEW',
   'REQUEST_CREDENTIAL',
@@ -91,8 +91,18 @@ type ApplicantUserRecord = User & { personProfile: PersonProfile | null };
 
 export interface ApplyInput {
   opportunityId: string;
+  /**
+   * The VERIFIED Clerk subject. The route derives it from the session token
+   * (`requireVerifiedClerkUserId`), never from a header or the body.
+   */
   clerkUserId: string;
-  npi?: string;
+  /*
+   * There is deliberately no `npi` input. The subject of the disclosure is
+   * the clinician the session resolves to, and their NPI is read from the
+   * bound PersonProfile below. Accepting an NPI here let a request name a
+   * different clinician than the one applying; the route authorizes the
+   * profile NPI (`requireNpiAuthorization`) before this service seals.
+   */
   coverNote?: string;
   /** Sections the clinician chose to disclose. */
   selectedSections?: string[];
@@ -349,17 +359,22 @@ async function sealSubmissionPacket(
  * from that snapshot, never re-read.
  */
 export async function applyToOpportunity(input: ApplyInput): Promise<MarketplaceApplication> {
-  const { opportunityId, clerkUserId, npi, coverNote } = input;
+  const { opportunityId, clerkUserId, coverNote } = input;
   const selectedSections = resolveDisclosureSections(input.selectedSections);
   const purpose = input.purpose ?? 'application';
 
   // The organization NAME is on the relation, not the opportunity row — and it
   // is what the packet freezes as `recipient`, so the clinician's consent
   // records who they actually disclosed to (a later org rename must never
-  // rewrite a sealed packet).
+  // rewrite a sealed packet). The profile's existence is what tells the
+  // eligibility rule the organization was claimed by an employer.
   const opp = await prisma.opportunity.findUnique({
     where: { id: opportunityId },
-    include: { organization: { select: { name: true } } },
+    include: {
+      organization: {
+        select: { name: true, organizationProfile: { select: { id: true } } },
+      },
+    },
   });
   if (!opp) throw new HttpError(404, 'Opportunity not found.');
   if (opp.status !== 'ACTIVE') {
@@ -377,7 +392,9 @@ export async function applyToOpportunity(input: ApplyInput): Promise<Marketplace
   const applicantRecord: ApplicantUserRecord | null = applicant
     ? { ...applicant, personProfile: applicantProfile }
     : null;
-  const resolvedNpi = normalizeProvidedNpi(npi) ?? applicantProfile?.npi ?? null;
+  // The ONLY source of the clinician's NPI: the profile bound to the verified
+  // user. Nothing the request carried can substitute another subject.
+  const resolvedNpi = applicantProfile?.npi ?? null;
   if (!resolvedNpi) {
     throw new HttpError(409, 'Complete clinician onboarding before applying with VitalCV.');
   }
@@ -391,6 +408,31 @@ export async function applyToOpportunity(input: ApplyInput): Promise<Marketplace
   }) as ApplicationRecord | null;
   if (existing && existing.status !== 'WITHDRAWN' && existing.sealedPacketVersion !== null) {
     return hydrateApplication(existing, applicantRecord);
+  }
+
+  // Integrated apply is a server-enforced contract, not a rendering choice.
+  //
+  // The public surfaces already refuse to show "Apply with VitalCV" for a
+  // feed-copied row, but the surfaces were the only thing standing there: this
+  // service accepted any ACTIVE opportunity. A signed-in card that did not
+  // consult applicationMode, or a direct POST, would seal an immutable packet
+  // naming the ingestion placeholder organization as the recipient of the
+  // clinician's disclosure. Packets are never rewritten, so that consent
+  // receipt would misname the receiving party permanently.
+  //
+  // This sits AFTER the idempotent fast path and BEFORE evidence resolution,
+  // deliberately. A clinician who already sealed an application must keep
+  // being able to read it back even if the row is later re-stamped as a feed
+  // listing — eligibility governs sealing a NEW disclosure, and must never
+  // retroactively hide one that was properly made. Nothing about the clinician
+  // is computed for a disclosure that cannot be delivered.
+  const eligibility = evaluateIntegratedApply({
+    listingSource: opp.listingSource,
+    organizationName: opp.organization?.name,
+    hasOrganizationProfile: Boolean(opp.organization?.organizationProfile),
+  });
+  if (!eligibility.eligible) {
+    throw new HttpError(409, eligibility.message);
   }
 
   // Resolve the CURRENT evidence set outside the transaction (network I/O).
@@ -591,23 +633,6 @@ export async function listAllOrgApplications(
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function normalizeProvidedNpi(npi?: string): string | null {
-  if (!npi) {
-    return null;
-  }
-
-  const normalized = npi.trim();
-  if (!normalized) {
-    return null;
-  }
-
-  if (!NPI_RE.test(normalized)) {
-    throw new HttpError(400, 'npi must be exactly 10 digits.');
-  }
-
-  return normalized;
-}
 
 function formatFactLabel(value: string): string {
   return value

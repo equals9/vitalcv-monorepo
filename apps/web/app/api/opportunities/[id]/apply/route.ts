@@ -6,6 +6,7 @@ import {
 } from '@/lib/server/marketplace-proxy';
 import { getPilotSurfaceControl, recordPilotServerEvent } from '@/lib/server/pilot-ops';
 import { recordHiringOutcome } from '@/lib/agent/outcomes/record-outcome';
+import { withoutClientNpi } from '@/lib/server/apply-body';
 
 export const runtime = 'nodejs';
 
@@ -37,7 +38,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const { id } = await params;
-  const body = await req.text();
+  // The subject of an application is the verified session's clinician; the
+  // backend reads their NPI from the bound profile and ignores a body `npi`.
+  // The proxy drops it too, so a stale client cannot even send one through.
+  const body = withoutClientNpi(await req.text());
   try {
     const res = await fetch(`${MARKETPLACE_BACKEND}/api/opportunities/${id}/apply`, {
       method: 'POST',

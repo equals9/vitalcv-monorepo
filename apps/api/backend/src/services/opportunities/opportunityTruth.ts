@@ -1,5 +1,6 @@
 import prisma from '../../graphql/prisma_client';
 import { parseOrganizationRequirementsEnvelope } from '../employers/pilotPolicy';
+import { applicationModeFor, isFeedListingSource } from './integratedApply';
 
 type RequirementLevel = 'L1' | 'L2' | 'L3';
 type CredentialKey =
@@ -1468,7 +1469,7 @@ export function buildOpportunityTruth(input: {
 }): OpportunityTruth {
   const now = input.now ?? new Date();
   const opportunity = input.opportunity;
-  const isFeedListing = opportunity.listingSource === 'public_feed';
+  const isFeedListing = isFeedListingSource(opportunity.listingSource);
   // A feed row is sourced from the feed, never from a profile attached to the
   // placeholder organization. Keeping that boundary here prevents a later
   // profile merge from silently relabelling pay, benefits, start timing, or
@@ -1616,7 +1617,15 @@ export function buildOpportunityTruth(input: {
             ? 'The last source observation is stale; confirm the role before acting.'
             : 'The source was observed recently; the employer can still change or close the role.',
     },
-    applicationMode: isFeedListing ? 'external' : 'vitalcv',
+    // The same rule the apply service enforces. Presentation and enforcement
+    // read one predicate so a surface can never advertise an apply path the
+    // server refuses — a feed row, an unclaimed organization, or an
+    // unrecognised listing source all render as external.
+    applicationMode: applicationModeFor({
+      listingSource: opportunity.listingSource,
+      organizationName: opportunity.organization.name,
+      hasOrganizationProfile: Boolean(opportunity.organization.organizationProfile),
+    }),
     compensationProvenance: {
       state: compensationMethod === 'not_supplied' ? 'not_supplied' : 'supplied',
       method: compensationMethod,

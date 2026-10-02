@@ -26,6 +26,7 @@ Each ADR follows the template in [0000-template.md](./0000-template.md).
 | [0004](./0004-healthstart-controls.md) | HealthStart NIST/HIPAA Control Mapping | Accepted |
 | [0005](./0005-audit-ledger-taxonomy.md) | Audit Ledger Event Taxonomy | Accepted |
 | [0006](./0006-graph-backlinks-authz-consent.md) | Public Bidirectional-Relationships Endpoint — Authz & Consent | Proposed |
+| [0008](./0008-requirement-policy-and-integrated-apply-eligibility.md) | Requirement Policy Is Not a Precondition for Integrated Apply | Proposed |
 
 ## Contributing
 

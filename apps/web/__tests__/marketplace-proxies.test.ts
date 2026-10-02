@@ -93,6 +93,29 @@ describe('marketplace proxies', () => {
     await expect(response.json()).resolves.toEqual({ id: 'app_1', status: 'PENDING' });
   });
 
+  it('forwards the apply body without any client-asserted NPI — the subject comes from the session', async () => {
+    authMock.mockResolvedValue({
+      userId: 'clerk-user-1',
+      sessionClaims: { email: 'ada@example.com' },
+    });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ id: 'app_1', status: 'PENDING' }),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { POST } = await import('../app/api/opportunities/[id]/apply/route');
+    await POST(new Request('http://localhost/api/opportunities/opp_1/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ npi: '1558395522', coverNote: 'Ready to start', purpose: 'application' }),
+    }) as never, { params: Promise.resolve({ id: 'opp_1' }) });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    expect(JSON.parse(init.body)).toEqual({ coverNote: 'Ready to start', purpose: 'application' });
+    expect(init.body).not.toContain('1558395522');
+  });
+
   it('rejects unauthenticated employer application list requests', async () => {
     authMock.mockResolvedValue({ userId: null });
 
