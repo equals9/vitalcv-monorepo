@@ -16,6 +16,7 @@ import prisma from '../../graphql/prisma_client';
 import { fetchNpiFromCMS, normalizeProvider } from '../../modules/identity';
 import type { NormalizedProvider } from '../../modules/identity';
 import { AVAILABILITY_PLACEHOLDER_PREFIX } from '../matcha/availabilityRegistry';
+import { applyConfiguredPlatformAdminGrant } from '../platform/platformAdminGrant';
 import { log } from '../../obs/logger';
 import { sha256ForPayload } from '../../utils/deterministic';
 import { HttpError } from '../../utils/httpError';
@@ -159,7 +160,10 @@ export async function ensureWorkspaceUser(
   });
 
   if (existing) {
-    return existing;
+    // W0-14: a listed id whose row already exists is promoted here if the boot
+    // sweep missed it (e.g. the list changed and the service restarted before
+    // this row resolved). One Set lookup for everyone else.
+    return applyConfiguredPlatformAdminGrant(existing);
   }
 
   const normalizedEmail = normalizeOptionalString(email);
@@ -188,16 +192,20 @@ export async function ensureWorkspaceUser(
     if (!isReconcilablePlaceholderId(byEmail.clerkUserId)) {
       throw new HttpError(409, 'Email is already associated with another account.');
     }
-    return prisma.user.update({
+    const reconciled = await prisma.user.update({
       where: { id: byEmail.id },
       data: {
         clerkUserId,
         status: UserStatus.ACTIVE,
       },
     });
+    return applyConfiguredPlatformAdminGrant(reconciled);
   }
 
-  return prisma.user.create({
+  // W0-14: a listed id with no row at boot is promoted the moment its row is
+  // created. The row is still created as CLINICIAN by the normal path; the
+  // grant is a second, configuration-driven write, never a different default.
+  const created = await prisma.user.create({
     data: {
       clerkUserId,
       email: normalizedEmail,
@@ -205,6 +213,7 @@ export async function ensureWorkspaceUser(
       status: UserStatus.ACTIVE,
     },
   });
+  return applyConfiguredPlatformAdminGrant(created);
 }
 
 export async function getWorkspacesForUser(

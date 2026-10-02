@@ -193,6 +193,7 @@ async function bootstrapApp() {
   const { runMonitoringCycle } = await import('../jobs/monitoringJob');
   const { isGeospatialPipelineEnabled, runGeospatialPipelineCycle } = await import('../jobs/geospatialJob');
   const { startQaAutomationRuntime } = await import('./qa/qaRuntime');
+  const { grantConfiguredPlatformAdmins } = await import('./services/platform/platformAdminGrant');
   const Sentry = await import('@sentry/node');
   const { scrubEvent, resolveSentryRelease } = await import('@vitalcv/shared/observability');
   const cronMod = await import('node-cron');
@@ -314,6 +315,17 @@ async function bootstrapApp() {
       baseUrl: `http://127.0.0.1:${PORT}`,
     });
     requestIntelligenceAutoWarm('startup');
+
+    // W0-14: platform admin role granted by configuration. Idempotent sweep
+    // over PLATFORM_ADMIN_CLERK_IDS; promotion only. Fire-and-forget like the
+    // seed hooks so a datastore hiccup never blocks readiness — a listed id
+    // that is missed here is promoted on its next row resolution anyway.
+    void grantConfiguredPlatformAdmins().catch((error) => {
+      log('error', 'platform_admin_grant_failed', {
+        event: 'platform_admin_grant_failed',
+        error: error instanceof Error ? error.message : 'unknown',
+      });
+    });
 
     // Wave 2D: Schedule monitoring cycle every 24 hours (midnight UTC)
     if (!config.SYSTEM_FROZEN) {

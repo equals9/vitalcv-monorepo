@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { requirePlatformAdminPage } from '@/lib/auth/platformAdmin';
 
 import { buildDemoResetFoundationPlan } from '@/lib/demo/demoResetFoundation';
 
@@ -14,14 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminDemoResetPage() {
-  const session = await auth();
-  if (!session.userId) {
-    redirect('/sign-in?redirect_url=/admin/demo-reset');
-  }
-  const role = (session.sessionClaims as { vitalcv?: { role?: string } } | null)?.vitalcv?.role;
-  if (role !== 'ADMIN') {
-    redirect('/');
-  }
+  // W0-07: admitted on the DATABASE role, never the session-token claim.
+  await requirePlatformAdminPage('/admin/demo-reset');
 
   const plan = buildDemoResetFoundationPlan();
 

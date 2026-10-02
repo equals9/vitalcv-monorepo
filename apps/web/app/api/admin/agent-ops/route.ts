@@ -3,19 +3,16 @@
  * Powers /admin/agent-ops and any external monitor. Read-only.
  */
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { platformAdminRouteDenial } from '@/lib/auth/platformAdmin';
 import { buildAgentOpsReport } from '@/lib/agent/ops/agent-ops-report';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const session = await auth();
-  if (!session.userId) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
-  const role = (session.sessionClaims as { vitalcv?: { role?: string } } | null)?.vitalcv?.role;
-  if (role !== 'ADMIN') {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  // W0-07: admitted on the DATABASE role, never the session-token claim.
+  const denied = await platformAdminRouteDenial();
+  if (denied) {
+    return denied;
   }
 
   const report = await buildAgentOpsReport();

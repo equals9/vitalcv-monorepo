@@ -199,6 +199,21 @@ const envSchema = z.object({
         .filter((s) => s.length > 0),
     ),
   ),
+  // Platform administrators granted by configuration, never by hand (W0-14).
+  // Comma-separated Clerk user ids — identifiers, not secrets. Read ONCE here
+  // at boot; `services/platform/platformAdminGrant.ts` promotes every listed
+  // id that has a `User` row to role ADMIN + status ACTIVE at startup and when
+  // its row is first created. Promotion only: removing an id never demotes.
+  // The list is never read from a request (header, body, or query).
+  PLATFORM_ADMIN_CLERK_IDS: z.preprocess(
+    (raw) => (raw === undefined ? '' : String(raw)),
+    z.string().transform((raw) =>
+      raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+    ),
+  ),
 });
 
 export type Env = z.infer<typeof envSchema>;

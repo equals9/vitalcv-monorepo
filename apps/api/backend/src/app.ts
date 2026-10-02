@@ -1799,6 +1799,12 @@ function registerHealthRoutes(app: Express): void {
       // pins `nodejs_22` while its own comment claims ">= 22.12" — publishing
       // the real value is how that claim stops being unfalsifiable.
       node_version: process.version,
+      // W0-09: exactly one identity fact, as a boolean. True only when the
+      // verified-identity middleware is in its blocking mode; false for every
+      // other mode. No mode names and no other environment facts — this is a
+      // public endpoint on a public repo, and a boolean is the smallest thing
+      // that lets the deploy loop confirm the flip without a probe.
+      identityEnforced: env().CLERK_JWT_VERIFICATION === 'enforce',
     });
   });
 
