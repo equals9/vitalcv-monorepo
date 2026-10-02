@@ -135,9 +135,11 @@ guard for reasons unrelated to freshness.
 
 **3. Publishing provider pages to crawlers is a consent decision, not a copy fix.**
 Gated on `DIRECTORY_SITEMAP`. **Founder ruled GO 2026-09-30.** The lever is unchanged:
-`DIRECTORY_SITEMAP=enabled` on the Railway web service, read per request (no rebuild);
-unset it to withdraw. Check production `robots.txt` before assuming it is live. Removal
-requests arrive at `privacy@vitalcv.com` (printed on every directory page) and run through
+`DIRECTORY_SITEMAP=enabled` on the Railway web service, read by the running container
+(nothing is baked at build), live once the service restarts with it. Unsetting it
+withdraws the advertisement; the `/directory/[npi]` pages themselves stay indexable.
+Check production `robots.txt` before assuming it is live. Removal requests arrive at
+`privacy@vitalcv.com` (printed on every directory record page) and run through
 `EXCLUDED_NPIS`, which drops the NPI from the sitemap **and** noindexes that record's
 page — honouring half would tell someone they were removed while their page stayed
 indexed.
