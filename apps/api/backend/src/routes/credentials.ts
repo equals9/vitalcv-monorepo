@@ -1017,7 +1017,12 @@ export function registerCredentialRoutes(app: Express): void {
         ? (body.corrections as Record<string, string>)
         : {};
 
-      const result = await confirmCredential(id, corrections);
+      // Owner-scoped: null covers not-yours, unknown and malformed ids alike.
+      const result = await confirmCredential(id, corrections, clerkUserId);
+      if (!result) {
+        res.status(404).json({ error: `Credential ${id} not found` });
+        return;
+      }
       res.status(200).json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
