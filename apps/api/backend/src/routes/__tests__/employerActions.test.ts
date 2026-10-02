@@ -40,6 +40,14 @@ jest.mock('../../services/seal/sealEventCapture', () => ({
   captureStartOutcome: jest.fn().mockResolvedValue(undefined),
 }));
 
+// W0-15 — the always-on organisation-membership gate. These route suites
+// exercise the per-route contracts, so they run as a member; the gate's own
+// outcome (403 + no write) is proven over a real database in
+// employerReviewMembership.db.test.ts.
+jest.mock('../../services/authz/employerReviewMembership', () => ({
+  resolveEmployerReviewMembership: jest.fn(),
+}));
+
 // The canonical application-bound start command (ADR 0007 succession). Door B
 // adapts onto it; these route tests assert the adapter contract (auth chain,
 // acceptance selection, legacy response mapping) while the command's own
@@ -90,6 +98,7 @@ import { buildEmployerEvidencePacket } from '../../services/entity/employerPacke
 import { createEmployerEvidencePacketZipStream } from '../../services/entity/employerPacketExport';
 import { issueTrustContainerManifestEntry } from '../../services/trust/container/trustContainerIssuance';
 import { registerEmployerActionRoutes } from '../employerActions';
+import { resolveEmployerReviewMembership } from '../../services/authz/employerReviewMembership';
 import { confirmStartByAcceptance } from '../../services/activation/applicationStartCommandService';
 import { sha256ForPayload } from '../../utils/deterministic';
 import { HttpError } from '../../utils/httpError';
@@ -123,6 +132,8 @@ const prismaMock = prisma as unknown as {
   $transaction: jest.Mock;
 };
 
+const resolveEmployerReviewMembershipMock =
+  resolveEmployerReviewMembership as jest.MockedFunction<typeof resolveEmployerReviewMembership>;
 const confirmStartByAcceptanceMock =
   confirmStartByAcceptance as jest.MockedFunction<typeof confirmStartByAcceptance>;
 const captureAdvisoryEventMock =
@@ -465,6 +476,13 @@ describe('employer action routes', () => {
     // allowed in both shadow and enforced modes, so these route tests stay
     // focused on the per-route contracts.
     prismaMock.user.findUnique.mockResolvedValue({ role: 'VERIFIER', status: 'ACTIVE' });
+    resolveEmployerReviewMembershipMock.mockReset();
+    resolveEmployerReviewMembershipMock.mockResolvedValue({
+      organizationId: 'org-uuid-1',
+      organizationProfileId: 'org-profile-uuid-1',
+      membershipId: 'membership-uuid-1',
+      role: 'ADMIN',
+    });
     prismaMock.employerAcceptance.findFirst.mockResolvedValue(null);
     prismaMock.applicationPacket.findFirst.mockResolvedValue(null);
     prismaMock.employerAcceptance.create.mockResolvedValue({
@@ -1971,6 +1989,43 @@ describe('employer action routes', () => {
       expect(prismaMock.startAttestation.create).not.toHaveBeenCalled();
       expect(prismaMock.auditEvent.create).not.toHaveBeenCalled();
       expect(prismaMock.outboxEvent.upsert).not.toHaveBeenCalled();
+    },
+  );
+
+  // W0-15 — the membership gate is independent of the platform-role RBAC
+  // flag. An active VERIFIER platform role with NO organisation membership is
+  // refused before any write, on every mutation.
+  const MEMBERSHIP_ENTITY = '11111111-1111-4111-8111-111111111111';
+  it.each([
+    ['accept', `/api/employer-review/${MEMBERSHIP_ENTITY}/accept`, {}],
+    ['request-refresh', `/api/employer-review/${MEMBERSHIP_ENTITY}/request-refresh`, {}],
+    ['route-to-review', `/api/employer-review/${MEMBERSHIP_ENTITY}/route-to-review`, {}],
+    ['share-packet', `/api/employer-review/${MEMBERSHIP_ENTITY}/share-packet`, {}],
+    ['confirm-start', `/api/employer-review/${MEMBERSHIP_ENTITY}/confirm-start`, { startedAt: '2026-03-25T18:00:00.000Z', role: 'RN', facility: 'Providence' }],
+  ] as const)(
+    '%s refuses a verified caller with no organisation membership (403, audited, nothing written)',
+    async (action, path, body) => {
+      resolveEmployerReviewMembershipMock.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue({ role: 'VERIFIER', status: 'ACTIVE' });
+
+      const response = await request(buildApp())
+        .post(path)
+        .set('x-test-verified-user', 'employer-1')
+        .send(body)
+        .expect(403);
+
+      expect(response.body.error).toContain('organization membership');
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+      expect(prismaMock.employerAcceptance.create).not.toHaveBeenCalled();
+      expect(prismaMock.startAttestation.create).not.toHaveBeenCalled();
+      expect(prismaMock.outboxEvent.upsert).not.toHaveBeenCalled();
+
+      // The refusal itself is recorded as a denied mutation, naming the gate.
+      expect(prismaMock.auditEvent.create).toHaveBeenCalledTimes(1);
+      const denied = prismaMock.auditEvent.create.mock.calls[0][0].data;
+      expect(denied.type).toBe('EMPLOYER_REVIEW_MUTATION_DENIED');
+      expect(denied.metadata.denialReason).toBe('organization_membership_required');
+      expect(denied.metadata.runtimeTrust?.denialReason).toBe('organization_membership_required');
     },
   );
 
