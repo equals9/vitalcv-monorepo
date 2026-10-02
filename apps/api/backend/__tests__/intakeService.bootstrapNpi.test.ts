@@ -52,7 +52,10 @@ jest.mock('../src/obs/logger', () => ({
 
 // ── SUT import (after mocks) ──────────────────────────────────────────────
 
-import { bootstrapNpiIntake } from '../src/services/intake/intakeService';
+import {
+  bootstrapNpiIntake,
+  NPI_REGISTRY_UNAVAILABLE_MESSAGE,
+} from '../src/services/intake/intakeService';
 
 // ── Fixtures ──────────────────────────────────────────────────────────────
 
@@ -183,18 +186,17 @@ describe('intakeService.bootstrapNpiIntake — Gap 1 regression', () => {
     expect(result.inferredPersona).toBe('CLINICIAN');
   });
 
-  it('falls back to TYPE_1 with undefined hydration when NPPES throws', async () => {
-    // Network / upstream failure — detectNpiType must swallow and default,
-    // because bootstrap is still useful as a manual-entry shell.
+  it('refuses to bind and writes nothing when NPPES cannot be consulted', async () => {
+    // Network / upstream failure is a system state, not a finding about the NPI.
+    // The bind must fail closed with a 502 and never default the type to TYPE_1,
+    // or an NPI the registry never confirmed could be bound.
     mockFetchNpiFromCMS.mockRejectedValue(new Error('NPPES unreachable'));
 
-    const result = await bootstrapNpiIntake('user:macie', VALID_NPI);
-
-    expect(result.npiType).toBe('TYPE_1');
-    expect(result.firstName).toBeUndefined();
-    expect(result.lastName).toBeUndefined();
-    expect(result.specialty).toBeUndefined();
-    expect(result.stateOfPractice).toBeUndefined();
+    await expect(bootstrapNpiIntake('user:macie', VALID_NPI)).rejects.toMatchObject({
+      status: 502,
+      message: NPI_REGISTRY_UNAVAILABLE_MESSAGE,
+    });
+    expect(prismaMock.personProfile.upsert).not.toHaveBeenCalled();
     expect(mockNormalizeProvider).not.toHaveBeenCalled();
   });
 });
