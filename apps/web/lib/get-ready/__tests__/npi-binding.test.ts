@@ -98,5 +98,26 @@ describe('describeBootstrapError', () => {
 
   it('never blames the clinician for system failures', () => {
     expect(describeBootstrapError(500, null)).toContain('not a finding about your NPI');
+    expect(describeBootstrapError(502, {
+      error: { code: 'SOURCE_UNAVAILABLE', message: 'The NPPES registry could not be consulted, so the NPI was not connected.' },
+    })).toContain('not a finding about your NPI');
+  });
+
+  it('reads the 409 conflict by status, not by the legacy wording', () => {
+    const text = describeBootstrapError(409, {
+      error: {
+        code: 'CONFLICT',
+        message: 'This NPI is already connected to another VitalCV account. If this is your NPI, contact support — conflicting claims are routed to review.',
+      },
+    });
+    expect(text).toContain('different VitalCV account');
+    expect(text).not.toContain('system state');
+  });
+
+  it('surfaces the registry miss sentence for a 422 the backend reports as not enumerated', () => {
+    const text = describeBootstrapError(422, {
+      error: { code: 'UNPROCESSABLE_ENTITY', message: 'NPI not found in the registry.' },
+    });
+    expect(text).toBe('NPI not found in the registry.');
   });
 });
