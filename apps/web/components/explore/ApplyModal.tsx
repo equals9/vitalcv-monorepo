@@ -295,8 +295,10 @@ export default function ApplyModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        // Deliberately no `npi` in the body. The server names the clinician
+        // from the verified session and reads the NPI from their profile; a
+        // client-supplied NPI is never the subject of an application.
         body: JSON.stringify({
-          npi: clinicianNpi,
           coverNote: coverNote.trim() || undefined,
           selectedSections,
           purpose: 'application',

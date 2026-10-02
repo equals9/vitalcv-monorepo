@@ -29,6 +29,8 @@ const OPPORTUNITY = {
   specialty: 'Cardiology',
   payRange: '$310k–$360k',
   remote: false,
+  // Emitted by the backend's live mapper from the integrated-apply rule.
+  applicationMode: 'vitalcv' as const,
 };
 
 const CLEAR: IntelligenceExplanation = {
@@ -100,6 +102,42 @@ describe('opportunity card — gated Apply with VitalCV (Wave K)', () => {
     const markup = renderCard({ npi: null });
     expect(markup).not.toContain('Apply with VitalCV');
     expect(markup).not.toContain('gating requirement');
+  });
+});
+
+describe('opportunity card — integrated apply boundary', () => {
+  it('points a feed-carried role at the employer’s own posting instead of an apply control', () => {
+    const markup = renderCard({
+      opportunity: { ...OPPORTUNITY, applicationMode: 'external', sourceUrl: 'https://employer.example/careers/42' },
+    });
+    expect(markup).not.toContain('Apply with VitalCV');
+    expect(markup).toContain('View original listing');
+    expect(markup).toContain('href="https://employer.example/careers/42"');
+    expect(markup).toContain('rel="noopener noreferrer nofollow"');
+  });
+
+  it('renders no dead link when the feed recorded no source page', () => {
+    const markup = renderCard({ opportunity: { ...OPPORTUNITY, applicationMode: 'external', sourceUrl: null } });
+    expect(markup).not.toContain('Apply with VitalCV');
+    expect(markup).not.toContain('View original listing');
+    expect(markup).toContain('employer’s own posting');
+  });
+
+  it('says external before it says gated — a feed row with hard blockers has no VitalCV apply path to gate', () => {
+    const markup = renderCard({
+      opportunity: { ...OPPORTUNITY, applicationMode: 'external' },
+      explanation: HARD_GATED,
+    });
+    expect(markup).not.toContain('gating requirement');
+    expect(markup).not.toContain('Apply with VitalCV');
+  });
+
+  it('offers no apply control when the server did not mark the listing — the card never infers the mode', () => {
+    const { applicationMode: _omit, ...unmarked } = OPPORTUNITY;
+    void _omit;
+    const markup = renderCard({ opportunity: unmarked });
+    expect(markup).not.toContain('Apply with VitalCV');
+    expect(markup).toContain('not available for this listing');
   });
 });
 

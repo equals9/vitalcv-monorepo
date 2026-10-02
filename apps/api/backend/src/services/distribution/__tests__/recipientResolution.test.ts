@@ -35,7 +35,14 @@ const listing = (over: Record<string, unknown> = {}) => ({
   id: OPP,
   status: 'ACTIVE',
   organizationId: ORG,
-  organization: { id: ORG, name: 'East Bay Access Clinics' },
+  // An employer-posted row whose organization went through setup: the shape
+  // the integrated-apply rule accepts. Each refusal case below removes one leg.
+  listingSource: 'employer_posted',
+  organization: {
+    id: ORG,
+    name: 'East Bay Access Clinics',
+    organizationProfile: { id: '2b1a4e2e-4a7f-4f0e-9d7c-2e0d9b5a1c33' },
+  },
   ...over,
 });
 
@@ -48,6 +55,36 @@ async function expectStatus(promise: Promise<unknown>, status: number, match: Re
   await expect(promise).rejects.toMatchObject({ status });
   await expect(promise).rejects.toThrow(match);
 }
+
+describe('the recipient must be able to receive a share — the integrated-apply rule', () => {
+  it('refuses a feed-carried listing: its organization is an ingestion placeholder', async () => {
+    prisma.opportunity.findUnique.mockResolvedValue(listing({ listingSource: 'public_feed' }));
+
+    await expectStatus(
+      resolveRecipientForOpportunity(OPP),
+      409,
+      /employer’s own job posting/,
+    );
+  });
+
+  it('refuses a listing whose organization was never set up (no profile)', async () => {
+    prisma.opportunity.findUnique.mockResolvedValue(
+      listing({ organization: { id: ORG, name: 'East Bay Access Clinics', organizationProfile: null } }),
+    );
+
+    await expectStatus(
+      resolveRecipientForOpportunity(OPP),
+      409,
+      /has not set up applications through VitalCV/,
+    );
+  });
+
+  it('refuses a listing source this system does not write', async () => {
+    prisma.opportunity.findUnique.mockResolvedValue(listing({ listingSource: 'partner_sync' }));
+
+    await expectStatus(resolveRecipientForOpportunity(OPP), 409, /not recognised/);
+  });
+});
 
 describe('C3 — the recipient comes from the listing, not the client', () => {
   it('resolves the organization that actually owns the opportunity', async () => {
@@ -131,14 +168,20 @@ describe('C3 — the recipient comes from the listing, not the client', () => {
       .toBe('Locums coverage');
   });
 
-  it('names the organization honestly when the record has no name', async () => {
+  it('refuses to synthesise a recipient name when the record has none', async () => {
+    // A share is addressed to a named party. "Unnamed organization" was a
+    // placeholder the resolver used to invent; a packet that names it would
+    // record a disclosure to nobody in particular.
     prisma.opportunity.findUnique.mockResolvedValue(
-      listing({ organization: { id: ORG, name: null } }),
+      listing({
+        organization: { id: ORG, name: null, organizationProfile: { id: '2b1a4e2e-4a7f-4f0e-9d7c-2e0d9b5a1c33' } },
+      }),
     );
 
-    const recipient = await resolveRecipientForOpportunity(OPP);
-    expect(recipient.organizationName).toBe('Unnamed organization');
-    // The id is the thing that routes the share; it must be the real one.
-    expect(recipient.organizationId).toBe(ORG);
+    await expectStatus(
+      resolveRecipientForOpportunity(OPP),
+      409,
+      /not currently accepting applications through VitalCV/,
+    );
   });
 });

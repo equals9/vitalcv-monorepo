@@ -38,26 +38,23 @@ import {
 import { readHireToStartCase } from '../services/opportunities/hireToStartReadService';
 import { HttpError } from '../utils/httpError';
 import { requireOrgRole, VERIFIER_MUTATION_ROLES } from '../middleware/orgRoleGuard';
-import type { VerifiedAuth } from '../middleware/verifiedIdentity';
+import {
+  requireNpiAuthorization,
+  requireVerifiedClerkUserId,
+} from '../middleware/verifiedActor';
 
 function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) {
   return (req: Request, res: Response, next: NextFunction) => fn(req, res, next).catch(next);
 }
 
-function requireClerkUserId(req: Request): string {
-  const id = (req.headers['x-clerk-user-id'] as string | undefined)?.trim();
-  if (!id) throw new HttpError(401, 'Missing x-clerk-user-id header.');
-  return id;
-}
-
-function requireVerifiedClerkUserId(req: Request): string {
-  const verifiedUserId = (req as Request & { verifiedAuth?: VerifiedAuth })
-    .verifiedAuth?.verifiedUserId?.trim();
-  if (!verifiedUserId) {
-    throw new HttpError(401, 'Verified Clerk session required.');
-  }
-  return verifiedUserId;
-}
+/*
+ * Identity on every route in this file comes from the verified Clerk session
+ * (`requireVerifiedClerkUserId`, middleware/verifiedActor.ts). No handler
+ * here reads `x-clerk-user-id`: the header is a caller assertion, and this
+ * file left the header-trust baseline when the last raw read was removed.
+ * Do not add one back — the ratchet (scripts/check-header-trust-ratchet.ts)
+ * fails the build if a file re-enters.
+ */
 
 // Opportunity.id and Application.id are Postgres uuid columns — querying them
 // with a non-uuid string makes Prisma throw (a 500) instead of returning null.
@@ -76,10 +73,15 @@ export function registerApplicationRoutes(app: Express): void {
   app.post(
     '/api/opportunities/:id/apply',
     asyncHandler(async (req, res) => {
-      const clerkUserId = requireClerkUserId(req);
+      // An application seals a disclosure of the clinician's evidence to an
+      // employer. Who is disclosing is decided by the verified session — a
+      // forged identity header, or a header with no token behind it, is 401.
+      const clerkUserId = requireVerifiedClerkUserId(req);
       const opportunityId = requireUuidParam(req.params.id, 'Opportunity');
-      const { npi, coverNote, selectedSections, purpose } = req.body as {
-        npi?: string;
+      // Deliberately NOT read from the body: `npi`. The subject of the
+      // disclosure is the clinician the session resolves to, and their NPI is
+      // the one bound to their profile. A body NPI, if sent, is ignored.
+      const { coverNote, selectedSections, purpose } = req.body as {
         coverNote?: string;
         selectedSections?: string[];
         purpose?: string;
@@ -91,10 +93,23 @@ export function registerApplicationRoutes(app: Express): void {
       if (!applicant) throw new HttpError(404, 'User not found. Complete onboarding first.');
       await requireIdentityTier(applicant.id, 'work_email_confirmed');
 
+      // The NPI the packet will name is the profile's, and the session must
+      // hold a VERIFIED (or delegated) binding to it before anything seals. A
+      // pending self-asserted claim is a request, not authority — it gets the
+      // ownership 403 and writes nothing.
+      const profile = await prisma.personProfile.findUnique({
+        where: { userId: applicant.id },
+        select: { npi: true },
+      });
+      const npi = profile?.npi?.trim();
+      if (!npi) {
+        throw new HttpError(409, 'Complete clinician onboarding before applying with VitalCV.');
+      }
+      await requireNpiAuthorization(clerkUserId, npi, req);
+
       const application = await applyToOpportunity({
         opportunityId,
         clerkUserId,
-        npi,
         coverNote,
         selectedSections,
         purpose,
@@ -173,7 +188,7 @@ export function registerApplicationRoutes(app: Express): void {
   app.get(
     '/api/employer/applications',
     asyncHandler(async (req, res) => {
-      const clerkUserId = requireClerkUserId(req);
+      const clerkUserId = requireVerifiedClerkUserId(req);
       const applications = await listAllOrgApplications(clerkUserId);
       res.json(applications);
     }),
@@ -183,7 +198,7 @@ export function registerApplicationRoutes(app: Express): void {
   app.get(
     '/api/employer/applications/dashboard',
     asyncHandler(async (req, res) => {
-      const clerkUserId = requireClerkUserId(req);
+      const clerkUserId = requireVerifiedClerkUserId(req);
       const dashboard = await listEmployerWorkflowDashboard(clerkUserId);
       res.json(dashboard);
     }),
@@ -193,7 +208,7 @@ export function registerApplicationRoutes(app: Express): void {
   app.get(
     '/api/opportunities/:id/applications',
     asyncHandler(async (req, res) => {
-      const clerkUserId = requireClerkUserId(req);
+      const clerkUserId = requireVerifiedClerkUserId(req);
       const opportunityId = requireUuidParam(req.params.id, 'Opportunity');
       const applications = await listApplicationsForOpportunity(opportunityId, clerkUserId);
       res.json(applications);
@@ -254,7 +269,7 @@ export function registerApplicationRoutes(app: Express): void {
   app.get(
     '/api/applications/:appId/workflow',
     asyncHandler(async (req, res) => {
-      const clerkUserId = requireClerkUserId(req);
+      const clerkUserId = requireVerifiedClerkUserId(req);
       const appId = requireUuidParam(req.params.appId, 'Application');
       const workflowApplication = await getEmployerWorkflowApplication(appId, clerkUserId);
       res.json(workflowApplication);
