@@ -1,5 +1,7 @@
 /**
- * `/holder` evidence upload panel switch.
+ * Evidence upload panel switch — every page that mounts the panel reads it:
+ * `/holder` (app/holder/page.tsx) and `/holder/blockers/[blockerId]` (which
+ * passes it down to the client ClinicianBlockerDetailSurface as a prop).
  *
  * The upload lane behind the panel (parse → ingest → confirm) is being made
  * honest in stages. The API now fails closed instead of answering every

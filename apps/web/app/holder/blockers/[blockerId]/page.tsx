@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ClinicianBlockerDetailSurface from '@/components/mobile/ClinicianBlockerDetailSurface';
+import { evidenceUploadEnabled } from '@/lib/holder/evidenceUploadFlag';
 
 export const metadata: Metadata = {
   title: 'Blocker',
@@ -18,5 +19,12 @@ export default async function HolderBlockerDetailPage({
   params: Promise<{ blockerId: string }>;
 }) {
   const { blockerId } = await params;
-  return <ClinicianBlockerDetailSurface blockerId={decodeURIComponent(blockerId)} />;
+  // The surface is a client component; the upload switch is a runtime server
+  // variable, so the decision is made here, per request, and passed down.
+  return (
+    <ClinicianBlockerDetailSurface
+      blockerId={decodeURIComponent(blockerId)}
+      evidenceUploadEnabled={evidenceUploadEnabled()}
+    />
+  );
 }

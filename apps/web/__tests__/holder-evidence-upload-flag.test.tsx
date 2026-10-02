@@ -14,6 +14,8 @@
  * is rendered here with `renderToStaticMarkup`. Children that reach the
  * network or the database are stubbed; the flag read is real.
  */
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative, sep } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -86,5 +88,41 @@ describe('/holder evidence upload panel is flag-gated', () => {
     expect(html.split(PANEL).length - 1).toBe(1);
     expect(html).toContain(SECTION);
     expect(html).toContain(LINK);
+  });
+});
+
+// ── Closure: every mount of the panel is a gated one ─────────────────────────
+//
+// The panel is gated per page, so a new mount would ship ungated unless
+// someone remembered. This names the mounts that are known to be gated and
+// render-tested (this file and blocker-detail-surface.test.tsx); a new one
+// fails here until it is gated and added. `_archive` is not routed.
+
+const WEB_ROOT = join(__dirname, '..');
+const GATED_MOUNTS = [
+  'app/holder/page.tsx',
+  'components/mobile/ClinicianBlockerDetailSurface.tsx',
+];
+
+function sourceFilesUnder(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    if (entry === 'node_modules' || entry === '_archive') continue;
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) out.push(...sourceFilesUnder(full));
+    else if (/\.tsx?$/.test(entry)) out.push(full);
+  }
+  return out;
+}
+
+describe('EvidenceUploadPanel mounts', () => {
+  it('every file that mounts the panel is a known, gated mount', () => {
+    const mounts = ['app', 'components', 'lib']
+      .flatMap((d) => sourceFilesUnder(join(WEB_ROOT, d)))
+      .map((f) => relative(WEB_ROOT, f).split(sep).join('/'))
+      .filter((f) => f !== 'components/mobile/EvidenceUploadPanel.tsx')
+      .filter((f) => /<EvidenceUploadPanel\b/.test(readFileSync(join(WEB_ROOT, f), 'utf8')))
+      .sort();
+    expect(mounts).toEqual([...GATED_MOUNTS].sort());
   });
 });

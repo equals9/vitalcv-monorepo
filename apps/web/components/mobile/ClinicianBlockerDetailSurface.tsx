@@ -49,8 +49,16 @@ function profileCompletionMode(label: string): 'resume' | 'links' | 'work-auth' 
 
 export default function ClinicianBlockerDetailSurface({
   blockerId,
+  evidenceUploadEnabled = false,
 }: {
   blockerId: string;
+  /**
+   * Server-side decision from `lib/holder/evidenceUploadFlag.ts`, passed down
+   * by the page because this is a client component and the flag is a runtime
+   * server variable. Defaults to hidden so any mount that forgets to pass it
+   * fails closed.
+   */
+  evidenceUploadEnabled?: boolean;
 }) {
   const {
     data,
@@ -95,7 +103,7 @@ export default function ClinicianBlockerDetailSurface({
   }
 
   const completionMode = profileCompletionMode(blocker.label);
-  const showUploadPanel = !completionMode
+  const isUploadBlocker = !completionMode
     && (
       blocker.type === 'missing_credential'
       || (
@@ -103,6 +111,11 @@ export default function ClinicianBlockerDetailSurface({
         && blocker.nextActionLabel.toLowerCase().includes('upload')
       )
     );
+  const showUploadPanel = isUploadBlocker && evidenceUploadEnabled;
+  // With upload switched off, an upload blocker must not fall through to the
+  // generic "Do this now" action: its next-action link points back at this
+  // page, so it would be a button that promises an upload and goes nowhere.
+  const showUploadUnavailable = isUploadBlocker && !evidenceUploadEnabled;
   const relatedApplicationHref = relatedApplication
     ? `/holder/applications/${encodeURIComponent(relatedApplication.id)}`
     : null;
@@ -182,6 +195,23 @@ export default function ClinicianBlockerDetailSurface({
           returnToHref={relatedApplicationHref ?? '/holder/readiness'}
           returnToLabel={relatedApplicationHref ? 'Return to application' : 'Return to readiness'}
         />
+      ) : showUploadUnavailable ? (
+        <section className="rounded-[32px] border border-white/10 bg-white/[0.04] p-5">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Document upload</p>
+          <p className="mt-3 text-lg font-semibold text-white">Adding documents is not available yet</p>
+          <p className="mt-2 text-sm leading-6 text-white/65">
+            This item stays open until the document can be added. Nothing on your profile has changed.
+          </p>
+          <div className="mt-5 flex flex-col gap-3">
+            <Link
+              href={relatedApplicationHref ?? '/holder/readiness'}
+              className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-white/90"
+            >
+              {relatedApplicationHref ? 'Return to application' : 'Return to readiness'}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
       ) : (
         <section className="rounded-[32px] border border-white/10 bg-white/[0.04] p-5">
           <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">Do this now</p>
