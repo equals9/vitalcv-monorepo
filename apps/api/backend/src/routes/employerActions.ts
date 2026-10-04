@@ -6,7 +6,10 @@
  * share-packet, confirm-start) and the org-scoped queue read require a
  * VERIFIED Clerk session (`requireVerifiedClerkUserId` — the bearer-verified
  * identity set by verifiedIdentityMiddleware; the forgeable x-clerk-user-id
- * header alone is rejected in every CLERK_JWT_VERIFICATION mode). The
+ * header alone is rejected in every CLERK_JWT_VERIFICATION mode). Every
+ * mutation additionally requires an ACTIVE organisation membership with a
+ * reviewer-grade role (`resolveEmployerReviewMembership`) — this gate is not
+ * mode-gated and refuses with 403 before any row is written. The
  * remaining reads (status, packet) still accept the legacy header; the
  * public reads (acceptance-history, share-token, refresh-requests) take none.
  *
@@ -34,6 +37,7 @@ import { HttpError } from '../utils/httpError';
 import { sha256ForPayload } from '../utils/deterministic';
 import { env } from '../config/env';
 import { decideEmployerActionRbac } from '../services/authz/employerActionRbac';
+import { resolveEmployerReviewMembership } from '../services/authz/employerReviewMembership';
 import {
   captureEmployerDecision,
   captureStartOutcome,
@@ -204,12 +208,24 @@ async function writeDeniedEmployerReviewMutation(input: {
   });
 }
 
-// ── RBAC (Wave B) — server-side role gate on employer-review mutations ──────
-// Roles come from the User table (clerkUserId → role/status), never from
-// caller-supplied headers like x-verifier-team-role. VERIFIER_RBAC_ENFORCED
-// false = shadow mode: would-deny decisions are logged but never block, so
-// the golden path cannot break before production role coverage is verified.
-// Enforced mode writes the standard denied-mutation AuditEvent before 403.
+// ── Organisation membership (W0-15) + RBAC (Wave B) on employer-review
+// mutations ────────────────────────────────────────────────────────────────
+// Two gates, in order:
+//
+// 1. Membership — ALWAYS enforced. The caller must hold an active
+//    reviewer-grade membership in the organisation their User row is bound
+//    to (resolved from server-side rows only). Without it the mutation is
+//    refused with 403 after the standard denied-mutation AuditEvent, in every
+//    RBAC mode. A signed-in clinician has no such membership.
+//
+// 2. Platform-role RBAC — roles come from the User table (clerkUserId →
+//    role/status), never from caller-supplied headers like
+//    x-verifier-team-role. VERIFIER_RBAC_ENFORCED false = shadow mode:
+//    would-deny decisions are logged but never block. Enforced mode writes
+//    the standard denied-mutation AuditEvent before 403.
+export const EMPLOYER_REVIEW_MEMBERSHIP_REQUIRED_MESSAGE =
+  'Employer-review actions require an active organization membership with a reviewer role.';
+
 async function enforceEmployerMutationRbac(input: {
   req: Request;
   employerId: string;
@@ -217,6 +233,22 @@ async function enforceEmployerMutationRbac(input: {
   clinicianNpi: string;
   action: 'accept' | 'request-refresh' | 'route-to-review' | 'share-packet' | 'confirm-start';
 }): Promise<void> {
+  const membership = await resolveEmployerReviewMembership(input.employerId);
+  if (!membership) {
+    await writeDeniedEmployerReviewMutation({
+      req: input.req,
+      actorId: input.employerId,
+      entityId: input.entityId,
+      clinicianNpi: input.clinicianNpi,
+      denialReason: 'organization_membership_required',
+      payload: {
+        action: input.action,
+        enforcement: 'membership',
+      },
+    });
+    throw new HttpError(403, EMPLOYER_REVIEW_MEMBERSHIP_REQUIRED_MESSAGE);
+  }
+
   const user = await prisma.user.findUnique({
     where: { clerkUserId: input.employerId },
     select: { role: true, status: true },

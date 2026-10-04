@@ -71,11 +71,20 @@ jest.mock('../../services/trust/trustStateEngine', () => ({ getCachedTrustState:
 jest.mock('../../services/opportunities/opportunityService', () => ({ getOrgProfile: jest.fn() }));
 jest.mock('../../obs/logger', () => ({ log: jest.fn() }));
 
+// W0-15 — the always-on organisation-membership gate. These route suites
+// exercise the per-route contracts, so they run as a member; the gate's own
+// outcome (403 + no write) is proven over a real database in
+// employerReviewMembership.db.test.ts.
+jest.mock('../../services/authz/employerReviewMembership', () => ({
+  resolveEmployerReviewMembership: jest.fn(),
+}));
+
 import prisma from '../../graphql/prisma_client';
 import { buildPassport } from '../../services/entity/passportService';
 import { getCachedTrustState } from '../../services/trust/trustStateEngine';
 import { getOrgProfile } from '../../services/opportunities/opportunityService';
 import { registerEmployerActionRoutes } from '../employerActions';
+import { resolveEmployerReviewMembership } from '../../services/authz/employerReviewMembership';
 
 const ENTITY_A = '11111111-1111-4111-8111-111111111111';
 const ENTITY_B = '22222222-2222-4222-8222-222222222222';
@@ -93,6 +102,8 @@ const prismaMock = prisma as unknown as {
   $transaction: jest.Mock;
 };
 
+const resolveEmployerReviewMembershipMock =
+  resolveEmployerReviewMembership as jest.MockedFunction<typeof resolveEmployerReviewMembership>;
 const buildPassportMock = buildPassport as jest.Mock;
 const getCachedTrustStateMock = getCachedTrustState as jest.Mock;
 const getOrgProfileMock = getOrgProfile as jest.Mock;
@@ -141,6 +152,12 @@ function wireHappyPersistence() {
 beforeEach(() => {
   jest.clearAllMocks();
   prismaMock.user.findUnique.mockResolvedValue(null); // RBAC shadow mode: logged, never blocks
+  resolveEmployerReviewMembershipMock.mockResolvedValue({
+    organizationId: 'org-uuid-1',
+    organizationProfileId: 'org-profile-uuid-1',
+    membershipId: 'membership-uuid-1',
+    role: 'ADMIN',
+  });
   prismaMock.employerAcceptance.findFirst.mockResolvedValue(null);
   prismaMock.auditEvent.findMany.mockResolvedValue([]);
   prismaMock.vcvEntity.findUnique.mockImplementation(async (args: { where: { id: string } }) => {

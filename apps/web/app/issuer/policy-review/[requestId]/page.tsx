@@ -122,33 +122,9 @@ export default async function PolicyReviewPage({ params }: PageProps) {
     recordedBy: 'demo',
   });
 
-  // Attempt to persist the underlying ReceiptCandidate. This page is
-  // a dry-run for what each policy-review action WOULD do; nothing is
-  // submitted on render. But the candidate itself is the same one
-  // the /issuer/review surface (Phase 3a) already persists when the
-  // flag is on, so we surface the same persistence-state banner here.
-  // PolicyReviewDecision rows are NOT written by this page — those
-  // need a real POST submit handler, scheduled for Phase 3d.
-  //
-  // Strict no-crash: dynamic import + try/catch with a default
-  // outcome of transient_error/demo means any failure path renders
-  // a degraded banner rather than 500-ing the page.
-  type WriteOutcome =
-    | { status: 'persisted'; recordedBy: 'system' }
-    | { status: 'disabled'; recordedBy: 'demo' }
-    | { status: 'tamper_detected'; recordedBy: 'demo' }
-    | { status: 'transient_error'; recordedBy: 'demo' };
-  let writeOutcome: WriteOutcome = { status: 'transient_error', recordedBy: 'demo' };
-  try {
-    const mod = await import('@/lib/issuer-verification/issuerPersistenceWriter');
-    writeOutcome = await mod.writeReceiptCandidateRow({
-      candidate,
-      surface: 'review_surface',
-    });
-  } catch {
-    // already initialized to transient_error/demo above
-  }
-  const persistedRecordedBy = writeOutcome.recordedBy;
+  // Render only. This page writes no ReceiptCandidate row and no audit
+  // event: the candidate above is a demo transform of a hard-coded request,
+  // and a demo must never seed the persistence table (W0-06).
 
   // Demo dry-run: show what each action would produce, without
   // persisting anything. The applyPolicyReviewDecision call below is
@@ -183,8 +159,7 @@ export default async function PolicyReviewPage({ params }: PageProps) {
       data-proof-tier={candidate.proofTier}
       data-decision-grade={String(candidate.decisionGrade)}
       data-can-accept={String(acceptOutcome.createdPsvReceiptCandidate)}
-      data-persistence-status={writeOutcome.status}
-      data-recorded-by={persistedRecordedBy}
+      data-recorded-by={candidate.auditMetadata?.recordedBy}
     >
       {/* Hero — ambient wash + a clean, deliberate policy-desk header.
           Glass is reserved for the single decision-moment panel below. */}
@@ -206,46 +181,6 @@ export default async function PolicyReviewPage({ params }: PageProps) {
               receipt. The original issuer response remains evidence, even if the
               candidate is rejected.
             </p>
-            {writeOutcome.status === 'persisted' && (
-              <p
-                className="mt-2 inline-block rounded-[4px] border px-2.5 py-1 mz-mono text-[10px] font-medium uppercase tracking-[0.08em]"
-                style={{ background: 'var(--ok-bg)', color: 'var(--ok)', borderColor: 'var(--ok-rule)' }}
-                data-testid="persistence-banner"
-                data-banner-state="persisted"
-              >
-                Candidate row recorded (recordedBy: system)
-              </p>
-            )}
-            {writeOutcome.status === 'tamper_detected' && (
-              <p
-                className="mt-2 inline-block rounded-[4px] border px-2.5 py-1 mz-mono text-[10px] font-medium uppercase tracking-[0.08em]"
-                style={{ background: 'var(--watch-bg)', color: 'var(--watch)', borderColor: 'var(--watch-rule)' }}
-                data-testid="persistence-banner"
-                data-banner-state="tamper_detected"
-              >
-                Candidate row CHECK violation — render only (recordedBy: demo)
-              </p>
-            )}
-            {writeOutcome.status === 'transient_error' && (
-              <p
-                className="mt-2 inline-block rounded-[4px] border px-2.5 py-1 mz-mono text-[10px] font-medium uppercase tracking-[0.08em]"
-                style={{ background: 'var(--unknown-bg)', color: 'var(--unknown)', borderColor: 'var(--unknown-rule)' }}
-                data-testid="persistence-banner"
-                data-banner-state="transient_error"
-              >
-                Persistence unavailable — render only (recordedBy: demo)
-              </p>
-            )}
-            {writeOutcome.status === 'disabled' && (
-              <p
-                className="mt-2 inline-block rounded-[4px] border px-2.5 py-1 mz-mono text-[10px] font-medium uppercase tracking-[0.08em]"
-                style={{ background: 'var(--unknown-bg)', color: 'var(--unknown)', borderColor: 'var(--unknown-rule)' }}
-                data-testid="persistence-banner"
-                data-banner-state="disabled"
-              >
-                Persistence disabled — render only (recordedBy: demo)
-              </p>
-            )}
           </Reveal>
         </div>
       </section>

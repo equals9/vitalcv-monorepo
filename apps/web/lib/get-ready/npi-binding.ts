@@ -95,9 +95,13 @@ export function summarizeBootstrapResult(result: NpiBootstrapResult): BoundIdent
 
 /**
  * Maps a failed bootstrap response to honest, actionable copy.
- * The backend surfaces "already registered to another account" as a thrown
- * error message; anything else is treated as a source/system problem, never
- * as a finding about the clinician.
+ *
+ * The backend answers a second account binding an already-bound NPI with a
+ * 409 (the legacy wording "already registered to another account" is still
+ * recognised for proxies that preserve older bodies). A number NPPES has not
+ * enumerated is a 422 whose message is a finding about the number; a registry
+ * outage is a 502 and is described as a system state, never as a finding
+ * about the clinician.
  */
 export function describeBootstrapError(status: number, body: unknown): string {
   // The web proxies preserve backend error bodies, which come in two shapes:
@@ -113,7 +117,7 @@ export function describeBootstrapError(status: number, body: unknown): string {
     }
   }
 
-  if (message && /already registered to another account/i.test(message)) {
+  if (status === 409 || (message && /already registered to another account/i.test(message))) {
     return 'This NPI is already connected to a different VitalCV account. If that account is yours, sign in with it — or contact support to resolve ownership.';
   }
   if (status === 401) {
