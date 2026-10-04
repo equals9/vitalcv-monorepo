@@ -9,6 +9,9 @@ import { EvidenceProvenanceChip as StateChip } from '@/lib/vital/evidenceStateTo
 import { EVIDENCE_STATE, type EvidenceState } from '@/lib/vital/evidenceState';
 import { PageFrame } from '@/components/layout/PageFrame';
 import { SourceCoverageDiagram } from '@/components/trust/SourceCoverageDiagram';
+import { SourceLaneStatus } from '@/components/trust/SourceLaneStatus';
+import { SourceLaneStatusBoundary } from '@/components/trust/SourceLaneStatusBoundary';
+import { toSourceLaneStatusEntries } from '@/lib/trust/laneAvailability';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +24,11 @@ export const metadata: Metadata = {
 
 // Honest source-availability, derived from the real register lifecycle — not a
 // per-clinician result. "Available" means the lane is wired and returns data;
-// it does not mean any specific clinician has been checked.
-const LIFECYCLE_LABEL: Record<string, { label: string; tone: string; note: string }> = {
-  active: { label: 'Available', tone: 'var(--vt-state-source-confirmed)', note: 'Wired and returning data.' },
-  partial: { label: 'Partial', tone: 'var(--vt-state-stale, #a2670b)', note: 'Available for some records; being expanded.' },
-  planned: { label: 'Access required', tone: 'var(--vt-state-stale, #a2670b)', note: 'A source exists; access is not yet in place.' },
-  unintegrated: { label: 'Not yet connected', tone: 'var(--vt-text-muted)', note: 'On the roadmap; not connected today.' },
-};
+// it does not mean any specific clinician has been checked. The lifecycle →
+// copy projection this page used to declare here now lives in
+// `lib/trust/laneAvailability.ts`, shared with /status and with the diagram
+// directly above these rows — which read "Not connected" while the rows read
+// "Not yet connected" for the same lane, on the same screen.
 
 const STATE_ORDER: EvidenceState[] = [
   'source_backed',
@@ -53,6 +54,7 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
 
 export default async function TrustCenterPage() {
   const snapshot = await getTrustRegisterSnapshot();
+  const laneEntries = toSourceLaneStatusEntries(snapshot.sources);
 
   return (
     <main className="mz mz-paper">
@@ -81,31 +83,20 @@ export default async function TrustCenterPage() {
           {/* The same lane state the table below prints, drawn. Both read
               SOURCE_LANE_OPS, so the picture cannot disagree with the rows. */}
           <SourceCoverageDiagram />
-          <div className="mt-8 overflow-hidden rounded-[12px] border border-[var(--vt-border)]">
-            {snapshot.sources.map((s, i) => {
-              const meta = LIFECYCLE_LABEL[s.lifecycle] ?? LIFECYCLE_LABEL.unintegrated;
-              return (
-                <div
-                  key={s.sourceId}
-                  className={`flex items-start justify-between gap-4 px-5 py-4 ${i > 0 ? 'border-t border-[var(--vt-border-subtle,var(--vt-border))]' : ''}`}
-                >
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-semibold text-[var(--vt-text-primary)]">{s.displayName}</p>
-                    <p className="mt-0.5 text-[13px] text-[var(--vt-text-secondary)]">{meta.note}</p>
-                  </div>
-                  <span
-                    className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
-                    style={{ color: meta.tone, borderColor: `color-mix(in oklab, ${meta.tone} 38%, transparent)` }}
-                  >
-                    {meta.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-[13px] text-[var(--vt-text-muted)]">
-            Availability describes the lane, not any one clinician — an &ldquo;available&rdquo; source has not checked you until you run it.
-          </p>
+          <SourceLaneStatusBoundary lanes={laneEntries} ariaLabel="Source availability" className="mt-8">
+            <SourceLaneStatus
+              axis="availability"
+              lanes={laneEntries}
+              ariaLabel="Source availability"
+              className="mt-8"
+              footnote={
+                <>
+                  Availability describes the lane, not any one clinician — an &ldquo;available&rdquo; source has
+                  not checked you until you run it.
+                </>
+              }
+            />
+          </SourceLaneStatusBoundary>
         </Section>
 
         {/* 2 — Meaning of each state */}

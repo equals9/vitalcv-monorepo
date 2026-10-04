@@ -15,7 +15,10 @@ import { Activity, ArrowRight, FileCode2, ShieldCheck } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/backend-url';
 import { getVersionInfo } from '@/lib/deployInfo';
 import { getTrustRegisterSnapshot } from '@/lib/trust/register';
+import { toSourceLaneStatusEntries } from '@/lib/trust/laneAvailability';
 import { PageFrame } from '@/components/layout/PageFrame';
+import { SourceLaneStatus } from '@/components/trust/SourceLaneStatus';
+import { SourceLaneStatusBoundary } from '@/components/trust/SourceLaneStatusBoundary';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,18 +32,17 @@ type RowTone = 'ok' | 'warn' | 'muted';
 
 function toneColor(tone: RowTone): string {
   if (tone === 'ok') return 'var(--vt-state-source-confirmed)';
-  if (tone === 'warn') return 'var(--vt-state-stale, #a2670b)';
+  // `--vt-state-stale` is unset in this theme, so this always painted the
+  // fallback #a2670b — measured 4.49:1 on the cream surface, just under the AA
+  // floor. `--vt-badge-warning-text` is defined and measures 4.99:1. Same
+  // correction as `lib/trust/laneAvailability.ts`, which records the readings.
+  if (tone === 'warn') return 'var(--vt-badge-warning-text, #a2670b)';
   return 'var(--vt-text-muted)';
 }
 
-// The register lifecycle describes whether a source LANE is wired — honest
-// availability language, mirroring the Trust Center (never per-moment uptime).
-const LIFECYCLE_ROW: Record<string, { label: string; tone: RowTone }> = {
-  active: { label: 'Available', tone: 'ok' },
-  partial: { label: 'Partial', tone: 'warn' },
-  planned: { label: 'Access required', tone: 'warn' },
-  unintegrated: { label: 'Not yet connected', tone: 'muted' },
-};
+// The lifecycle → availability copy this page used to declare here now lives in
+// `lib/trust/laneAvailability.ts` and is rendered by `SourceLaneStatus`, shared
+// with /trust. The two copies had already drifted apart in wording.
 
 async function probeBackend(): Promise<{ label: string; tone: RowTone }> {
   try {
@@ -56,42 +58,36 @@ async function probeBackend(): Promise<{ label: string; tone: RowTone }> {
   }
 }
 
+/**
+ * Application-service row — a REAL per-request check (this render, this probe).
+ *
+ * Source lanes are NOT rendered here: they are a different claim (a lane's
+ * availability, not a live check) and they carry the W0.5 `data-lane-*` parity
+ * contract, so they go through `SourceLaneStatus`.
+ */
 function StatusRow({
   name,
   note,
   state,
   tone,
-  laneKey,
-  laneLifecycle,
 }: {
   name: string;
   note: string;
   state: string;
   tone: RowTone;
-  /**
-   * W0.5 parity contract. Source-lane rows publish the key they carry in
-   * /api/status plus their rendered lifecycle, so the post-deploy prober can
-   * assert the two public surfaces agree about every lane. A page that claims
-   * a lane is available while /api/status calls it planned (the drift this
-   * file's register comment records) then fails the deploy instead of
-   * shipping. Non-lane rows omit both and are skipped by the prober.
-   */
-  laneKey?: string;
-  laneLifecycle?: string;
 }) {
   const color = toneColor(tone);
   return (
-    <div
-      className="flex items-start justify-between gap-4 px-5 py-4"
-      data-lane-key={laneKey}
-      data-lane-lifecycle={laneLifecycle}
-    >
+    // Stacks under 640px, matching the source rows below. Side-by-side at 375px
+    // squeezed "Health probe from this page load" into five one-word lines —
+    // a pre-existing defect, but one made conspicuous by rows that now stack.
+    <div className="flex flex-col items-start gap-2 px-5 py-4 sm:flex-row sm:justify-between sm:gap-4">
       <div className="min-w-0">
         <p className="text-[14px] font-semibold text-[var(--vt-text-primary)]">{name}</p>
         <p className="mt-0.5 text-[13px] text-[var(--vt-text-secondary)]">{note}</p>
       </div>
       <span
-        className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
+        className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold uppercase tracking-[0.08em]"
         style={{ color, borderColor: `color-mix(in oklab, ${color} 38%, transparent)` }}
       >
         <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
@@ -104,6 +100,7 @@ function StatusRow({
 export default async function StatusPage() {
   const version = getVersionInfo();
   const [backend, snapshot] = await Promise.all([probeBackend(), getTrustRegisterSnapshot()]);
+  const laneEntries = toSourceLaneStatusEntries(snapshot.sources);
   const checkedAt = new Date();
   const checkedLabel = `${checkedAt.toISOString().replace('T', ' ').slice(0, 19)} UTC`;
 
@@ -138,40 +135,28 @@ export default async function StatusPage() {
           </div>
         </section>
 
-        {/* Source lanes — register lifecycle, availability language */}
-        <section aria-label="Source availability" className="mt-10">
+        {/* Source lanes — register lifecycle, availability language. Shared with
+            /trust via SourceLaneStatus so the two cannot word the same state
+            differently, and carrying the W0.5 data-lane-* parity contract. */}
+        <section className="mt-10">
           <p className="mz-eyebrow">Public data sources</p>
-          <div className="mt-4 divide-y divide-[var(--vt-border-subtle,var(--vt-border))] overflow-hidden rounded-[12px] border border-[var(--vt-border)] bg-[var(--vt-surface)]">
-            {snapshot.sources.map((s) => {
-              const row = LIFECYCLE_ROW[s.lifecycle] ?? LIFECYCLE_ROW.unintegrated;
-              return (
-                <StatusRow
-                  key={s.sourceId}
-                  name={s.displayName}
-                  note={
-                    s.lifecycle === 'active'
-                      ? 'Lane wired and returning data.'
-                      : s.lifecycle === 'partial'
-                        ? 'Available for some records; being expanded.'
-                        : s.lifecycle === 'planned'
-                          ? 'A source exists; access is not yet in place.'
-                          : 'On the roadmap; not connected today.'
-                  }
-                  state={row.label}
-                  tone={row.tone}
-                  laneKey={s.statusApiKey}
-                  laneLifecycle={s.lifecycle}
-                />
-              );
-            })}
-          </div>
-          <p className="mt-3 text-[13px] text-[var(--vt-text-muted)]">
-            Availability describes the lane, not any one record —{' '}
-            <Link href="/trust" className="font-medium text-[var(--vt-text-secondary)] underline underline-offset-2 hover:text-[var(--vt-text-primary)]">
-              what each state means
-            </Link>
-            .
-          </p>
+          <SourceLaneStatusBoundary lanes={laneEntries} ariaLabel="Source availability" className="mt-4">
+            <SourceLaneStatus
+              axis="availability"
+              lanes={laneEntries}
+              ariaLabel="Source availability"
+              className="mt-4"
+              footnote={
+                <>
+                  Availability describes the lane, not any one record —{' '}
+                  <Link href="/trust" className="font-medium text-[var(--vt-text-secondary)] underline underline-offset-2 hover:text-[var(--vt-text-primary)]">
+                    what each state means
+                  </Link>
+                  .
+                </>
+              }
+            />
+          </SourceLaneStatusBoundary>
         </section>
 
         {/* Incidents — honest empty state */}
