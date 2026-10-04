@@ -25,7 +25,13 @@ jest.mock('../../audit/auditLedger', () => ({
 }));
 
 import prisma from '../../../graphql/prisma_client';
-import { storeExtraction, getExtraction, listExtractions, isAllowedMimeType } from '../documentStore';
+import {
+  DOCUMENT_PARSE_STATUS,
+  storeExtraction,
+  getExtraction,
+  listExtractions,
+  isAllowedMimeType,
+} from '../documentStore';
 import { auditParse, auditVerify } from '../documentAudit';
 import { appendAuditEvent } from '../../audit/auditLedger';
 import type { DocumentExtractionResult } from '../../ai/documentPipeline';
@@ -60,6 +66,13 @@ function buildExtraction(overrides: Partial<DocumentExtractionResult> = {}): Doc
 }
 
 // ── storeExtraction ───────────────────────────────────────────────────
+//
+// A document the clinician uploaded is self-attested evidence. Before this
+// pin, the store mapped OCR confidence to a status and wrote `VERIFIED` for
+// anything at or above 0.9 — the same literal the trust engines treat as a
+// source-verified artifact. OCR confidence is a statement about how legible
+// the image was, not about whether any issuing body stands behind it. The
+// status is now a constant, and no confidence value may change it.
 
 describe('storeExtraction', () => {
   beforeEach(() => {
@@ -82,65 +95,95 @@ describe('storeExtraction', () => {
     expect(createCall.data.id).toBe('doc-abc-123');
     expect(createCall.data.source).toBe('DOCUMENT_PARSE');
     expect(createCall.data.npi).toBe('user_clerk_001');
-    expect(createCall.data.status).toBe('VERIFIED'); // confidence 0.96 >= 0.9
+    expect(createCall.data.status).toBe(DOCUMENT_PARSE_STATUS);
     expect(typeof createCall.data.checksum).toBe('string');
     expect(createCall.data.checksum).toHaveLength(64); // SHA-256 hex
     expect(createCall.data.rawPayload).toMatchObject({ documentId: 'doc-abc-123' });
   });
 
-  it('sets status to PENDING for medium-confidence extractions', async () => {
-    const extraction = buildExtraction({ overallConfidence: 0.75 });
-
-    prismaMock.verificationArtifact.create.mockResolvedValue({ id: extraction.documentId });
-
-    await storeExtraction('user_clerk_001', extraction);
-
-    const createCall = prismaMock.verificationArtifact.create.mock.calls[0][0];
-    expect(createCall.data.status).toBe('PENDING');
+  it('the constant is a self-attested label, never the source-verified literal', () => {
+    expect(DOCUMENT_PARSE_STATUS).toBe('SELF_ATTESTED');
+    expect(DOCUMENT_PARSE_STATUS).not.toBe('VERIFIED');
   });
 
-  it('sets status to NEEDS_REVIEW for low-confidence extractions', async () => {
-    const extraction = buildExtraction({ overallConfidence: 0.5 });
+  it('no confidence value can write VERIFIED (sweep 0.00 → 1.00)', async () => {
+    prismaMock.verificationArtifact.create.mockResolvedValue({ id: 'doc-abc-123' });
 
-    prismaMock.verificationArtifact.create.mockResolvedValue({ id: extraction.documentId });
+    const confidences = Array.from({ length: 21 }, (_, i) => i / 20); // 0, 0.05, …, 1
+    for (const overallConfidence of confidences) {
+      prismaMock.verificationArtifact.create.mockClear();
+      await storeExtraction('user_clerk_001', buildExtraction({ overallConfidence }));
+      const createCall = prismaMock.verificationArtifact.create.mock.calls[0][0];
+      expect(createCall.data.status).toBe(DOCUMENT_PARSE_STATUS);
+      expect(createCall.data.status).not.toBe('VERIFIED');
+      expect(createCall.data.status).not.toMatch(/^verified$/i);
+    }
+  });
 
-    await storeExtraction('user_clerk_001', extraction);
-
-    const createCall = prismaMock.verificationArtifact.create.mock.calls[0][0];
-    expect(createCall.data.status).toBe('NEEDS_REVIEW');
+  it('a 1.0-confidence, zero-confidence and NaN-confidence extraction all get the same status', async () => {
+    prismaMock.verificationArtifact.create.mockResolvedValue({ id: 'doc-abc-123' });
+    for (const overallConfidence of [1, 0, Number.NaN]) {
+      prismaMock.verificationArtifact.create.mockClear();
+      await storeExtraction('user_clerk_001', buildExtraction({ overallConfidence }));
+      expect(prismaMock.verificationArtifact.create.mock.calls[0][0].data.status).toBe(DOCUMENT_PARSE_STATUS);
+    }
   });
 });
 
 // ── getExtraction ─────────────────────────────────────────────────────
+//
+// Reads are scoped to the owner. The lookup was by id alone, so any account
+// that learned a document id could read, verify or ingest another account's
+// upload. The owner is now part of the query, and a mismatch is
+// indistinguishable from "no such document".
 
 describe('getExtraction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('returns the stored extraction result on success', async () => {
+  it('returns the stored extraction result for its owner', async () => {
     const extraction = buildExtraction();
 
     prismaMock.verificationArtifact.findFirst.mockResolvedValue({
       id: extraction.documentId,
       rawPayload: extraction,
       source: 'DOCUMENT_PARSE',
+      npi: 'user_clerk_001',
     });
 
-    const result = await getExtraction('doc-abc-123');
+    const result = await getExtraction('doc-abc-123', 'user_clerk_001');
 
     expect(result).not.toBeNull();
     expect(result?.documentId).toBe('doc-abc-123');
     expect(result?.documentType).toBe('MEDICAL_LICENSE');
     expect(prismaMock.verificationArtifact.findFirst).toHaveBeenCalledWith({
-      where: { id: 'doc-abc-123', source: 'DOCUMENT_PARSE' },
+      where: { id: 'doc-abc-123', source: 'DOCUMENT_PARSE', npi: 'user_clerk_001' },
     });
+  });
+
+  it('scopes the query by the caller, so another account’s id is not found', async () => {
+    prismaMock.verificationArtifact.findFirst.mockResolvedValue(null);
+
+    const result = await getExtraction('doc-abc-123', 'user_clerk_other');
+
+    expect(result).toBeNull();
+    const where = prismaMock.verificationArtifact.findFirst.mock.calls[0][0].where;
+    expect(where.npi).toBe('user_clerk_other');
+    expect(where.id).toBe('doc-abc-123');
+    expect(where.source).toBe('DOCUMENT_PARSE');
+  });
+
+  it('refuses an empty owner rather than widening the query', async () => {
+    const result = await getExtraction('doc-abc-123', '');
+    expect(result).toBeNull();
+    expect(prismaMock.verificationArtifact.findFirst).not.toHaveBeenCalled();
   });
 
   it('returns null for a non-existent documentId', async () => {
     prismaMock.verificationArtifact.findFirst.mockResolvedValue(null);
 
-    const result = await getExtraction('does-not-exist');
+    const result = await getExtraction('does-not-exist', 'user_clerk_001');
 
     expect(result).toBeNull();
   });
@@ -150,9 +193,10 @@ describe('getExtraction', () => {
       id: 'doc-xyz',
       rawPayload: null,
       source: 'DOCUMENT_PARSE',
+      npi: 'user_clerk_001',
     });
 
-    const result = await getExtraction('doc-xyz');
+    const result = await getExtraction('doc-xyz', 'user_clerk_001');
 
     expect(result).toBeNull();
   });

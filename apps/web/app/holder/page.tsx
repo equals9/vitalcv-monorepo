@@ -8,6 +8,7 @@ import { CredentialWallet } from '@/components/wallet/CredentialWallet';
 import { CVWalletRegistrySummary } from '@/components/wallet/CVWalletRegistrySummary';
 import { WalletPassport } from '@/components/wallet/WalletPassport';
 import { loadOwnerRecord, type OwnerRecordResult } from '@/lib/clinician-record/ownerRecord';
+import { evidenceUploadEnabled } from '@/lib/holder/evidenceUploadFlag';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,6 +80,10 @@ export default async function HolderPage() {
 
   const { record, npi } = result;
   const displayName = record.identity.data.displayName || `NPI ${npi}`;
+  // Upload panel is staged behind EVIDENCE_UPLOAD_ENABLED=enabled; see the
+  // helper for why. Its header link goes with it so nothing points at a
+  // section that is not on the page.
+  const showEvidenceUpload = evidenceUploadEnabled();
 
   return (
     <div className="mz mz-paper mz-persona-holder min-h-screen bg-[var(--vt-bg)] text-foreground">
@@ -103,12 +108,14 @@ export default async function HolderPage() {
               >
                 Add career details
               </Link>
-              <a
-                href="#add-evidence"
-                className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-[var(--vt-accent-editorial,#4338CA)] px-4 text-sm font-semibold text-white transition hover:opacity-90"
-              >
-                Add a document
-              </a>
+              {showEvidenceUpload ? (
+                <a
+                  href="#add-evidence"
+                  className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-[var(--vt-accent-editorial,#4338CA)] px-4 text-sm font-semibold text-white transition hover:opacity-90"
+                >
+                  Add a document
+                </a>
+              ) : null}
             </div>
           </div>
 
@@ -175,14 +182,16 @@ export default async function HolderPage() {
           </div>
         </details>
 
-        <section id="add-evidence" className="scroll-mt-6">
-          <EvidenceUploadPanel
-            heading="Add evidence"
-            description="Attach a license, certificate, CV, or supporting document. VitalCV keeps uploaded evidence separate from source-reported and source-verified facts."
-            returnToHref="/holder"
-            returnToLabel="Return to your profile"
-          />
-        </section>
+        {showEvidenceUpload ? (
+          <section id="add-evidence" className="scroll-mt-6">
+            <EvidenceUploadPanel
+              heading="Add evidence"
+              description="Attach a license, certificate, CV, or supporting document. VitalCV keeps uploaded evidence separate from source-reported and source-verified facts."
+              returnToHref="/holder"
+              returnToLabel="Return to your profile"
+            />
+          </section>
+        ) : null}
 
         <section id="share-wallet" aria-labelledby="share-wallet-heading" className="scroll-mt-6 space-y-3">
           <div>

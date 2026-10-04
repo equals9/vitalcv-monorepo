@@ -3,8 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { BACKEND_URL as BACKEND } from '@/lib/backend-url';
 
 async function proxy(req: NextRequest, path: string) {
   const url = `${BACKEND}/api/graph/${path}${req.nextUrl.search}`;

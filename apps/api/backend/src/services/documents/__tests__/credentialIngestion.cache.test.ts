@@ -4,6 +4,7 @@ jest.mock('../../../graphql/prisma_client', () => ({
     candidateCredential: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
     },
@@ -30,9 +31,12 @@ import {
 const prismaMock = prisma as unknown as {
   candidateCredential: {
     findUnique: jest.Mock;
+    findFirst: jest.Mock;
     update: jest.Mock;
   };
 };
+
+const CRED_ID = '11111111-1111-4111-8111-111111111111';
 
 function buildTrustState(npi: string) {
   return {
@@ -59,6 +63,7 @@ describe('credential ingestion trust-state cache invalidation', () => {
   beforeEach(() => {
     resetTrustStateMemoryCache();
     prismaMock.candidateCredential.findUnique.mockReset();
+    prismaMock.candidateCredential.findFirst.mockReset();
     prismaMock.candidateCredential.update.mockReset();
   });
 
@@ -66,20 +71,20 @@ describe('credential ingestion trust-state cache invalidation', () => {
     const npi = '1234567893';
     setTrustStateMemoryCache(npi, buildTrustState(npi));
 
-    prismaMock.candidateCredential.findUnique.mockResolvedValue({
-      id: 'cred-1',
+    prismaMock.candidateCredential.findFirst.mockResolvedValue({
+      id: CRED_ID,
       clinicianId: npi,
       data: {},
       status: 'UNVERIFIED',
     });
     prismaMock.candidateCredential.update.mockResolvedValue({
-      id: 'cred-1',
+      id: CRED_ID,
       clinicianId: npi,
       data: {},
       status: 'PENDING_VERIFICATION',
     });
 
-    await confirmCredential('cred-1', { licenseNumber: 'RN1234' });
+    await confirmCredential(CRED_ID, { licenseNumber: 'RN1234' }, npi);
 
     expect(getTrustStateMemoryCache(npi)).toBeNull();
   });
