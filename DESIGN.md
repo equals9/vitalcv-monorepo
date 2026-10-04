@@ -28,11 +28,11 @@ specificity, so this list is the precedence:
 | # | File | `--vt-*` declarations |
 |---|---|---|
 | 1 | `apps/web/styles/themes/index.css` | 230 |
-| 2 | `apps/web/styles/tokens.css` | 32 |
+| 2 | `apps/web/styles/tokens.css` | 58 |
 | 3 | `apps/web/styles/vitalTokens.css` | 65 |
 | 4 | `apps/web/styles/matcha-zen.css` | 16 |
 
-**343 declarations across 4 files, 254 distinct tokens.**
+**369 declarations across 4 files, 280 distinct tokens.**
 
 ### Route-scoped token files (outside the global cascade)
 
@@ -212,7 +212,7 @@ table — the table says what exists, this says what to do.
 
 ## Tokens
 
-Role sentences come from `docs/design/design-md-roles.json`. **12 of 254**
+Role sentences come from `docs/design/design-md-roles.json`. **12 of 280**
 tokens have a documented role; the rest say so plainly rather than inventing one.
 
 | Token | Effective value | Declared in | Role |
@@ -433,6 +433,32 @@ tokens have a documented role; the rest say so plainly rather than inventing one
 | `--vt-shape-control` | `10px` | `styles/themes/index.css` | — *(role not documented)* |
 | `--vt-shape-panel` | `24px` | `styles/themes/index.css` | 24px panel radius within the A-1 scene shape scale (pill/control/card/panel); actions stay square on chrome and take --vt-shape-action-page on page actions (A-2, E). Retained for scoped islands; a public panel reaching for this is a rejection under EC-21. |
 | `--vt-shape-pill` | `9999px` | `styles/themes/index.css` | — *(role not documented)* |
+| `--vt-space-10` | `0.625rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-112` | `7rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-12` | `0.75rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-14` | `0.875rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-16` | `1rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-18` | `1.125rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-2` | `0.125rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-20` | `1.25rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-22` | `1.375rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-24` | `1.5rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-26` | `1.625rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-28` | `1.75rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-30` | `1.875rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-32` | `2rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-36` | `2.25rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-4` | `0.25rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-40` | `2.5rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-44` | `2.75rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-48` | `3rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-56` | `3.5rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-6` | `0.375rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-64` | `4rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-72` | `4.5rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-8` | `0.5rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-84` | `5.25rem` | `styles/tokens.css` | — *(role not documented)* |
+| `--vt-space-96` | `6rem` | `styles/tokens.css` | — *(role not documented)* |
 | `--vt-spacing-2xl` | `3rem` | `styles/vitalTokens.css` | — *(role not documented)* |
 | `--vt-spacing-lg` | `1.5rem` | `styles/vitalTokens.css` | — *(role not documented)* |
 | `--vt-spacing-md` | `1rem` | `styles/vitalTokens.css` | — *(role not documented)* |

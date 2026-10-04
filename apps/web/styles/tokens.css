@@ -229,6 +229,51 @@
   --divider-color-soft: oklch(0.25 0.008 255 / 0.3);
 }
 
+/* ── 2b. Spacing Scale (UX-02A, EC-20 "Spacing rhythm" LOCKED 2026-09-15) ── */
+/*
+ * The static CSS mirror of design-system/tokens/spacing.ts — the ONE source of
+ * spacing truth. variables.ts maps the same table to --vt-space-<px> and
+ * app/layout.tsx mounts it on <html> (inline style, which outranks this :root
+ * block), so the two MUST agree: __tests__/spacing-scale-contract.test.ts
+ * pins every entry both ways. Edit spacing.ts first, then this block.
+ *
+ * Numeric, px-named, rem-valued: --vt-space-16 = 1rem = 16px at the 16px root
+ * the app never overrides. Steps were derived from the two public islands
+ * (styles/eyebrow.css, styles/easy-home.css: 236 literals, 32 distinct values,
+ * measured 2026-09-15) under the founder's zero-pixel-change ruling — every
+ * step is a value the islands already paint. 2px grain to 32, 4px to 48,
+ * 8px to 64, then the four section-band paddings. Off-scale literals stay
+ * literal and are listed in the EC-20 row as the debt the scale exposes.
+ */
+:root {
+  --vt-space-2: 0.125rem;
+  --vt-space-4: 0.25rem;
+  --vt-space-6: 0.375rem;
+  --vt-space-8: 0.5rem;
+  --vt-space-10: 0.625rem;
+  --vt-space-12: 0.75rem;
+  --vt-space-14: 0.875rem;
+  --vt-space-16: 1rem;
+  --vt-space-18: 1.125rem;
+  --vt-space-20: 1.25rem;
+  --vt-space-22: 1.375rem;
+  --vt-space-24: 1.5rem;
+  --vt-space-26: 1.625rem;
+  --vt-space-28: 1.75rem;
+  --vt-space-30: 1.875rem;
+  --vt-space-32: 2rem;
+  --vt-space-36: 2.25rem;
+  --vt-space-40: 2.5rem;
+  --vt-space-44: 2.75rem;
+  --vt-space-48: 3rem;
+  --vt-space-56: 3.5rem;
+  --vt-space-64: 4rem;
+  --vt-space-72: 4.5rem;
+  --vt-space-84: 5.25rem;
+  --vt-space-96: 6rem;
+  --vt-space-112: 7rem;
+}
+
 /* ── 3. Motion Tokens ─────────────────────────────────────────────────────── */
 /*
  * SYSTEM CURVE: cubic-bezier(0.2, 0.8, 0.2, 1)

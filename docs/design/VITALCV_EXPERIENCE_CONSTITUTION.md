@@ -206,7 +206,7 @@ The **structure** is locked now. The **values** are filled from the UX-01 verdic
 | Rule/border treatment | 1px hairlines structure panels and bands (`#2E2F33` on the graphite register) | LOCKED |
 | Icon family | **Consolidate to one family in UX-02.** Two are installed today: `lucide-react` (imported by 330 `apps/web` files) and `@blueprintjs/icons`; 47 components also carry inline `<svg>`. Whichever wins must satisfy the locked grammar — 1px hairline weight, near-sharp 0–3px, no glass, no gradient, no glow — and the loser is removed, not left resident. Design review picks; this row records the constraint and the count | DEFERRED · UX-02 owns · constraint locked |
 | Corner-radius philosophy + pill policy | **Amended 2026-08-09 (A-1, then A-2).** A-1 superseded "near-sharp 0–3px on panels and instruments; pills retired" and gave the public **scene register** a four-step shape scale — `--vt-shape-pill` 9999px, `--vt-shape-control` 10px, `--vt-shape-card` 20px, `--vt-shape-panel` 24px. **A-2 resolves what the scale left ambiguous: an ACTION is square, a WORD-LABEL may be a pill.** Every action on a public surface takes radius 0 — chrome instruments and page actions alike — and so does any illustration that DEPICTS an action. The pill survives for names and labels (source names, owner chips, disclosure tags, step indices), which makes the silhouette carry meaning: square means you can act on it. A-1's limits are untouched: evidence and operational surfaces stay near-sharp, and **a pill is never a state marker** (EC-4). Islands outside the scene register keep their own radii until migrated. **Amendment E (2026-08-15) resolves the seam A-2 left with Direction D:** on the public scene register, CHROME instruments and any illustration depicting chrome stay radius 0 (A-3 untouched); PAGE actions take `--vt-shape-action-page` (8px) — the value Direction D shipped and the e2e contract already pins. The bake-off artifact's 11px was normalized to 8px rather than minting a third value | LOCKED (amended A-2, then E) |
-| Spacing rhythm | **No spacing scale exists yet** — measured 2026-08-08 (W1080): zero `--*-space*` custom properties across `apps/web/styles` and `globals.css`, so every value is currently ad hoc. UX-02A's "one semantic token layer" owns it; until that lands no wave may assert a spacing rule as law. Bounded by the locked band composition (full-width hairline-ruled, content max ~1400px) and the chrome gutter (30px desktop / 20px mobile, A-2) | DEFERRED · UX-02A owns · nothing to supersede |
+| Spacing rhythm | **Amended 2026-09-15 (UX-02A), superseding "No spacing scale exists yet."** One numeric, px-named, rem-valued scale: `--vt-space-{2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,36,40,44,48,56,64,72,84,96,112}` — 2px grain through 32, 4px to 48, 8px to 64, then the four section-band paddings. **Owner:** `apps/web/design-system/tokens/spacing.ts` (the one source of truth; `variables.ts` mounts it on `<html>`, `styles/tokens.css` carries the static CSS mirror, `__tests__/spacing-scale-contract.test.ts` pins the two). **Derived, not designed:** every step is a value the two public islands already painted (236 literals, 32 distinct, measured by `design-lab/spacing-histogram.mjs`), under the founder's zero-pixel-change ruling. **Consumers:** `styles/eyebrow.css` and `styles/easy-home.css` (the live `/` and the shared public chrome), 226 references, pixel-identical before/after at 1440/768/390 and the takeover at 1280/390. **Not on a step, kept literal as the debt the scale exposes:** `.ezh-stamp` gap 7px / padding-left 9px, `.ezh-fig-legend span` gap 7px, `.ezh-beat-frag` gap 7px, `.ezh-rv-step` padding 7px, `.ezh-rv-row` padding 11px, `.ezh-axis span` padding-top 11px, `section.ezh-hero` padding-top 150px, `.vcv-eb-menu` (≤767px) padding-top 76px; the two −1px offsets (`.ezh-sr`, `.ezh-beat::before`) are hairline alignment, not rhythm. **Drawn-glyph geometry is not rhythm and stays px:** `.vcv-eb__menu-glyph` gap 4px (three 1.5px bars in a fixed 18×14px box — on the rem scale it doubles at a 200% user font-size and the bars collapse to 0px; measured 2026-09-15). A value inside a fixed-px drawn artefact belongs to the drawing, not the scale. Rounding any of these onto the scale moves pixels and needs its own visual gate. Still bounded by the locked band composition (content max ~1400px) and the chrome gutter (20px each side, A-4). Other islands keep their literals until migrated — the scale is law for NEW spacing on public surfaces, and a migration is zero-pixel or it is a visual change | LOCKED (UX-02A, 2026-09-15) |
 | Neutral palette (grounds, ink ramp, rules) | **Public register (dark, permitted not mandated):** ground `#141517`, panel `#1C1D20`, raised `#222326`, hairline `#2E2F33`, ink `#F2F1ED`, secondary `#9C9D99`. **Light register (required for evidence/printable/dense-legibility surfaces):** off-white family with graphite ink; exact artifact palette is a named UX-02 design task | LOCKED · light values in UX-02 |
 | Interaction/accent treatment | **Amended 2026-08-09 (A-1): the accent-work merge is reversed.** Work-green (`#4ADE97`, `--vt-scene-state-source-confirmed`) is the single **work** colour — source-confirmed facts and completed work — and is **retired as the primary action**. The primary action is the warm-paper inverse instrument (`--vt-action-primary-bg` = scene paper, `--vt-action-primary-fg` = paper ink). Needs-you amber `#E4B45C`; waiting neutral `#8F8C88`. VitalCV indigo (`--vt-accent-editorial`, register-resolved via `-on-dark` / `-on-paper`) carries the focus ring and the editorial atmosphere, and is **never a status colour**. State words always in ink (EC-4). Full state-hue family reconciled in UX-02 with the EC-3 vocabulary mapping | LOCKED (amended A-1) |
 | Mono presentation policy | Machine facts — NPIs, timestamps, state words, source names, micro-labels — in Geist Mono, `tabular-nums` | LOCKED |
@@ -894,6 +894,50 @@ Class A clauses and locked EC-20 rows change only by editing this file with a da
 Subjective July-era taste is not encoded as CI law before the reset direction is chosen. The `check-design-lint.ts` port from `.worktrees/retire-speed-claim` is scoped to the objective list above; taste rules from wave-1505's set (pill radii, shadow discipline, dark-on-public) join CI only if and when the verdict locks the matching EC-20 row. Proof obligation stands: a deliberately-violating PR must fail CI on every objective count before the gate is considered live.
 
 ### EC-24. Records
+
+- **UX-02A — the spacing scale, on founder ruling (2026-09-15).** The founder's ruling, verbatim:
+  **"Spacing scale as a UX-02A wave — YES: declare `--vt-space-*`, migrate the two public islands
+  with zero pixel change, amend the EC-20 spacing row in the same PR."** EC-20's "Spacing rhythm"
+  row moves from DEFERRED to LOCKED (UX-02A, 2026-09-15).
+
+  **What was found.** The row's 2026-08-08 measurement was still true of the CSS: zero
+  `--vt-space-*` declarations and zero references across `apps/web/styles`. It was NOT true of
+  the runtime: `design-system/tokens/spacing.ts` already held an eleven-step rem table
+  (2…64) that `variables.ts` maps to `--vt-space-<px>` and `app/layout.tsx` mounts on
+  `<html>` as inline style — a family declared on every route, consumed by nothing in CSS,
+  and (because inline style outranks `:root`) able to silently override any CSS scale that
+  disagreed with it. LINT-17 already treated that generator as the declaration. The decision
+  was therefore adopt-and-mirror, not invent: `spacing.ts` is the source of truth, extended
+  with the steps the islands measured; `tokens.css` mirrors it; a sync test pins both.
+
+  **Why px-named and rem-valued.** The name states the pixel a step paints at the 16px root
+  the app never overrides, which is what a reader of `padding: var(--vt-space-12)` needs and
+  what the existing family already did. The rem value lets the rhythm follow a user's
+  font-size preference (WCAG 1.4.4) instead of pinning it; at default settings the two are
+  identical, which is what the pixel-diff proves.
+
+  **Why these steps and not a designed ramp.** The reference teardown's 4/8/16/24/36/48/60/80
+  ramp would have moved pixels on 100+ declarations. The islands' measured grain is 2px
+  through 32 (6/10/14/18/22/26 carry 15–21 uses each — that is the rhythm, not noise), so the
+  scale records that grain rather than legislating a coarser one. Eleven literals across six
+  values (1, 7, 9, 11, 76, 150) fall off the scale and stay literal, named in the row: they are
+  the debt the scale exposes, and rounding them is a visual change with its own gate.
+
+  **What this does NOT do.** No colour, radius, shadow or motion line moved (the wave is
+  line-disjoint with the action-state layer, #1484). No other island migrated. `--vt-space-*`
+  is not a Tailwind spacing override and does not touch `components/vital/*`, which carry no
+  raw px spacing.
+
+  **The one thing rem changed, and the rule it produced.** At default settings rem and px are
+  the same pixel, which the diff proves. At a 200% user font-size (WCAG 1.4.4) rem spacing
+  scales with the text where px did not — the rail's gutter goes 20→40px, the hero's rhythm
+  opens up, and nothing overflows at 390 or 1440. One element broke: the menu glyph's three
+  bars collapsed to 0px, because their 4px gap is geometry inside a fixed 18×14px drawing,
+  and doubling it overflowed the box. That gap stays literal, and the rule is recorded in the
+  row: a value inside a fixed-px drawn artefact belongs to the drawing, not the scale. The
+  check that found it (every island element's box, rem vs px, at 200%) is the check a future
+  island migration runs before claiming zero change. The chrome geometry in the eyebrow row (top 14px, 20px inset) is unchanged in
+  value; it now reads `var(--vt-space-14)` / `var(--vt-space-20)`.
 
 - **A-4 — the floating glass rail, on founder directive (2026-08-16).** EC-10's structural form
   and EC-20's eyebrow-geometry row move from `amended A-3` to `amended A-4`, and EC-10's
