@@ -23,6 +23,8 @@ function match(overrides: Record<string, unknown> = {}) {
       payMin: 150,
       payMax: 180,
       credentialRequirements: ['CA physician license'],
+      // Emitted by the backend's live mapper from the integrated-apply rule.
+      applicationMode: 'vitalcv',
       ...(overrides.opportunity as Record<string, unknown> | undefined),
     },
     explanation: {
@@ -143,5 +145,26 @@ describe('live recommendation mapper — freshness', () => {
     expect(relativePosted(NOW - 86_400_000, NOW)).toBe('Posted yesterday')
     expect(relativePosted(NOW - 3 * 86_400_000, NOW)).toBe('Posted 3 days ago')
     expect(relativePosted(NOW - 10 * 86_400_000, NOW)).toBe('Posted 1 week ago')
+  })
+})
+
+describe('live recommendation mapper — integrated apply boundary', () => {
+  it('offers apply on an employer-posted role the server marked integrated', () => {
+    const rec = toDeckRecommendation(match(), 0)
+    expect(rec!.actions.canApply).toBe(true)
+    expect(rec!.actions.applyBlockReason).toBeUndefined()
+  })
+
+  it('never offers apply on a feed-carried role, however clean the blockers, and says where to apply', () => {
+    const rec = toDeckRecommendation(match({ opportunity: { applicationMode: 'external' } }), 0)
+    expect(rec!.explanation.blockers).toHaveLength(0)
+    expect(rec!.actions.canApply).toBe(false)
+    expect(rec!.actions.applyBlockReason).toMatch(/employer’s own posting/)
+  })
+
+  it('treats a match the server did not mark as not applyable — the deck never infers the mode', () => {
+    const rec = toDeckRecommendation(match({ opportunity: { applicationMode: undefined } }), 0)
+    expect(rec!.actions.canApply).toBe(false)
+    expect(rec!.actions.applyBlockReason).toMatch(/not available/)
   })
 })

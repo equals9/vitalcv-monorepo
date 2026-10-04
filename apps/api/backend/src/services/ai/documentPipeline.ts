@@ -2,7 +2,12 @@
  * documentPipeline.ts — Wave 47: Zero-Manual-Lift Document Intelligence
  *
  * Ingestion pipeline for uploaded medical licenses, certifications, and IDs.
- * Uses OCR/Vision model stubs to extract structured data with confidence scores.
+ * Reads the document through a configured OCR provider and extracts
+ * structured fields with confidence scores.
+ *
+ * Fail-closed contract: reading either returns text a configured provider
+ * actually produced, or it throws DocumentReadingUnavailableError. There is
+ * no fixture fallback outside NODE_ENV=test.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -130,10 +135,12 @@ function extractFieldsFromText(ocrText: string): ExtractedField[] {
 
 // ── OCR Providers ──────────────────────────────────────────────────
 //
-// Priority:
-//   1. OCR_PROVIDER=openai  — uses OPENAI_API_KEY + gpt-4o vision.
-//      Set in .env: OCR_PROVIDER=openai  OPENAI_API_KEY=sk-...
-//   2. OCR_PROVIDER=stub (default) — returns fixture text for dev/test.
+// Providers:
+//   OCR_PROVIDER=openai  — uses OPENAI_API_KEY + gpt-4o vision.
+//     Set in .env: OCR_PROVIDER=openai  OPENAI_API_KEY=sk-...
+//   (unset)              — no reading is possible; the dispatcher throws and
+//     the route answers 503. Under NODE_ENV=test only, a fixture answers so
+//     the extraction stages can be exercised without a network.
 //
 // Future providers: google_vision (GOOGLE_CLOUD_VISION_API_KEY),
 //   aws_textract, azure_form_recognizer — add adapters below and wire
@@ -200,11 +207,30 @@ async function performOcrOpenAI(fileBuffer: Buffer, mimeType: string): Promise<s
   return data.choices[0]?.message?.content ?? '';
 }
 
-// ── Stub OCR (dev/test fallback) ───────────────────────────────────
+// ── Fail-closed contract ───────────────────────────────────────────
+//
+// The previous dispatcher substituted a fixed California medical-licence
+// fixture on EVERY fault — no provider configured, missing key, HTTP error,
+// timeout — and the route stored that text as a durable artifact under a
+// real account with a 200. A stub that answers on every fault is not a
+// fallback; it is a document the clinician never uploaded. Reading now
+// either returns what a configured provider produced, or it throws.
+
+/** Thrown when no reading could be produced. Routes map this to 503. */
+export class DocumentReadingUnavailableError extends Error {
+  readonly code = 'document_reading_unavailable' as const;
+
+  constructor(reason: string) {
+    super(`Document reading is unavailable: ${reason}`);
+    this.name = 'DocumentReadingUnavailableError';
+  }
+}
+
+// ── Stub OCR (NODE_ENV=test only) ──────────────────────────────────
 
 function performOcrStub(): string {
   log('info', 'document_pipeline_ocr_stub', {
-    note: 'Stub OCR active. Set OCR_PROVIDER=openai + OPENAI_API_KEY for real extraction.',
+    note: 'Fixture OCR active (NODE_ENV=test). Set OCR_PROVIDER=openai + OPENAI_API_KEY for real extraction.',
   });
 
   return [
@@ -230,28 +256,39 @@ async function performOcr(
   mimeType: string,
   _config: PipelineConfig,
 ): Promise<string> {
-  const provider = (process.env.OCR_PROVIDER ?? 'stub').toLowerCase();
+  const provider = (process.env.OCR_PROVIDER ?? '').trim().toLowerCase();
 
-  switch (provider) {
-    case 'openai': {
-      try {
-        log('info', 'document_pipeline_ocr_start', { provider: 'openai' });
-        const text = await performOcrOpenAI(fileBuffer, mimeType);
-        log('info', 'document_pipeline_ocr_complete', { provider: 'openai', chars: text.length });
-        return text;
-      } catch (err) {
-        log('warn', 'document_pipeline_ocr_provider_failed', {
-          provider: 'openai',
-          error: err instanceof Error ? err.message : String(err),
-          fallback: 'stub',
-        });
-        return performOcrStub();
-      }
+  if (provider === 'openai') {
+    try {
+      log('info', 'document_pipeline_ocr_start', { provider: 'openai' });
+      const text = await performOcrOpenAI(fileBuffer, mimeType);
+      log('info', 'document_pipeline_ocr_complete', { provider: 'openai', chars: text.length });
+      return text;
+    } catch (err) {
+      // Logged in full; the thrown reason is deliberately generic so a
+      // provider's response body never reaches a client.
+      log('warn', 'document_pipeline_ocr_provider_failed', {
+        provider: 'openai',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw new DocumentReadingUnavailableError('the configured provider did not return a reading');
     }
-
-    default:
-      return performOcrStub();
   }
+
+  // No real provider selected. The fixture is a test convenience and may
+  // answer ONLY under NODE_ENV=test; everywhere else this is a fault.
+  const noProvider = provider === '' || provider === 'stub';
+  if (noProvider && process.env.NODE_ENV === 'test') {
+    return performOcrStub();
+  }
+
+  log('warn', 'document_pipeline_ocr_unavailable', {
+    provider: provider || '(unset)',
+    nodeEnv: process.env.NODE_ENV ?? '(unset)',
+  });
+  throw new DocumentReadingUnavailableError(
+    noProvider ? 'no document provider is configured' : `unsupported document provider "${provider}"`,
+  );
 }
 
 // ── Public API ─────────────────────────────────────────────────────

@@ -981,7 +981,9 @@ export function registerCredentialRoutes(app: Express): void {
         return;
       }
 
-      const extraction = await getExtraction(documentId);
+      // Owner-scoped: an id that is not this caller's resolves to 404 and
+      // nothing is ingested under this profile.
+      const extraction = await getExtraction(documentId, clerkUserId);
       if (!extraction) {
         res.status(404).json({ error: `No extraction found for documentId: ${documentId}` });
         return;
@@ -1015,7 +1017,12 @@ export function registerCredentialRoutes(app: Express): void {
         ? (body.corrections as Record<string, string>)
         : {};
 
-      const result = await confirmCredential(id, corrections);
+      // Owner-scoped: null covers not-yours, unknown and malformed ids alike.
+      const result = await confirmCredential(id, corrections, clerkUserId);
+      if (!result) {
+        res.status(404).json({ error: `Credential ${id} not found` });
+        return;
+      }
       res.status(200).json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';

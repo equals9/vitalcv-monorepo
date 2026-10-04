@@ -173,7 +173,22 @@ export function toDeckRecommendation(match: LiveMatch | null | undefined, index:
   if (!opportunityId) return null
 
   const explanation = mapEngineExplanation(engineExplanation(match.explanation), `rec-${index}`)
-  const canApply = explanation.blockers.length === 0
+  // "Apply with VitalCV" exists for a listing only when the server said so.
+  // `applicationMode` is emitted by the backend's live mapper from the one
+  // integrated-apply rule the apply service enforces; the deck never infers it
+  // from the card's own fields, and an absent value means not available. A
+  // feed-carried row is applied to on the employer's site, however clean the
+  // clinician's blockers are.
+  const applicationMode = str(opp.applicationMode)
+  const integrated = applicationMode === 'vitalcv'
+  const canApply = integrated && explanation.blockers.length === 0
+  const applyBlockReason = canApply
+    ? undefined
+    : applicationMode === 'external'
+      ? 'This role is carried from the employer’s own posting. Apply on the employer’s site.'
+      : !integrated
+        ? 'Apply with VitalCV is not available for this listing.'
+        : 'Resolve the blocking requirement before applying.'
   return {
     recommendationId: `live-${opportunityId}`,
     opportunity: opportunityCard(opportunityId, opp),
@@ -185,7 +200,7 @@ export function toDeckRecommendation(match: LiveMatch | null | undefined, index:
     actions: {
       canExpressInterest: true,
       canApply,
-      applyBlockReason: canApply ? undefined : 'Resolve the blocking requirement before applying.',
+      applyBlockReason,
     },
   }
 }

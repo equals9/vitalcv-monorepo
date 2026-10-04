@@ -3,8 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { BACKEND_URL as API_BASE } from '@/lib/backend-url';
 
 export async function GET(
   _req: NextRequest,

@@ -27,6 +27,14 @@ export interface IntelligenceOpportunity {
   payRange?: string;
   hiringType?: string;
   remote?: boolean;
+  /**
+   * Whether "Apply with VitalCV" exists for this listing, decided by the
+   * backend's one integrated-apply rule and emitted on the live match. Never
+   * derived at the web tier; absent reads as not available.
+   */
+  applicationMode?: 'external' | 'vitalcv';
+  /** The employer's own posting for a feed-carried row, when the feed had one. */
+  sourceUrl?: string | null;
 }
 
 export interface IntelligenceExplanation {

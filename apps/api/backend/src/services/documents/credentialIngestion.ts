@@ -70,22 +70,36 @@ export async function ingestCredential(
 
 // ── confirmCredential ─────────────────────────────────────────────────────────
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Merges user corrections into the credential data and sets status to
  * "PENDING_VERIFICATION". Emits an audit event.
+ *
+ * Scoped to its owner: acts only on a credential whose `clinicianId` is
+ * `ownerClerkUserId` (the key `ingestCredential` writes), and returns null for
+ * anything else — another account's id, an unknown id, a malformed id. Null
+ * is indistinguishable across those cases, so a caller learns nothing about
+ * credentials that are not theirs. Routes map null to 404.
  */
 export async function confirmCredential(
   credentialId: string,
   corrections: Record<string, string>,
-): Promise<{ status: string }> {
+  ownerClerkUserId: string,
+): Promise<{ status: string } | null> {
+  if (!ownerClerkUserId || ownerClerkUserId.trim() === '') return null;
+  // The id column is a UUID; Prisma throws on anything else. A malformed id
+  // is "not found", not a server error.
+  if (!UUID_PATTERN.test(credentialId)) return null;
+
   const traceId = newTraceId();
 
-  const existing = await prisma.candidateCredential.findUnique({
-    where: { id: credentialId },
+  const existing = await prisma.candidateCredential.findFirst({
+    where: { id: credentialId, clinicianId: ownerClerkUserId },
   });
 
   if (!existing) {
-    throw new Error(`CandidateCredential not found: ${credentialId}`);
+    return null;
   }
 
   const existingData = (existing.data ?? {}) as Record<string, unknown>;

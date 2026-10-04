@@ -27,6 +27,7 @@ import type {
 import {
   seededOrgExclusionFilter,
 } from '../opportunities/launchOpportunitySeed';
+import { applicationModeFor } from '../opportunities/integratedApply';
 import { buildBaseClinicianProfile } from './clinicianProfileFromNppes';
 
 const prisma = new PrismaClient();
@@ -166,13 +167,29 @@ function dbOppToMatcha(opp: {
   remote: boolean;
   status: string;
   createdAt: Date;
-  organization?: { id: string; name: string } | null;
+  listingSource?: string | null;
+  sourceUrl?: string | null;
+  organization?: {
+    id: string;
+    name: string;
+    organizationProfile?: { id: string } | null;
+  } | null;
 }): MatchaOpportunity {
   return {
     id: opp.id,
     title: opp.title,
     organization: opp.organization?.name ?? 'Healthcare Organization',
     organizationId: opp.organization?.id,
+    // Whether "Apply with VitalCV" exists for this row — the SAME rule the
+    // apply service enforces, so the deck, the public-safe projection and the
+    // matcha cards never advertise a path the server refuses. A feed-carried
+    // row keeps its source page so a surface can point at the real posting.
+    applicationMode: applicationModeFor({
+      listingSource: opp.listingSource,
+      organizationName: opp.organization?.name,
+      hasOrganizationProfile: Boolean(opp.organization?.organizationProfile),
+    }),
+    sourceUrl: opp.sourceUrl ?? undefined,
     employerSlug: opp.organization?.id ?? 'unknown',
     facility: opp.organization?.name ?? 'Healthcare Organization',
     location: `${opp.state}`,
@@ -224,7 +241,7 @@ export async function getLiveMatchesForNpi(
         ...(filters?.state ? { state: filters.state } : {}),
         ...(filters?.hiringType ? { hiringType: filters.hiringType } : {}),
       },
-      include: { organization: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true, organizationProfile: { select: { id: true } } } } },
       take: 50,
     }),
   ]);
@@ -285,7 +302,7 @@ export async function simulateForNpi(npi: string) {
     buildClinicianProfile(npi),
     prisma.opportunity.findMany({
       where: { status: 'ACTIVE', ...seededOrgExclusionFilter() },
-      include: { organization: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true, organizationProfile: { select: { id: true } } } } },
       take: 50,
     }),
   ]);
@@ -323,7 +340,7 @@ export async function scoreOpportunityForNpi(
     buildClinicianProfile(npi),
     prisma.opportunity.findUnique({
       where: { id: opportunityId },
-      include: { organization: { select: { id: true, name: true } } },
+      include: { organization: { select: { id: true, name: true, organizationProfile: { select: { id: true } } } } },
     }),
   ]);
 

@@ -25,6 +25,9 @@ function makeOpportunityRecord(): OpportunityTruthRecord {
     description: 'Rural access clinic assignment with housing stipend and a pre-cleared onboarding packet.',
     remote: false,
     status: 'ACTIVE',
+    // A real employer-posted row always carries the column (it defaults); the
+    // integrated-apply rule requires the positive value, so the fixture says so.
+    listingSource: 'employer_posted',
     createdAt: new Date('2026-03-10T00:00:00.000Z'),
     updatedAt: new Date('2026-03-18T00:00:00.000Z'),
     organization: {

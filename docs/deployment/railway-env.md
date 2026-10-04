@@ -30,6 +30,12 @@ exposes service variables as Docker build args, so set these on the web service:
   **Required on the web service too** — `lib/verifier/worklistRepo.ts` and
   `lib/issuer-verification/issuerPersistenceWriter.ts` query the web Prisma client
   (`IssuerRequest` / `ReceiptCandidate`) at runtime. Those routes fail without it.
+- `EVIDENCE_UPLOAD_ENABLED`
+  Shows the "Add evidence" upload panel (and its header link) on `/holder` only
+  when set to the literal `enabled`. Unset or any other value hides it. Read per
+  request (`lib/holder/evidenceUploadFlag.ts`). Leave unset until the document
+  lane (`/api/documents/parse` → `/api/credentials/ingest` → confirm) is confirmed
+  working end to end on production.
 
 ### Shared Backend Storage / Policy
 - `DATABASE_URL`
@@ -75,19 +81,26 @@ in its blocking mode), so a deploy can be confirmed without a probe.
 | `VERIFIER_RBAC_ENFORCED` | `config/env.ts` | Whether employer-review mutations are blocked, or only logged, on an RBAC denial. |
 | `RESEND_API_KEY` | `services/providers/notificationProvider.ts` | Presence selects the live email provider; absence leaves notifications on the no-op provider. |
 | `NOTIFY_FROM_EMAIL` | `services/providers/notificationProvider.ts` | Sender address for outbound notifications. |
-| `OCR_PROVIDER` | `services/ai/documentPipeline.ts` | Which document-parse provider the credential-document lane calls. Unset selects the stub. |
+| `OCR_PROVIDER` | `services/ai/documentPipeline.ts` | Which document-parse provider the credential-document lane calls. Unset (or any provider fault) makes document reading answer 503 "unavailable"; the fixture reader runs only under `NODE_ENV=test`. |
 | `SENTRY_DSN` | `server.ts` | Presence turns on server-side error reporting. |
 | `DISABLE_BACKGROUND_JOBS` | `app.ts` | Turns off in-process background jobs. |
 | `POLLING_ENABLED` | `app.ts` | Turns on the in-process source polling loop. |
 | `FEATURE_CREDENTIAL_INGESTION` | `config/envValidation.ts` | Feature flag for the credential-ingestion lane. |
 | `PLATFORM_ADMIN_CLERK_IDS` | `config/env.ts` → `services/platform/platformAdminGrant.ts` | Comma-separated Clerk user ids (identifiers, not secrets) granted the platform ADMIN role by configuration. Read once at boot and on user-row creation; promotion only — removing an id never demotes; never read from a request. |
-| `EVIDENCE_UPLOAD_ENABLED` | — | Named in the Wave 0 plan. **No code on `main` reads this variable** as of this entry; it is listed so the name is reserved and the gap is visible, not because setting it does anything yet. |
+| `EVIDENCE_UPLOAD_ENABLED` | web service — `lib/holder/evidenceUploadFlag.ts` | Shows the document upload panel on `/holder` and `/holder/blockers/[blockerId]` only when set to the literal `enabled`; unset hides it. Set on the **web** service, not the API. |
 | `BACKEND_URL` | web service — see [Web service — runtime](#web-service--runtime-server) | Server-side backend base for the web app, including the role resolver that decides `/admin/*` access from the database role. |
 
 ## Optional
 
 - `SAM_API_KEY`
   Optional downstream service key used by `@vitalcv/api` integrations.
+
+- `OCR_PROVIDER`, `OPENAI_API_KEY`
+  Document reading on `@vitalcv/api` (`POST /api/documents/parse`). With
+  `OCR_PROVIDER=openai` and a key, uploads are read by that provider. With
+  neither set, or when the provider fails, the route answers 503 and stores
+  nothing — there is no fixture fallback outside `NODE_ENV=test`
+  (`services/ai/documentPipeline.ts`).
 
 - `SENTRY_DSN`
   Server-side Sentry DSN for `@vitalcv/api` crash/error reporting.

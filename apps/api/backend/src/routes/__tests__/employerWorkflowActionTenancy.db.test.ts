@@ -178,13 +178,21 @@ afterAll(async () => {
 
 describe('POST /api/applications/:appId/workflow-action — self-serve employer', () => {
   it('serves the workflow detail to the employer who owns the opportunity', async () => {
-    const res = await request(buildApp())
+    const res = await request(buildApp(EMPLOYER))
       .get(`/api/applications/${applicationId}/workflow`)
       .set('x-clerk-user-id', EMPLOYER);
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(applicationId);
     expect(res.body.employer.organizationId).toBe(organizationId);
+  });
+
+  it('refuses the workflow detail to a bare identity header — the read is scoped by the verified session', async () => {
+    const res = await request(buildApp())
+      .get(`/api/applications/${applicationId}/workflow`)
+      .set('x-clerk-user-id', EMPLOYER);
+
+    expect(res.status).toBe(401);
   });
 
   it('lets the employer act on their own application', async () => {

@@ -68,7 +68,15 @@ export function toPublicSafeMatches(npi: string, raw: unknown) {
       organizationId,
       state: str(opp.state),
       hiringType: str(opp.hiringType) ?? str(opp.employmentType),
-      applyAvailable: Boolean(organizationId),
+      // When the backend already projected this match it answered the apply
+      // question from its own integrated-apply rule; honour that answer. When
+      // the raw engine match is being projected here, read the mode that rule
+      // emitted — and when it is absent, the answer is "not available". An
+      // organization id alone never means a listing can receive a share: a
+      // feed placeholder has one too.
+      applyAvailable: typeof m.applyAvailable === 'boolean'
+        ? m.applyAvailable
+        : opp.applicationMode === 'vitalcv' && Boolean(organizationId),
       fitIndication: (publicReasons.length > 0 ? 'possible_fit' : 'limited_public_signal') as PublicSafeMatch['fitIndication'],
       publicReasons,
     };

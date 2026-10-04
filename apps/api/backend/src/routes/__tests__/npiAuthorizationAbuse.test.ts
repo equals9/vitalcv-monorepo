@@ -173,7 +173,10 @@ const LIVE_RESULT = {
     band: 'INELIGIBLE',
     score: 21,
     blockers: [{ label: 'Missing state license: CA' }],
-    opportunity: { id: 'opp-1', title: 'Staff Internist', organizationId: 'org-1', state: 'CA', hiringType: 'perm' },
+    opportunity: {
+      id: 'opp-1', title: 'Staff Internist', organizationId: 'org-1', state: 'CA', hiringType: 'perm',
+      applicationMode: 'vitalcv',
+    },
     explanation: {
       matchBand: 'INELIGIBLE',
       matchScore: 21,

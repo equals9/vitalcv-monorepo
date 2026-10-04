@@ -92,8 +92,14 @@ let organizationId: string;
 let opportunityId: string;
 
 beforeAll(async () => {
+  // A real employer-posted row belongs to an organization that went through
+  // setup — the profile is what the integrated-apply rule reads as "claimed".
   const org = await prisma.organization.create({
-    data: { name: 'Seal Test Health', slug: `seal-test-${Date.now()}` },
+    data: {
+      name: 'Seal Test Health',
+      slug: `seal-test-${Date.now()}`,
+      organizationProfile: { create: { facilityType: 'hospital' } },
+    },
   });
   organizationId = org.id;
   const opp = await prisma.opportunity.create({
@@ -120,6 +126,7 @@ afterAll(async () => {
   await prisma.opportunity.deleteMany({ where: { organizationId } });
   await prisma.personProfile.deleteMany({ where: { npi: NPI } });
   await prisma.user.deleteMany({ where: { clerkUserId: CLERK_USER } });
+  await prisma.organizationProfile.deleteMany({ where: { organizationId } });
   await prisma.organization.deleteMany({ where: { id: organizationId } });
   await prisma.$disconnect();
 });

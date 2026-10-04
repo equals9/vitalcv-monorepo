@@ -18,6 +18,7 @@
 
 import prisma from '../../graphql/prisma_client';
 import { HttpError } from '../../utils/httpError';
+import { evaluateIntegratedApply } from '../opportunities/integratedApply';
 
 /** Postgres uuid columns throw on a non-uuid string rather than returning null. */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -55,7 +56,10 @@ export async function resolveRecipientForOpportunity(
       id: true,
       status: true,
       organizationId: true,
-      organization: { select: { id: true, name: true } },
+      listingSource: true,
+      organization: {
+        select: { id: true, name: true, organizationProfile: { select: { id: true } } },
+      },
     },
   });
 
@@ -70,6 +74,21 @@ export async function resolveRecipientForOpportunity(
       409,
       'This listing has no receiving organization, so Apply with VitalCV is not available for it yet.',
     );
+  }
+
+  // A share is a disclosure addressed to the listing's employer. The same
+  // rule that gates sealing an application gates resolving a recipient: a
+  // feed-copied row's organization is an ingestion placeholder that never
+  // posted the role and cannot receive the share, and an organization with
+  // no profile was never set up by anyone. Refusing here keeps the share
+  // path from naming a recipient the apply path would refuse.
+  const eligibility = evaluateIntegratedApply({
+    listingSource: opportunity.listingSource,
+    organizationName: org.name,
+    hasOrganizationProfile: Boolean(org.organizationProfile),
+  });
+  if (!eligibility.eligible) {
+    throw new HttpError(409, eligibility.message);
   }
 
   if (opportunity.status && opportunity.status !== 'ACTIVE') {
@@ -89,7 +108,8 @@ export async function resolveRecipientForOpportunity(
 
   return {
     organizationId: org.id,
-    organizationName: org.name ?? 'Unnamed organization',
+    // The name the eligibility rule resolved — never a synthesised placeholder.
+    organizationName: eligibility.recipient,
     opportunityId: opportunity.id,
     purposeOfUse: (purposeOfUse ?? '').trim() || DEFAULT_PURPOSE_OF_USE,
   };

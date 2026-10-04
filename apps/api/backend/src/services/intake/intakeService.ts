@@ -106,11 +106,16 @@ async function emitAudit(
 // ── NPI Type detection ────────────────────────────────────────────────────────
 
 /**
- * Heuristic NPI type detection from NPPES entity type code.
+ * NPI type detection from the NPPES registry record.
  * Type 1 = Individual / NPI-1 (people)
  * Type 2 = Organization / NPI-2 (groups, hospitals)
  *
- * Without a live NPPES call, we default to TYPE_1 and let the user correct.
+ * Fails closed. The registry is the only source of the NPI's type and name;
+ * when it has no record for the number, or cannot be consulted, there is
+ * nothing truthful to bind and this function throws instead of returning a
+ * default type — a defaulted type would present an unbacked identity row as
+ * source-backed. A registry miss is a finding (422); a registry outage is a
+ * system state (502) and is never reported as "not found".
  *
  * Hydration fix (fix/nppes-full-hydration, 2026-04-10): this function
  * previously read camelCase fields (`provider.firstName`, `provider.taxonomyCode`,
@@ -119,6 +124,12 @@ async function emitAudit(
  * surfaced as "no data" — indistinguishable from an upstream failure. The
  * actual shape is snake_case with `primary_taxonomy_code` and `practice_address.state`.
  */
+export const NPI_NOT_IN_REGISTRY_MESSAGE = 'NPI not found in the registry.';
+export const NPI_CLAIM_CONFLICT_MESSAGE =
+  'This NPI is already connected to another VitalCV account. If this is your NPI, contact support — conflicting claims are routed to review.';
+export const NPI_REGISTRY_UNAVAILABLE_MESSAGE =
+  'The NPPES registry could not be consulted, so the NPI was not connected. This is a system state, not a finding about the NPI. Try again shortly.';
+
 async function detectNpiType(npi: string): Promise<{
   npiType:    'TYPE_1' | 'TYPE_2';
   firstName?: string;
@@ -126,28 +137,46 @@ async function detectNpiType(npi: string): Promise<{
   specialty?: string;
   state?:     string;
 }> {
-  // Attempt live NPPES v2 lookup (imported from existing module).
+  // Live NPPES v2 lookup (imported from existing module).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { fetchNpiFromCMS, normalizeProvider } = require('../../modules/identity') as typeof import('../../modules/identity');
+
+  let raw: Awaited<ReturnType<typeof fetchNpiFromCMS>> | null = null;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { fetchNpiFromCMS, normalizeProvider } = require('../../modules/identity') as typeof import('../../modules/identity');
-    const raw = await fetchNpiFromCMS(npi);
-    if (raw) {
-      const provider = normalizeProvider(raw.rawPayload);
-      const isOrg = provider.enumeration_type === 'NPI-2';
-      return {
-        npiType:   isOrg ? 'TYPE_2' : 'TYPE_1',
-        firstName: provider.first_name || undefined,
-        lastName:  provider.last_name  || undefined,
-        specialty: provider.primary_taxonomy_code ?? undefined,
-        state:     provider.practice_address?.state ?? undefined,
-      };
-    }
+    raw = await fetchNpiFromCMS(npi);
   } catch (err) {
+    // The registry answers "no such number" as a 404 from the fetch layer.
+    // That is a finding about the number, not a failure to look it up.
+    if (err instanceof HttpError && err.status === 404) {
+      log('info', 'NPI not enumerated in NPPES during bootstrap', { npi });
+      throw new HttpError(422, NPI_NOT_IN_REGISTRY_MESSAGE);
+    }
     log('warn', 'NPPES lookup failed during NPI bootstrap', { npi, err: String(err) });
+    throw new HttpError(502, NPI_REGISTRY_UNAVAILABLE_MESSAGE);
   }
 
-  // Fallback: default to TYPE_1
-  return { npiType: 'TYPE_1' };
+  if (!raw) {
+    throw new HttpError(422, NPI_NOT_IN_REGISTRY_MESSAGE);
+  }
+
+  // A record came back but is not usable: that is a source problem, and the
+  // bind must not proceed on a guess at the type.
+  let provider: ReturnType<typeof normalizeProvider>;
+  try {
+    provider = normalizeProvider(raw.rawPayload);
+  } catch (err) {
+    log('warn', 'NPPES record could not be normalized during NPI bootstrap', { npi, err: String(err) });
+    throw new HttpError(502, NPI_REGISTRY_UNAVAILABLE_MESSAGE);
+  }
+
+  const isOrg = provider.enumeration_type === 'NPI-2';
+  return {
+    npiType:   isOrg ? 'TYPE_2' : 'TYPE_1',
+    firstName: provider.first_name || undefined,
+    lastName:  provider.last_name  || undefined,
+    specialty: provider.primary_taxonomy_code ?? undefined,
+    state:     provider.practice_address?.state ?? undefined,
+  };
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -294,31 +323,25 @@ export async function bootstrapNpiIntake(
   const attestedAt = attested ? new Date() : undefined;
   const attestationVersion = attested ? (attestation?.attestationVersion ?? 'v1') : undefined;
 
-  // Check for existing registration
-  const existing = await prisma.personProfile.findUnique({ where: { npi } });
-  if (existing && existing.userId !== userId) {
-    // NPI already claimed by another user
-    throw new Error(`NPI ${npi} is already registered to another account.`);
-  }
-
-  const detected = await detectNpiType(npi);
-  const inferredPersona = detected.npiType === 'TYPE_2' ? 'VERIFIER' : 'CLINICIAN';
-
-  // Upsert PersonProfile
   // PersonProfile.npi is unique: a second account claiming the same NPI
   // must get an honest conflict, not a raw constraint error. Conflicting
-  // claims are an impersonation signal and are audited.
-  const existingHolder = await prisma.personProfile.findUnique({
+  // claims are an impersonation signal and are audited. This check runs
+  // before the registry lookup so a conflict is reported as a conflict even
+  // when NPPES is unavailable, and so no registry call is spent on a number
+  // the caller cannot bind.
+  const existing = await prisma.personProfile.findUnique({
     where: { npi },
     select: { userId: true },
   });
-  if (existingHolder && existingHolder.userId !== userId) {
+  if (existing && existing.userId !== userId) {
     await emitAudit('npi_claim_conflict', userId, { npi });
-    throw new HttpError(
-      409,
-      'This NPI is already connected to another VitalCV account. If this is your NPI, contact support — conflicting claims are routed to review.',
-    );
+    throw new HttpError(409, NPI_CLAIM_CONFLICT_MESSAGE);
   }
+
+  // Registry-backed type and name. Throws 422 (not enumerated) or 502
+  // (registry unavailable) — no PersonProfile row is written on either path.
+  const detected = await detectNpiType(npi);
+  const inferredPersona = detected.npiType === 'TYPE_2' ? 'VERIFIER' : 'CLINICIAN';
 
   await prisma.personProfile.upsert({
     where:  { userId },
