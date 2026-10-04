@@ -188,6 +188,18 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     prompt: "And the minimum you'd consider?", numberUnit: 'USD/yr', numberPlaceholder: '250000', engineBacked: true, optional: true,
   },
   {
+    id: 'hard-constraints', section: 'Compensation', kind: 'chips_multi', field: 'hardConstraints',
+    prompt: 'Which of these will you not move on?',
+    hint: 'A role that fails one of these is shown as a hard miss for you to decide on, not quietly ranked lower. Leave it empty and everything stays advisory.',
+    optional: true,
+    options: [
+      { value: 'location', label: 'Where I work' },
+      { value: 'compensation', label: 'My minimum pay' },
+      { value: 'employment_type', label: 'Full-time, part-time or per diem' },
+      { value: 'visa_sponsorship', label: 'Visa sponsorship' },
+    ],
+  },
+  {
     id: 'signon', section: 'Compensation', kind: 'scale', field: 'signOnBonusImportance',
     prompt: 'How much does a sign-on bonus matter?', options: IMPORTANCE_OPTIONS,
   },

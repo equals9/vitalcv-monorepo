@@ -74,6 +74,7 @@ export const FIELD_CATEGORY: Record<PreferenceField, MatchCategory> = {
   futureCertifications: 'professional',
   licenses: 'professional',
   preferredEMRs: 'professional',
+  hardConstraints: 'professional',
   employmentTypes: 'professional',
   shiftPreference: 'professional',
   scheduleFlexibility: 'professional',
