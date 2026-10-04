@@ -15,6 +15,14 @@
  * `vitalcv.employer-acceptance.metadata.v1`, built in
  * apps/api/backend/src/services/entity/acceptanceSourceSnapshot.ts) — each
  * check already matches AcceptanceSourceCheck.
+ *
+ * Two questions, answered separately. A diff reports TRANSITIONS since
+ * acceptance; the reassurance a reviewer acts on is about CURRENT state. They
+ * diverge exactly where it matters: a source already revoked at acceptance has
+ * no transition, and a source that fell from 'checked' to 'unavailable' has no
+ * revocation. Both used to count as "unchanged" under a green "nothing revoked"
+ * line. `currentlyRevoked` answers the current-state question; `degraded`
+ * reports lost decision-grade support; `unchanged` means identical, nothing less.
  */
 
 import type { CanonicalSourceCoverageState } from '@vitalcv/trust-state';
@@ -35,7 +43,11 @@ export type AcceptanceChangeKind =
   | 'refreshed' // improved to checked, or re-verified more recently
   | 'added' //     new source not present at acceptance
   | 'revoked' //   withdrawn since acceptance — the one that stops everything
+  | 'degraded' //  was checked at acceptance, now not decision-grade (unavailable,
+  //               accessRequired, notFound, gated, pending, …) — support the
+  //               acceptance relied on no longer exists
   | 'stale' //     was checked at acceptance, now aged out
+  | 'changed' //   any other difference in state or check time
   | 'removed'; //  present at acceptance, absent now
 
 export interface AcceptanceChange {
@@ -49,10 +61,19 @@ export interface AcceptanceChange {
 
 export interface AcceptanceDiffResult {
   changes: AcceptanceChange[];
-  /** Sources whose state and check time are unchanged since acceptance. */
+  /** Sources whose state and check time are identical to acceptance. */
   unchanged: number;
   counts: Record<AcceptanceChangeKind, number>;
-  /** True only when nothing was revoked since acceptance — the reassurance. */
+  /**
+   * Current sources in the revoked state, whether revoked since acceptance or
+   * already revoked when accepted. A transition count cannot answer this.
+   */
+  currentlyRevoked: number;
+  /**
+   * The reassurance: true only when no current source is revoked. Reflects
+   * current state, not transitions — a source revoked at acceptance and still
+   * revoked must not read as "nothing revoked".
+   */
   nothingRevoked: boolean;
   /** True when there is any delta at all. */
   hasChanges: boolean;
@@ -80,9 +101,12 @@ export function diffAcceptanceSnapshot(
       changes.push({ sourceId: cur.sourceId, label: cur.label, kind: 'added', to: cur.state, checkedAt: cur.checkedAt });
       continue;
     }
+    const change = (kind: AcceptanceChangeKind) =>
+      changes.push({ sourceId: cur.sourceId, label: cur.label, kind, from: prev.state, to: cur.state, checkedAt: cur.checkedAt });
+
     // Revoked outranks everything — a withdrawal since acceptance.
     if (cur.state === 'revoked' && prev.state !== 'revoked') {
-      changes.push({ sourceId: cur.sourceId, label: cur.label, kind: 'revoked', from: prev.state, to: cur.state, checkedAt: cur.checkedAt });
+      change('revoked');
       continue;
     }
     const improved = prev.state !== DECISION_GRADE && cur.state === DECISION_GRADE;
@@ -93,14 +117,22 @@ export function diffAcceptanceSnapshot(
       !!prev.checkedAt &&
       cur.checkedAt > prev.checkedAt;
     if (improved || reverified) {
-      changes.push({ sourceId: cur.sourceId, label: cur.label, kind: 'refreshed', from: prev.state, to: cur.state, checkedAt: cur.checkedAt });
+      change('refreshed');
       continue;
     }
     if (prev.state === DECISION_GRADE && cur.state === 'stale') {
-      changes.push({ sourceId: cur.sourceId, label: cur.label, kind: 'stale', from: prev.state, to: cur.state, checkedAt: cur.checkedAt });
+      change('stale');
       continue;
     }
-    unchanged += 1;
+    if (prev.state === DECISION_GRADE && cur.state !== DECISION_GRADE) {
+      change('degraded');
+      continue;
+    }
+    if (prev.state === cur.state && (prev.checkedAt ?? null) === (cur.checkedAt ?? null)) {
+      unchanged += 1;
+      continue;
+    }
+    change('changed');
   }
 
   for (const prev of accepted) {
@@ -113,16 +145,21 @@ export function diffAcceptanceSnapshot(
     refreshed: 0,
     added: 0,
     revoked: 0,
+    degraded: 0,
     stale: 0,
+    changed: 0,
     removed: 0,
   };
   for (const c of changes) counts[c.kind] += 1;
+
+  const currentlyRevoked = current.filter((c) => c.state === 'revoked').length;
 
   return {
     changes,
     unchanged,
     counts,
-    nothingRevoked: counts.revoked === 0,
+    currentlyRevoked,
+    nothingRevoked: currentlyRevoked === 0,
     hasChanges: changes.length > 0,
   };
 }
@@ -130,16 +167,19 @@ export function diffAcceptanceSnapshot(
 /** A short, honest headline for the diff, e.g.
  *  "2 refreshed · 1 new · nothing revoked" (or "1 revoked — review"). */
 export function summarizeAcceptanceDiff(diff: AcceptanceDiffResult): string {
+  const revokedPart = diff.currentlyRevoked ? `${diff.currentlyRevoked} revoked — review` : 'nothing revoked';
+  if (!diff.hasChanges) {
+    return diff.currentlyRevoked
+      ? `No changes since your acceptance · ${revokedPart}`
+      : 'No changes since your acceptance';
+  }
   const parts: string[] = [];
   if (diff.counts.refreshed) parts.push(`${diff.counts.refreshed} refreshed`);
   if (diff.counts.added) parts.push(`${diff.counts.added} new`);
+  if (diff.counts.degraded) parts.push(`${diff.counts.degraded} no longer confirmed`);
   if (diff.counts.stale) parts.push(`${diff.counts.stale} now stale`);
+  if (diff.counts.changed) parts.push(`${diff.counts.changed} status changed`);
   if (diff.counts.removed) parts.push(`${diff.counts.removed} withdrawn from packet`);
-  if (diff.counts.revoked) {
-    parts.push(`${diff.counts.revoked} revoked — review`);
-  } else {
-    parts.push('nothing revoked');
-  }
-  if (!diff.hasChanges) return 'No changes since your acceptance';
+  parts.push(revokedPart);
   return parts.join(' · ');
 }

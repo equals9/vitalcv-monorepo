@@ -36,9 +36,24 @@ const KIND_META: Record<
   refreshed: { glyph: '↻', label: 'Refreshed', color: 'var(--vt-state-source-confirmed)' },
   added: { glyph: '+', label: 'New', color: 'var(--vt-state-source-confirmed)' },
   stale: { glyph: '○', label: 'Now stale', color: 'var(--vt-state-pending)' },
+  // Not red: `revoked` owns red. Lost support is serious but is not a revocation.
+  degraded: { glyph: '!', label: 'No longer confirmed', color: 'var(--vt-severity-high)' },
+  changed: { glyph: '~', label: 'Status changed', color: 'var(--vt-text-muted)' },
   revoked: { glyph: '✗', label: 'Revoked', color: 'var(--vt-severity-critical)' },
   removed: { glyph: '−', label: 'Withdrawn', color: 'var(--vt-text-muted)' },
 };
+
+type Posture = 'revoked' | 'degraded' | 'clean';
+
+const POSTURE_META: Record<Posture, { glyph: string; color: string; tint: string }> = {
+  revoked: { glyph: '✗', color: 'var(--vt-severity-critical)', tint: '12%' },
+  degraded: { glyph: '!', color: 'var(--vt-severity-high)', tint: '12%' },
+  clean: { glyph: '✓', color: 'var(--vt-state-source-confirmed)', tint: '8%' },
+};
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? '' : 's'}`;
+}
 
 function chipState(change: AcceptanceChange): ProvenanceState | null {
   const to = change.to ?? change.from;
@@ -98,15 +113,28 @@ export function AcceptanceDiff({ acceptedAt, accepted, current, className }: Acc
   const summary = summarizeAcceptanceDiff(diff);
   const acceptedDate = fmtDate(acceptedAt);
 
-  // Order: revoked first (loudest), then refreshed/new, then stale, then removed.
-  const order: AcceptanceChangeKind[] = ['revoked', 'refreshed', 'added', 'stale', 'removed'];
+  // Order: revoked first (loudest), then lost support, then refreshed/new, then stale, then the rest.
+  const order: AcceptanceChangeKind[] = ['revoked', 'degraded', 'refreshed', 'added', 'stale', 'changed', 'removed'];
   const changes = [...diff.changes].sort(
     (a, b) => order.indexOf(a.kind) - order.indexOf(b.kind),
   );
 
+  // The banner answers "can I rely on this now?" — CURRENT state, not transitions.
+  // A source revoked at acceptance and still revoked has no transition but must not read clean.
+  const posture: Posture = diff.currentlyRevoked > 0 ? 'revoked' : diff.counts.degraded > 0 ? 'degraded' : 'clean';
+  const banner = POSTURE_META[posture];
+  const bannerText =
+    posture === 'revoked'
+      ? diff.counts.revoked === diff.currentlyRevoked
+        ? `${plural(diff.currentlyRevoked, 'credential')} revoked since your acceptance — review before relying on this.`
+        : `${plural(diff.currentlyRevoked, 'credential')} revoked — review before relying on this.`
+      : posture === 'degraded'
+        ? `${plural(diff.counts.degraded, 'check')} no longer confirmed at the source since your acceptance on ${acceptedDate} — re-check before relying on this.`
+        : `Nothing revoked since your acceptance on ${acceptedDate}.`;
+
   return (
     <div
-      data-acceptance-diff={diff.nothingRevoked ? 'clean' : 'revoked'}
+      data-acceptance-diff={posture}
       className={cn('overflow-hidden rounded-[14px] border border-[var(--vt-border)] bg-[var(--vt-surface,transparent)]', className)}
     >
       <div className="flex flex-col gap-1 px-4 pb-3 pt-3.5">
@@ -121,20 +149,16 @@ export function AcceptanceDiff({ acceptedAt, accepted, current, className }: Acc
         <span className="font-mono text-[11.5px] tabular-nums text-[var(--vt-text-secondary)]">{summary}</span>
       </div>
 
-      {/* The line that decides the re-review: nothing revoked → compounding; else fail closed. */}
+      {/* The line that decides the re-review: clean → compounding; lost support or revocation → fail closed. */}
       <div
         className="flex items-center gap-2 px-4 py-2 text-[12.5px]"
         style={{
-          background: diff.nothingRevoked
-            ? 'color-mix(in oklab, var(--vt-state-source-confirmed) 8%, transparent)'
-            : 'color-mix(in oklab, var(--vt-severity-critical) 12%, transparent)',
-          color: diff.nothingRevoked ? 'var(--vt-state-source-confirmed)' : 'var(--vt-severity-critical)',
+          background: `color-mix(in oklab, ${banner.color} ${banner.tint}, transparent)`,
+          color: banner.color,
         }}
       >
-        <span aria-hidden="true" className="font-mono">{diff.nothingRevoked ? '✓' : '✗'}</span>
-        {diff.nothingRevoked
-          ? `Nothing revoked since your acceptance on ${acceptedDate}.`
-          : `${diff.counts.revoked} credential${diff.counts.revoked === 1 ? '' : 's'} revoked since your acceptance — review before relying on this.`}
+        <span aria-hidden="true" className="font-mono">{banner.glyph}</span>
+        {bannerText}
       </div>
 
       {changes.length > 0 ? (
@@ -145,7 +169,9 @@ export function AcceptanceDiff({ acceptedAt, accepted, current, className }: Acc
         </ul>
       ) : (
         <p className="px-4 py-3 text-[12.5px] text-[var(--vt-text-secondary)]">
-          Nothing has changed since your acceptance — the packet you accepted still holds.
+          {posture === 'clean'
+            ? 'Nothing has changed since your acceptance — the packet you accepted still holds.'
+            : 'Nothing has changed since your acceptance.'}
         </p>
       )}
 
