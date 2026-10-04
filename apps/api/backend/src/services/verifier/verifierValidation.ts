@@ -9,6 +9,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { importJWK, jwtVerify } from 'jose';
+import {
+  DigitalCredentialEnvelopeError,
+  normalizeOID4VPPresentationEnvelope,
+} from '@vitalcv/haip-config';
 import { log } from '../../obs/logger';
 import { getKeyByKid } from '../sd-jwt/keyManager';
 import { evaluatePolicy } from '../trust-anchors/verification-policies/policyEngine';
@@ -152,14 +156,57 @@ export async function validateSdJwt(
 }
 
 export async function validatePresentation(presentation: unknown): Promise<ValidationResult> {
-  if (typeof presentation !== 'object' || presentation === null) {
-    return { valid: false, claims: {}, errors: ['Invalid presentation format'], warnings: [], policyPassed: false, revocationStatus: 'UNKNOWN', validatedAt: new Date().toISOString() };
+  const validatedAt = new Date().toISOString();
+  if (typeof presentation !== 'object' || presentation === null || Array.isArray(presentation)) {
+    return { valid: false, claims: {}, errors: ['Invalid presentation format'], warnings: [], policyPassed: false, revocationStatus: 'UNKNOWN', validatedAt };
   }
-  const vp = presentation as Record<string, unknown>;
-  const vpToken = vp['vp_token'] as string | undefined ?? vp['compact'] as string | undefined;
-  if (!vpToken) {
-    return { valid: false, claims: {}, errors: ['Missing vp_token'], warnings: [], policyPassed: false, revocationStatus: 'UNKNOWN', validatedAt: new Date().toISOString() };
+
+  const record = presentation as Record<string, unknown>;
+
+  // Preserve the pre-existing direct SD-JWT convenience form. This is not an
+  // OID4VP / Digital Credentials API envelope and therefore bypasses transport normalization.
+  if (typeof record['compact'] === 'string' && record['compact'].length > 0) {
+    const disclosures = Array.isArray(record['disclosures'])
+      ? record['disclosures'].filter((value): value is string => typeof value === 'string')
+      : [];
+    return validateSdJwt(record['compact'], disclosures);
   }
-  const disclosures = (vp['disclosures'] as string[]) ?? [];
-  return validateSdJwt(vpToken, disclosures);
+
+  try {
+    const normalized = normalizeOID4VPPresentationEnvelope(presentation);
+    if (typeof normalized.presentationPayload !== 'string') {
+      return {
+        valid: false,
+        claims: {},
+        errors: ['Presentation payload must be a compact SD-JWT string'],
+        warnings: [],
+        policyPassed: false,
+        revocationStatus: 'UNKNOWN',
+        validatedAt,
+      };
+    }
+
+    // `disclosures` is a VitalCV legacy convenience parameter rather than part
+    // of the Digital Credentials API envelope. Embedded SD-JWT disclosures are
+    // already extracted by validateSdJwt from the compact presentation payload.
+    const disclosures = Array.isArray(record['disclosures'])
+      ? record['disclosures'].filter((value): value is string => typeof value === 'string')
+      : [];
+    return validateSdJwt(normalized.presentationPayload, disclosures);
+  } catch (error) {
+    const message = error instanceof DigitalCredentialEnvelopeError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : 'Invalid presentation format';
+    return {
+      valid: false,
+      claims: {},
+      errors: [message],
+      warnings: [],
+      policyPassed: false,
+      revocationStatus: 'UNKNOWN',
+      validatedAt,
+    };
+  }
 }
