@@ -31,26 +31,6 @@
         "dev"
       ],
       "port": 4000
-    },
-    {
-      "name": "web-dev-w12a",
-      "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": [
-        "-l",
-        "-c",
-        "cd /tmp/vitalcv-wave-12a && PORT=3010 pnpm --filter @vitalcv/web exec next dev -p 3010"
-      ],
-      "port": 3010
-    },
-    {
-      "name": "explore-prod",
-      "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": [
-        "-l",
-        "-c",
-        "cd /tmp/vitalcv-explore && BACKEND_URL=https://api.vitalcv.com NEXT_PUBLIC_API_BASE=https://api.vitalcv.com pnpm --filter @vitalcv/web exec next start -p 3030"
-      ],
-      "port": 3030
     }
   ]
 }
