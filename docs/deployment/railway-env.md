@@ -60,6 +60,36 @@ exposes service variables as Docker build args, so set these on the web service:
 - `NEXT_PUBLIC_ADMIN_API_URL` or `NEXT_PUBLIC_APP_URL`
   Optional route-prefix variables used by specific web screens.
 
+## Loop-critical variables on the API service (names only)
+
+These decide whether the signed-in loop works at all — whether a verified
+session is accepted, whether an admin can reach `/admin/*`, whether a
+notification or an upload goes anywhere. This section records the **names**
+and what each one controls. It deliberately records **no value and no mode**:
+the repository is public, and the live setting is read in the Railway
+dashboard, not here. The API `/health` endpoint publishes exactly one of these
+facts, as the boolean `identityEnforced` (true only when verified identity is
+in its blocking mode), so a deploy can be confirmed without a probe.
+
+| Variable | Read by | Controls |
+|---|---|---|
+| `CLERK_JWT_VERIFICATION` | `config/env.ts` → `middleware/verifiedIdentity.ts` | Whether a Clerk session JWT is verified and whether an unverified identity header is rejected. Surfaces on `/health` as `identityEnforced`. |
+| `CLERK_ISSUER` | `config/env.ts` → `middleware/verifiedIdentity.ts` | The Clerk frontend-API origin whose JWKS verifies session tokens. Required for any verifying mode. |
+| `CLERK_AUTHORIZED_PARTIES` | `config/env.ts` → `middleware/verifiedIdentity.ts` | Comma-separated `azp` allowlist for verified tokens. Empty means `azp` is not checked. |
+| `TENANT_ORG_BINDING` | `config/env.ts` → `middleware/tenantGuard.ts` | Whether organization context comes only from verified membership rather than a caller-supplied org header. Depends on `CLERK_JWT_VERIFICATION`. |
+| `VERIFIER_RBAC_MODE` | `middleware/orgRoleGuard.ts` | Rollout mode of the employer-review org-role guard (read per request). |
+| `VERIFIER_RBAC_ENFORCED` | `config/env.ts` | Whether employer-review mutations are blocked, or only logged, on an RBAC denial. |
+| `RESEND_API_KEY` | `services/providers/notificationProvider.ts` | Presence selects the live email provider; absence leaves notifications on the no-op provider. |
+| `NOTIFY_FROM_EMAIL` | `services/providers/notificationProvider.ts` | Sender address for outbound notifications. |
+| `OCR_PROVIDER` | `services/ai/documentPipeline.ts` | Which document-parse provider the credential-document lane calls. Unset (or any provider fault) makes document reading answer 503 "unavailable"; the fixture reader runs only under `NODE_ENV=test`. |
+| `SENTRY_DSN` | `server.ts` | Presence turns on server-side error reporting. |
+| `DISABLE_BACKGROUND_JOBS` | `app.ts` | Turns off in-process background jobs. |
+| `POLLING_ENABLED` | `app.ts` | Turns on the in-process source polling loop. |
+| `FEATURE_CREDENTIAL_INGESTION` | `config/envValidation.ts` | Feature flag for the credential-ingestion lane. |
+| `PLATFORM_ADMIN_CLERK_IDS` | `config/env.ts` → `services/platform/platformAdminGrant.ts` | Comma-separated Clerk user ids (identifiers, not secrets) granted the platform ADMIN role by configuration. Read once at boot and on user-row creation; promotion only — removing an id never demotes; never read from a request. |
+| `EVIDENCE_UPLOAD_ENABLED` | web service — `lib/holder/evidenceUploadFlag.ts` | Shows the document upload panel on `/holder` and `/holder/blockers/[blockerId]` only when set to the literal `enabled`; unset hides it. Set on the **web** service, not the API. |
+| `BACKEND_URL` | web service — see [Web service — runtime](#web-service--runtime-server) | Server-side backend base for the web app, including the role resolver that decides `/admin/*` access from the database role. |
+
 ## Optional
 
 - `SAM_API_KEY`

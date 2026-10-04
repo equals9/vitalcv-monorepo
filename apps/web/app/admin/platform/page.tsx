@@ -7,8 +7,7 @@
  * env); any drift turns a card red. Detect-only — never mutates infrastructure.
  */
 import type { Metadata } from 'next';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { requirePlatformAdminPage } from '@/lib/auth/platformAdmin';
 import { buildIntegrityReport } from '@/lib/platform/deployment-integrity';
 import PlatformDashboardClient from '@/components/platform/PlatformDashboardClient';
 
@@ -20,14 +19,8 @@ export const metadata: Metadata = {
 };
 
 export default async function PlatformDashboardPage() {
-  const session = await auth();
-  if (!session.userId) {
-    redirect('/sign-in?redirect_url=/admin/platform');
-  }
-  const role = (session.sessionClaims as { vitalcv?: { role?: string } } | null)?.vitalcv?.role;
-  if (role !== 'ADMIN') {
-    redirect('/');
-  }
+  // W0-07: admitted on the DATABASE role, never the session-token claim.
+  await requirePlatformAdminPage('/admin/platform');
 
   const report = await buildIntegrityReport({ railwayToken: process.env.RAILWAY_API_TOKEN });
 

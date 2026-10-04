@@ -6,8 +6,7 @@
  * migration deploys.
  */
 import type { Metadata } from 'next';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { requirePlatformAdminPage } from '@/lib/auth/platformAdmin';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -31,14 +30,8 @@ interface LeadRow {
 }
 
 export default async function AdminLeadsPage() {
-  const session = await auth();
-  if (!session.userId) {
-    redirect('/sign-in?redirect_url=/admin/leads');
-  }
-  const role = (session.sessionClaims as { vitalcv?: { role?: string } } | null)?.vitalcv?.role;
-  if (role !== 'ADMIN') {
-    redirect('/');
-  }
+  // W0-07: admitted on the DATABASE role, never the session-token claim.
+  await requirePlatformAdminPage('/admin/leads');
 
   let leads: LeadRow[] = [];
   let tablePending = false;
