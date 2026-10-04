@@ -469,3 +469,27 @@
     opacity: 1;
   }
 }
+
+/* Homepage v4 — the read-settle beat (founder directive, 2026-08-16).
+ *
+ * Distilled from the cursor-field design-lab study (design-lab/cursor-field/):
+ * the one behaviour of the antigravity particle exhibit ruled worth keeping —
+ * an excited element carries the editorial signal hue, then settles to ink.
+ * Here it is single-shot and tied to REAL work: a read-log step in the hero's
+ * resolving narration that flips to `is-read` settles signal→ink in the
+ * state-transition band (220ms, the file's tile-arrival convention). Never a
+ * loop; meaning stays in the word and glyph (EC-4) — removing this costs only
+ * atmosphere. The easy-home.css reduced-motion kill switch stops it with
+ * everything else; `from`-only frames mean the resting value is always the
+ * element's own ink. */
+@keyframes ezh-read-settle {
+  from {
+    color: var(--vt-home-f-signal);
+  }
+}
+
+@keyframes ezh-read-settle-dot {
+  from {
+    background-color: var(--vt-home-f-signal);
+  }
+}
