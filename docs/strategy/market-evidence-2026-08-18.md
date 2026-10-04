@@ -38,6 +38,11 @@ production. The code ships complete and inert, staged the way `CLERK_JWT_VERIFIC
 search engines. #1329 named that as a consent decision and declined to answer it in a code review.
 It is still unanswered.
 
+> **Answered 2026-09-30 — founder GO** on the question below: publish the seed. The lever is
+> unchanged — `DIRECTORY_SITEMAP=enabled` on the Railway web service — and setting it is a
+> separate act from the ruling. Check production `robots.txt` for `/directory/sitemap/0.xml`
+> before treating the section as advertised.
+
 **What the flip would actually publish**, from `apps/web/lib/directory/sitemap-seed.json`:
 
 | | |
