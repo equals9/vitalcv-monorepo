@@ -14,6 +14,6 @@
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "ethers": "^5.8.0",
     "hardhat": "^2.25.0",
-    "solc": "^0.8.36"
+    "solc": "^0.8.37"
   }
 }
