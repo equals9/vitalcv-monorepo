@@ -34,7 +34,7 @@
     "@radix-ui/react-toast": "latest",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@react-pdf/renderer": "^4.5.1",
-    "@sentry/nextjs": "^10.69.0",
+    "@sentry/nextjs": "^10.75.2",
     "@simplewebauthn/browser": "^13.3.0",
     "@trustgraph/client": "^1.7.2",
     "@trustgraph/react-provider": "^1.4.0",
