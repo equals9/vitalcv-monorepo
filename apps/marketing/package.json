@@ -11,20 +11,20 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "next": "15.5.25",
-    "pdfkit": "^0.19.1",
+    "pdfkit": "^0.20.2",
     "prisma": "^6.19.0",
     "react": "^19",
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/postcss": "^4.3.4",
     "@types/node": "^22",
-    "@types/pdfkit": "^0.17.6",
+    "@types/pdfkit": "^0.17.7",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint-config-next": "^15.5.9",
     "postcss": "^8.5",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.4",
     "typescript": "^5"
   }
 }
